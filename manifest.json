@@ -1,0 +1,21 @@
+{
+  "name": "البسه ی برازنده ی نقوی - محاسبه‌گر زمان دوخت",
+  "short_name": "محاسبه‌گر دوخت",
+  "description": "محاسبه‌ی زمان اتمام کار دوخت با احتساب استراحت‌های شیفت",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f3f4f6",
+  "theme_color": "#4f46e5",
+  "dir": "rtl",
+  "lang": "fa",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
