@@ -1,0 +1,14 @@
+{
+  "appId": "ir.sewingstats.app",
+  "appName": "سامانه آمار دوخت لباس",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "android": {
+    "allowMixedContent": true
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "iconColor": "#4f46e5"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "sewing-stats-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "سامانه آمار دوخت لباس — بسته‌بندی اندروید با Capacitor",
+  "scripts": {
+    "sync": "npx cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/core": "^6.1.2",
+    "@capacitor/local-notifications": "^6.1.0",
+    "capacitor-poolakey": "^1.0.5"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^6.1.2"
+  }
+}
