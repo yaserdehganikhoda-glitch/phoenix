@@ -28,12 +28,37 @@ jobs:
 
       - name: Add JitPack repository (required to resolve Poolakey)
         run: |
-          for f in android/settings.gradle; do
-            if [ -f "$f" ] && ! grep -q "jitpack.io" "$f"; then
-              sed -i "s#repositories {#repositories {\n        maven { url 'https://jitpack.io' }#g" "$f"
-            fi
-          done
-          cat android/settings.gradle
+          python3 - <<'PYEOF'
+          import re, os
+
+          def add_jitpack(path):
+              if not os.path.exists(path):
+                  print(f"skip (not found): {path}")
+                  return
+              with open(path, encoding='utf-8') as f:
+                  content = f.read()
+              if 'jitpack.io' in content:
+                  print(f"already present: {path}")
+                  return
+              new_content, n = re.subn(
+                  r'repositories\s*\{',
+                  "repositories {\n        maven { url 'https://jitpack.io' }",
+                  content
+              )
+              if n > 0:
+                  with open(path, 'w', encoding='utf-8') as f:
+                      f.write(new_content)
+                  print(f"updated {path} ({n} block(s))")
+              else:
+                  print(f"no 'repositories {{' block found in: {path}")
+
+          for p in ['android/settings.gradle', 'android/build.gradle', 'android/app/build.gradle']:
+              add_jitpack(p)
+          PYEOF
+          echo "----- settings.gradle -----"
+          cat android/settings.gradle 2>/dev/null || echo "(missing)"
+          echo "----- app/build.gradle -----"
+          cat android/app/build.gradle 2>/dev/null || echo "(missing)"
 
       - name: Sync web assets into Android project
         run: npx cap sync android
