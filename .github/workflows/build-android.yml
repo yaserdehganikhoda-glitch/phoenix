@@ -77,6 +77,10 @@ jobs:
 
       - name: Build unsigned release AAB
         run: cd android && ./gradlew bundleRelease
+
+      - name: Build unsigned release APK (permanent — signed with the real keystore below)
+        run: cd android && ./gradlew assembleRelease
+
       - name: Build debug APK (for direct install/testing on your own phone)
         run: cd android && ./gradlew assembleDebug
 
@@ -84,7 +88,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: debug-apk-for-testing
-          path: android/app/build/outputs/apk/debug/app-debug.apk     
+          path: android/app/build/outputs/apk/debug/app-debug.apk
 
       - name: Sign AAB
         uses: r0adkll/sign-android-release@v1
@@ -98,11 +102,29 @@ jobs:
         env:
           BUILD_TOOLS_VERSION: "34.0.0"
 
+      - name: Sign release APK
+        uses: r0adkll/sign-android-release@v1
+        id: sign_apk
+        with:
+          releaseDirectory: android/app/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.KEYSTORE_BASE64 }}
+          alias: ${{ secrets.KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+        env:
+          BUILD_TOOLS_VERSION: "34.0.0"
+
       - name: Upload signed AAB
         uses: actions/upload-artifact@v4
         with:
           name: signed-app-bundle
           path: ${{ steps.sign.outputs.signedReleaseFile }}
+
+      - name: Upload signed permanent APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: signed-apk-permanent
+          path: ${{ steps.sign_apk.outputs.signedReleaseFile }}
 
       - name: Commit generated android/ folder back (first run only)
         run: |
