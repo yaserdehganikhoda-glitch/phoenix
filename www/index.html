@@ -567,6 +567,26 @@
                     <span id="autoCalcInfoText"></span>
                 </div>
 
+                <div id="manualEndDateTimeWrap" class="hidden bg-amber-50/60 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/40 rounded-xl p-3">
+                    <p class="text-[11px] leading-relaxed text-amber-700 dark:text-amber-400 mb-2.5 flex items-start gap-1.5">
+                        <i class="fa-solid fa-triangle-exclamation mt-0.5"></i>
+                        <span>تاریخ ثبت مربوط به ماه گذشته است؛ محاسبه‌ی خودکار غیرفعال شد. تاریخ و ساعت پایان را به‌صورت دستی انتخاب کنید.</span>
+                    </p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-medium text-amber-700/80 dark:text-amber-400/80 mb-1">تاریخ پایان</label>
+                            <div class="relative">
+                                <input type="text" id="manualEndDate" required readonly onclick="openDatePicker('manualEndDate', event)" placeholder="انتخاب تاریخ" class="w-full p-2.5 pr-9 border border-amber-300 dark:border-amber-800 rounded-lg text-xs bg-white dark:bg-slate-800 dark:text-slate-100 cursor-pointer outline-none focus:ring-2 focus:ring-amber-500/20">
+                                <span class="absolute inset-y-0 right-2.5 flex items-center pointer-events-none text-amber-400 text-xs"><i class="fa-solid fa-calendar-days"></i></span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-medium text-amber-700/80 dark:text-amber-400/80 mb-1">ساعت پایان</label>
+                            <input type="time" id="manualEndTime" required oninput="syncManualEndDateTime()" class="w-full p-2.5 border border-amber-300 dark:border-amber-800 rounded-lg text-xs bg-white dark:bg-slate-800 dark:text-slate-100 outline-none focus:ring-2 focus:ring-amber-500/20">
+                        </div>
+                    </div>
+                </div>
+
                 <div id="deliveryDurationWrapper" class="hidden bg-amber-50/60 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/40 rounded-xl p-4 transition-all">
                     <label id="deliveryDurationLabel" class="block text-xs font-medium text-amber-700 dark:text-amber-400 mb-3 flex items-center gap-1.5">
                         <i class="fa-solid fa-hourglass-half"></i> مدت زمان تاخیر
@@ -3993,6 +4013,7 @@
             if (input) {
                 input.value = formatJalaliDate(jy, jm, day);
                 if (targetId === 'recordDate') { recordDateTouched = true; runAutoDeliveryCalculation(); }
+                if (targetId === 'manualEndDate') { syncManualEndDateTime(); }
             }
             closeDatePicker();
         }
@@ -4003,6 +4024,7 @@
             if (input) {
                 input.value = currentJalali.fullDateStr;
                 if (targetId === 'recordDate') { recordDateTouched = true; runAutoDeliveryCalculation(); }
+                if (targetId === 'manualEndDate') { syncManualEndDateTime(); }
             }
             closeDatePicker();
         }
@@ -5321,6 +5343,11 @@
             document.getElementById('recordWorkDuration').value = record.workDuration || '';
             document.getElementById('recordDate').value = record.date;
             document.getElementById('recordTime').value = record.time;
+            if (isRecordDateInPastMonth(record.date)) {
+                const endParts = (record.endDateTime || '').split(' - ');
+                document.getElementById('manualEndDate').value = endParts[0] ? endParts[0].trim() : '';
+                document.getElementById('manualEndTime').value = endParts[1] ? endParts[1].trim() : '';
+            }
             toggleDeliveryDurationField();
             if (record.durationTime === 'نامعلوم') {
                 document.getElementById('deliveryDurationUnknown').checked = true;
@@ -5378,6 +5405,7 @@
             document.getElementById('autoCalcInfoBox').classList.add('hidden');
             document.getElementById('recordEndDateTime').value = '';
             document.getElementById('recordWorkDuration').value = '';
+            disablePastMonthManualEnd();
 
             document.getElementById('formTitle').innerHTML = `<i class="fa-solid fa-circle-plus text-indigo-600 dark:text-indigo-400"></i> ثبت کارکرد جدید`;
             document.getElementById('submitBtn').className = "tactile-btn w-full bg-indigo-600 text-white py-3.5 rounded-xl font-medium text-sm hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow";
@@ -5945,6 +5973,65 @@
 
         // اجرای محاسبه‌ی خودکار: با تغییر «آمار روزانه»، «تعداد دریافتی» یا «ساعت ثبت»،
         // وضعیت تحویل و میزان تاخیر به‌صورت خودکار محاسبه و پر می‌شوند
+        // آیا تاریخ ثبت (رشته‌ی شمسی) مربوط به ماهی قبل از ماه جاری است؟
+        function isRecordDateInPastMonth(dateStr) {
+            const parts = toEnglishDigits((dateStr || '').trim()).split('/');
+            if (parts.length !== 3) return false;
+            const jy = parseInt(parts[0], 10), jm = parseInt(parts[1], 10);
+            if (isNaN(jy) || isNaN(jm)) return false;
+            const curY = parseInt(toEnglishDigits(currentJalali.year), 10);
+            const curM = currentJalali.monthNum;
+            return (jy < curY) || (jy === curY && jm < curM);
+        }
+
+        // برای کدهای ثبت‌شده با تاریخ ماه قبل، محاسبه‌ی خودکار زمان پایان معنی ندارد؛
+        // به‌جایش تاریخ/ساعت پایان با انتخاب دستیِ کاربر (تقویم + ساعت) پر می‌شود.
+        function enablePastMonthManualEnd() {
+            const infoBox = document.getElementById('autoCalcInfoBox');
+            const manualWrap = document.getElementById('manualEndDateTimeWrap');
+            const endDateTimeField = document.getElementById('recordEndDateTime');
+            infoBox.classList.add('hidden');
+            manualWrap.classList.remove('hidden');
+            endDateTimeField.readOnly = true; // این فیلد در این حالت فقط نمایش‌دهنده‌ی خلاصه است؛ ورودی واقعی دو فیلد پایین است
+            syncManualEndDateTime();
+        }
+
+        function disablePastMonthManualEnd() {
+            const manualWrap = document.getElementById('manualEndDateTimeWrap');
+            if (!manualWrap.classList.contains('hidden')) {
+                manualWrap.classList.add('hidden');
+                document.getElementById('manualEndDate').value = '';
+                document.getElementById('manualEndTime').value = '';
+            }
+        }
+
+        // ترکیب تاریخ و ساعت پایانِ دستی در فیلد خلاصه‌ی «تاریخ و زمان پایان»
+        // و محاسبه‌ی «مدت زمان تحویل کار» به‌صورت اختلاف ساده‌ی تقویمی (نه ساعات کاری) بین شروع و پایان
+        function syncManualEndDateTime() {
+            const endDateStr = document.getElementById('manualEndDate').value;
+            const endTimeStr = document.getElementById('manualEndTime').value;
+            const endDateTimeField = document.getElementById('recordEndDateTime');
+            const workDurationField = document.getElementById('recordWorkDuration');
+            endDateTimeField.value = (endDateStr && endTimeStr) ? `${endDateStr} - ${endTimeStr}` : '';
+
+            const startDateStr = document.getElementById('recordDate').value;
+            const startTimeStr = document.getElementById('recordTime').value;
+            if (!startDateStr || !startTimeStr || !endDateStr || !endTimeStr) {
+                if (workDurationField) workDurationField.value = '';
+                return;
+            }
+            const startJdn = parseJalaliDateToJdn(startDateStr);
+            const endJdn = parseJalaliDateToJdn(endDateStr);
+            if (!startJdn || !endJdn) { if (workDurationField) workDurationField.value = ''; return; }
+            const [sh, sm] = startTimeStr.split(':').map(Number);
+            const [eh, em] = endTimeStr.split(':').map(Number);
+            let totalMinutes = (endJdn - startJdn) * 1440 + (eh * 60 + em) - (sh * 60 + sm);
+            if (isNaN(totalMinutes) || totalMinutes < 0) totalMinutes = 0;
+            const hoursNeeded = Math.floor(totalMinutes / 60);
+            const minsNeeded = totalMinutes % 60;
+            if (workDurationField) workDurationField.value = `${String(hoursNeeded).padStart(2, '0')}:${String(minsNeeded).padStart(2, '0')}`;
+        }
+
         function runAutoDeliveryCalculation(keepStatus) {
             const infoBox = document.getElementById('autoCalcInfoBox');
             const infoText = document.getElementById('autoCalcInfoText');
@@ -5954,6 +6041,13 @@
             const startDateStr = document.getElementById('recordDate').value;
             const dailyStatVal = parsePersianInt(document.getElementById('dailyStat').value.trim());
             const receivedQtyVal = parsePersianInt(document.getElementById('receivedQuantity').value.trim());
+
+            if (isRecordDateInPastMonth(startDateStr)) {
+                enablePastMonthManualEnd();
+                if (!keepStatus) toggleDeliveryDurationField();
+                return;
+            }
+            disablePastMonthManualEnd();
 
             const result = calculateCompletionEstimate(startTimeStr, dailyStatVal, receivedQtyVal, startDateStr);
             if (!result) {
