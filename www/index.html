@@ -404,8 +404,8 @@
         <div class="flex flex-col items-center">
             <img src="icon-192.png" alt="لوگوی سامانه ی کارگاه هوشمند" class="w-24 h-24 rounded-2xl shadow-lg mb-5">
             <h1 class="text-2xl font-extrabold text-slate-800 dark:text-white tracking-tight">سامانه‌ی کارگاه هوشمند</h1>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">مدیریت هوشمند کارگاه  </p>
-            <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1">ساخته‌شده برای <span class="font-medium">تمامی صنف های کارگاهی</span></p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">مدیریت هوشمند کارگاه</p>
+            <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1">ساخته‌شده برای تمامی صنف‌های کارگاهی</p>
             <div class="mt-6 flex items-center gap-1.5">
                 <span class="w-2 h-2 rounded-full bg-indigo-500 animate-bounce" style="animation-delay:0ms"></span>
                 <span class="w-2 h-2 rounded-full bg-indigo-500 animate-bounce" style="animation-delay:150ms"></span>
@@ -415,7 +415,7 @@
         <div class="text-[11px] leading-relaxed text-slate-400 dark:text-slate-500">
             <p>نسخه ۱.۰.۰</p>
             <p class="mt-1">تیم پروژه و سازنده: <span class="font-medium text-slate-500 dark:text-slate-400">Phoenix.Yaser</span></p>
-            <p class="mt-1">پشتیبانی: <span class="font-medium text-slate-500 dark:text-slate-400" dir="ltr">[@Freedom_Phoenix_Tabrizدی پشتیبانی]</span></p>
+            <p class="mt-1">پشتیبانی: <span class="font-medium text-slate-500 dark:text-slate-400" dir="ltr">@Freedom_Phoenix_Tabriz</span></p>
             <p class="mt-1">تمامی حقوق محفوظ است © <span id="splashYear"></span></p>
         </div>
     </div>
@@ -3763,8 +3763,18 @@
         /* ============ مدیریت ذخیره‌سازی خودکار در پوشه‌ی دستگاه (پوشه‌ی جدا برای هر ماه) ============ */
         let appDirHandle = null;
         let dirHandlePermissionState = 'unknown'; // 'granted' | 'prompt' | 'denied' | 'unknown'
-        const supportsFileSystemAccess = 'showDirectoryPicker' in window;
-        const supportsSaveFilePicker = 'showSaveFilePicker' in window;
+        // در اپ نصب‌شده (Capacitor/WebView اندروید)، ورودی «showDirectoryPicker» و «navigator.share» با فایل
+        // ممکن است در پنجره وجود داشته باشند اما هر بار با خطا مواجه شوند؛ چون این دو قابلیت فقط داخل
+        // مرورگر واقعی (کروم/اج) کار می‌کنند، نه داخل پوسته‌ی WebView برنامه‌ی نصب‌شده. برای همین این دو
+        // قابلیت را در اپ نصب‌شده از همان ابتدا غیرفعال در نظر می‌گیریم تا پیام درست و دکمه‌ی درست نمایش داده شود.
+        function isRunningInInstalledApp() {
+            return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+        }
+        function getNativePlugin(name) {
+            return (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins[name]) || null;
+        }
+        const supportsFileSystemAccess = ('showDirectoryPicker' in window) && !isRunningInInstalledApp();
+        const supportsSaveFilePicker = ('showSaveFilePicker' in window) && !isRunningInInstalledApp();
 
         /*
          * ذخیره‌ی فایل پشتیبان:
@@ -3783,6 +3793,25 @@
         }
 
         async function saveBackupFile(filename, jsonString, { onSuccess } = {}) {
+            if (isRunningInInstalledApp()) {
+                const FS = getNativePlugin('Filesystem');
+                if (FS) {
+                    try {
+                        const monthFolder = filename.replace(/\.json$/i, '');
+                        const path = `کارگاه_هوشمند_پشتیبان/${monthFolder}/${filename}`;
+                        await FS.writeFile({ path, data: jsonString, directory: 'DOCUMENTS', encoding: 'utf8', recursive: true });
+                        updateBackupFolderStatusUI();
+                        if (onSuccess) onSuccess('native-documents');
+                        return true;
+                    } catch (err) {
+                        console.warn('ذخیره پشتیبان با پلاگین Filesystem ناموفق بود:', err);
+                        showFeedbackBanner('ذخیره پشتیبان در حافظه دستگاه ناموفق بود: ' + (err && err.message ? err.message : err), 'warn');
+                        return false;
+                    }
+                }
+                showFeedbackBanner('پلاگین ذخیره‌سازی (Filesystem) در این نسخه از اپ فعال نیست؛ پشتیبان ذخیره نشد.', 'warn');
+                return false;
+            }
             if (backupDirHandle) {
                 try {
                     let perm = await backupDirHandle.queryPermission({ mode: 'readwrite' });
@@ -3836,7 +3865,9 @@
 
         async function chooseBackupFolder() {
             if (!supportsFileSystemAccess) {
-                showFeedbackBanner('مرورگر شما از انتخاب پوشه پشتیبان پشتیبانی نمی‌کند (فقط Chrome/Edge روی رایانه یا اندروید). فایل پشتیبان در پوشه دانلودها ذخیره می‌شود.', 'warn');
+                showFeedbackBanner(isRunningInInstalledApp()
+                    ? 'انتخاب پوشه پشتیبان در اپ نصب‌شده پشتیبانی نمی‌شود (محدودیت پوسته‌ی WebView اندروید، نه مشکل برنامه). به‌جای آن از دکمه «پشتیبان‌گیری» فایل را دانلود کنید و با مدیریت فایل گوشی یا برنامه‌ی فضای ابری، آن را منتقل کنید.'
+                    : 'مرورگر شما از انتخاب پوشه پشتیبان پشتیبانی نمی‌کند (فقط Chrome/Edge روی رایانه یا اندروید). فایل پشتیبان در پوشه دانلودها ذخیره می‌شود.', 'warn');
                 return;
             }
             try {
@@ -3882,6 +3913,15 @@
             const chooseBtn = document.getElementById('backupFolderChooseBtn');
             const disconnectBtn = document.getElementById('backupFolderDisconnectBtn');
             if (!statusEl) return;
+            if (isRunningInInstalledApp()) {
+                statusEl.innerText = getNativePlugin('Filesystem')
+                    ? `وضعیت: فعال — ذخیره خودکار در حافظه دستگاه (Documents/کارگاه_هوشمند_پشتیبان/${getMonthlyBackupFileName().replace(/\.json$/i, '')})`
+                    : 'پلاگین ذخیره‌سازی در این نسخه از اپ فعال نیست؛ پشتیبان ذخیره نمی‌شود.';
+                statusEl.className = getNativePlugin('Filesystem') ? 'text-xs font-semibold text-emerald-600 dark:text-emerald-400' : 'text-xs font-semibold text-rose-600 dark:text-rose-400';
+                if (chooseBtn) chooseBtn.classList.add('hidden');
+                if (disconnectBtn) disconnectBtn.classList.add('hidden');
+                return;
+            }
             if (!supportsFileSystemAccess) {
                 statusEl.innerText = 'این مرورگر از انتخاب پوشه پشتیبانی نمی‌کند؛ پشتیبان‌ها در پوشه دانلودها ذخیره می‌شوند.';
                 statusEl.className = 'text-xs font-semibold text-slate-400';
@@ -4260,7 +4300,9 @@
 
         async function chooseStorageFolder() {
             if (!supportsFileSystemAccess) {
-                showFeedbackBanner('مرورگر شما از ذخیره‌سازی مستقیم در پوشه دستگاه پشتیبانی نمی‌کند (این قابلیت فقط در Chrome/Edge روی رایانه یا اندروید در دسترس است). می‌توانید از گزینه «پشتیبان‌گیری» برای ذخیره دستی فایل استفاده کنید.', 'warn');
+                showFeedbackBanner(isRunningInInstalledApp()
+                    ? 'اتصال مستقیم به پوشه دستگاه در اپ نصب‌شده پشتیبانی نمی‌شود (محدودیت پوسته‌ی WebView اندروید). داده‌ها همچنان داخل خود برنامه ذخیره می‌مانند؛ برای پشتیبان از گزینه «پشتیبان‌گیری» استفاده کنید.'
+                    : 'مرورگر شما از ذخیره‌سازی مستقیم در پوشه دستگاه پشتیبانی نمی‌کند (این قابلیت فقط در Chrome/Edge روی رایانه یا اندروید در دسترس است). می‌توانید از گزینه «پشتیبان‌گیری» برای ذخیره دستی فایل استفاده کنید.', 'warn');
                 return;
             }
             try {
@@ -4430,7 +4472,9 @@
             if (saveBtn) saveBtn.classList.toggle('hidden', !appDirHandle || !supportsFileSystemAccess);
             if (!statusEl) return;
             if (!supportsFileSystemAccess) {
-                statusEl.innerText = 'این مرورگر از انتخاب پوشه پشتیبانی نمی‌کند؛ فقط ذخیره‌ی مرورگر فعال است.';
+                statusEl.innerText = isRunningInInstalledApp()
+                    ? 'در اپ نصب‌شده، اتصال به پوشه دستگاه پشتیبانی نمی‌شود؛ فقط ذخیره‌ی داخل برنامه فعال است.'
+                    : 'این مرورگر از انتخاب پوشه پشتیبانی نمی‌کند؛ فقط ذخیره‌ی مرورگر فعال است.';
                 statusEl.className = 'text-xs font-semibold text-slate-400';
                 if (chooseBtn) chooseBtn.classList.add('hidden');
                 if (disconnectBtn) disconnectBtn.classList.add('hidden');
@@ -5782,6 +5826,34 @@
             const jsonFilename = getMonthlyBackupFileName();
             const jsonString = JSON.stringify(buildBackupPayload(), null, 2);
 
+            if (isRunningInInstalledApp()) {
+                const FS = getNativePlugin('Filesystem');
+                const ShareApi = getNativePlugin('Share');
+                if (FS && ShareApi) {
+                    try {
+                        const path = `پشتیبان_موقت_اشتراک‌گذاری/${jsonFilename}`;
+                        await FS.writeFile({ path, data: jsonString, directory: 'CACHE', encoding: 'utf8', recursive: true });
+                        const uriResult = await FS.getUri({ path, directory: 'CACHE' });
+                        await ShareApi.share({
+                            title: 'پشتیبان سامانه ی کارگاه هوشمند',
+                            text: `فایل پشتیبان ماه جاری (${jsonFilename})`,
+                            url: uriResult.uri,
+                            dialogTitle: 'ارسال فایل پشتیبان'
+                        });
+                        addLog('فایل پشتیبان از طریق منوی اشتراک‌گذاری سیستم ارسال شد.', 'success');
+                        showFeedbackBanner('پنجره‌ی اشتراک‌گذاری سیستم باز شد؛ برنامه‌ی فضای ابری دلخواه را برای ذخیره‌ی فایل انتخاب کنید.', 'success');
+                    } catch (err) {
+                        const msg = (err && err.message) ? err.message : '';
+                        if (/cancel/i.test(msg)) return; // کاربر از پنجره‌ی اشتراک‌گذاری صرف‌نظر کرد
+                        console.warn('ارسال فایل پشتیبان (اپ نصب‌شده) ناموفق بود:', err);
+                        showFeedbackBanner('ارسال فایل پشتیبان انجام نشد. می‌توانید از گزینه «پشتیبان‌گیری» فایل را دانلود و سپس دستی در فضای ابری بارگذاری کنید.', 'warn');
+                    }
+                    return;
+                }
+                showFeedbackBanner('ارسال مستقیم فایل به فضای ابری در این نسخه از اپ فعال نیست (پلاگین‌های Filesystem/Share به پروژه اضافه نشده‌اند).', 'warn');
+                return;
+            }
+
             /*
              * نکته مهم: Web Share API روی کروم/اندروید فقط اشتراک‌گذاری فایل با پسوند/نوع MIME
              * مشخصی رو مجاز می‌کنه (لیست سفید امنیتی داخل خود مرورگر) و «application/json» و
@@ -5800,10 +5872,12 @@
                 return;
             }
 
-            const canUseShare = !!(navigator.share && navigator.canShare && navigator.canShare({ files: [file] }));
+            const canUseShare = !!(navigator.share && navigator.canShare && navigator.canShare({ files: [file] }) && !isRunningInInstalledApp());
             if (!canUseShare) {
                 // تشخیص دقیق‌تر علت عدم پشتیبانی، به‌جای پیام کلی گمراه‌کننده
-                if (!window.isSecureContext || location.protocol === 'file:') {
+                if (isRunningInInstalledApp()) {
+                    showFeedbackBanner('ارسال مستقیم فایل به فضای ابری در اپ نصب‌شده فعال نیست (محدودیت پوسته‌ی WebView اندروید). به‌جای آن از گزینه «پشتیبان‌گیری» فایل را دانلود کنید و از طریق مدیریت فایل گوشی یا برنامه‌ی فضای ابری آن را بارگذاری کنید.', 'warn');
+                } else if (!window.isSecureContext || location.protocol === 'file:') {
                     console.warn('اشتراک‌گذاری فایل غیرفعال است چون صفحه از یک منبع امن (https) بارگذاری نشده. protocol:', location.protocol);
                     showFeedbackBanner('اشتراک‌گذاری مستقیم فایل نیاز به بارگذاری برنامه از یک آدرس امن (https) دارد؛ باز کردن مستقیم فایل روی گوشی (یا میان‌بر ساخته‌شده از آن) این قابلیت را غیرفعال می‌کند، حتی روی اندروید/آیفون. برنامه را روی یک آدرس https میزبانی کنید یا از گزینه «پشتیبان‌گیری» فایل را دانلود و در فضای ابری بارگذاری کنید.', 'warn');
                 } else {
