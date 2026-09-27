@@ -1,15 +1,17 @@
 {
-  "name": "sewing-stats-app",
+  "name": "kargah-hooshmand-app",
   "version": "1.0.0",
   "private": true,
-  "description": "سامانه آمار دوخت لباس — بسته‌بندی اندروید با Capacitor",
+  "description": "سامانه‌ی کارگاه هوشمند — بسته‌بندی اندروید با Capacitor",
   "scripts": {
     "sync": "npx cap sync android"
   },
   "dependencies": {
     "@capacitor/android": "^6.1.2",
     "@capacitor/core": "^6.1.2",
+    "@capacitor/filesystem": "^6.0.1",
     "@capacitor/local-notifications": "^6.1.0",
+    "@capacitor/share": "^6.0.2",
     "capacitor-poolakey": "^6.0.0"
   },
   "devDependencies": {
