@@ -3716,7 +3716,7 @@
                 appSettings.pinEnabled = false;
                 appSettings.updatedAt = new Date().toISOString();
                 localStorage.setItem('sewing_app_settings_v13', JSON.stringify(appSettings));
-                if (appDirHandle) saveAllMonthFilesToDirectory();
+                if (storageFolderIsActive()) saveAllMonthFilesToDirectory();
                 updatePinLockStatusUI();
                 addLog('قفل ورود به برنامه غیرفعال شد.', 'warn');
                 showFeedbackBanner('قفل ورود به برنامه غیرفعال شد.', 'info');
@@ -3731,7 +3731,7 @@
                 appSettings.pinEnabled = true;
                 appSettings.updatedAt = new Date().toISOString();
                 localStorage.setItem('sewing_app_settings_v13', JSON.stringify(appSettings));
-                if (appDirHandle) saveAllMonthFilesToDirectory();
+                if (storageFolderIsActive()) saveAllMonthFilesToDirectory();
                 updatePinLockStatusUI();
                 addLog('قفل ورود به برنامه فعال شد.', 'success');
                 showFeedbackBanner('قفل ورود به برنامه فعال شد.', 'success');
@@ -3751,7 +3751,7 @@
             appSettings.pinEnabled = true;
             appSettings.updatedAt = new Date().toISOString();
             localStorage.setItem('sewing_app_settings_v13', JSON.stringify(appSettings));
-            if (appDirHandle) saveAllMonthFilesToDirectory();
+            if (storageFolderIsActive()) saveAllMonthFilesToDirectory();
             document.getElementById('settingNewPin').value = '';
             document.getElementById('settingConfirmPin').value = '';
             updatePinLockStatusUI();
@@ -3775,6 +3775,15 @@
         }
         const supportsFileSystemAccess = ('showDirectoryPicker' in window) && !isRunningInInstalledApp();
         const supportsSaveFilePicker = ('showSaveFilePicker' in window) && !isRunningInInstalledApp();
+
+        // پوشه ذخیره داده در اپ نصب‌شده (Capacitor/WebView اندروید): چون انتخاب پوشه‌ی دلخواه
+        // (showDirectoryPicker) در WebView کار نمی‌کند، از همان الگوی «پوشه پشتیبان» استفاده می‌شود:
+        // یک پوشه‌ی ثابت داخل حافظه‌ی دستگاه (Documents) با پلاگین Filesystem، بدون نیاز به انتخاب دستی.
+        let nativeStorageFolderActive = false;
+        const NATIVE_STORAGE_FOLDER_BASE = 'کارگاه_هوشمند_ذخیره_داده';
+        function storageFolderIsActive() {
+            return isRunningInInstalledApp() ? nativeStorageFolderActive : !!appDirHandle;
+        }
 
         /*
          * ذخیره‌ی فایل پشتیبان:
@@ -3950,6 +3959,7 @@
         // جدا (snapshot) در زیرپوشه‌ی «backups» ذخیره می‌شود و فقط N نسخه‌ی اخیر نگه داشته می‌شود؛
         // این یعنی حتی اگر داده‌ی زنده خراب/حذف شود، چند روز اخیر همیشه قابل بازیابی است.
         async function saveRotatingBackupToFolder(force) {
+            if (isRunningInInstalledApp()) return saveRotatingBackupNative(force);
             if (!appDirHandle) return false;
             try {
                 const perm = await appDirHandle.queryPermission({ mode: 'readwrite' });
@@ -3989,9 +3999,53 @@
             }
         }
 
+        /* ---- نسخه‌ی اپ نصب‌شده: همان نسخه‌ی چرخشی روزانه، اما در Documents/<پوشه‌ی ذخیره داده>/backups
+           با پلاگین Filesystem ---- */
+        async function saveRotatingBackupNative(force) {
+            const FS = getNativePlugin('Filesystem');
+            if (!FS) return false;
+            try {
+                const todayStr = currentJalali.fullDateStr;
+                const lastRotatingDate = localStorage.getItem('sewing_last_rotating_backup_date');
+                if (!force && lastRotatingDate === todayStr) return false; // حداکثر یک بار در روز (به‌صورت خودکار)
+
+                const backupsPath = `${NATIVE_STORAGE_FOLDER_BASE}/backups`;
+                const monthTag = toEnglishDigits(currentJalali.yearEn) + '-' + String(currentJalali.monthNum).padStart(2, '0');
+                const fileName = `نسخه_${monthTag}.json`;
+                await FS.writeFile({
+                    path: `${backupsPath}/${fileName}`, directory: 'DOCUMENTS', encoding: 'utf8', recursive: true,
+                    data: JSON.stringify({
+                        version: "13.0", app: "sewing_statistics", timestamp: new Date().toISOString(),
+                        settings: appSettings, records: allRecords, notes: dailyNotes,
+                        installSalt: getOrCreateInstallSalt(), tombstones: tombstones
+                    }, null, 2)
+                });
+
+                // نگه‌داشتن فقط N نسخه‌ی اخیر
+                try {
+                    const res = await FS.readdir({ path: backupsPath, directory: 'DOCUMENTS' });
+                    const files = ((res && res.files) ? res.files : [])
+                        .map(e => typeof e === 'string' ? e : (e && e.name))
+                        .filter(name => name && name.startsWith('نسخه_') && name.endsWith('.json'))
+                        .sort();
+                    const toDelete = files.slice(0, Math.max(0, files.length - ROTATING_BACKUP_KEEP_COUNT));
+                    for (const name of toDelete) {
+                        try { await FS.deleteFile({ path: `${backupsPath}/${name}`, directory: 'DOCUMENTS' }); } catch (e) { /* بی‌اهمیت */ }
+                    }
+                } catch (e) { /* بی‌اهمیت؛ پوشه‌ی backups تازه ساخته شده */ }
+
+                localStorage.setItem('sewing_last_rotating_backup_date', todayStr);
+                addLog(`نسخه پشتیبان ماه جاری در پوشه ذخیره داده (backups) به‌روزرسانی شد (نسخه‌ی ${ROTATING_BACKUP_KEEP_COUNT} ماه اخیر نگه‌داری می‌شود).`, 'success');
+                return true;
+            } catch (e) {
+                console.warn('خطا در ذخیره‌ی نسخه پشتیبان چرخشی (اپ نصب‌شده):', e);
+                return false;
+            }
+        }
+
         async function manualRotatingBackupNow() {
             closeToolsDropdown();
-            if (!appDirHandle) { showFeedbackBanner('ابتدا از «تنظیمات ← حافظه» یک پوشه ذخیره‌سازی متصل کنید.', 'warn'); return; }
+            if (!storageFolderIsActive()) { showFeedbackBanner('ابتدا از «تنظیمات ← حافظه» یک پوشه ذخیره‌سازی متصل کنید.', 'warn'); return; }
             const ok = await saveRotatingBackupToFolder(true);
             showFeedbackBanner(ok ? 'نسخه پشتیبان چرخشی جدید در زیرپوشه‌ی «backups» ذخیره شد.' : 'ذخیره‌ی نسخه پشتیبان چرخشی ناموفق بود.', ok ? 'success' : 'warn');
         }
@@ -4069,7 +4123,7 @@
         }
 
         function saveAllMonthFilesToDirectory() {
-            if (!appDirHandle) return Promise.resolve();
+            if (!storageFolderIsActive()) return Promise.resolve();
             if (folderSaveRunning) {
                 folderSaveQueued = true;
                 return folderSavePromise;
@@ -4079,13 +4133,116 @@
                 try {
                     do {
                         folderSaveQueued = false;
-                        await saveAllMonthFilesToDirectoryImpl();
+                        await (isRunningInInstalledApp() ? saveAllMonthFilesNative() : saveAllMonthFilesToDirectoryImpl());
                     } while (folderSaveQueued);
                 } finally {
                     folderSaveRunning = false;
                 }
             })();
             return folderSavePromise;
+        }
+
+        /* ---- نسخه‌ی اپ نصب‌شده (Capacitor): همان ساختار «یک پوشه برای هر ماه + فایل تنظیمات»،
+           اما با پلاگین Filesystem به‌جای FileSystemDirectoryHandle مرورگر ---- */
+        async function saveAllMonthFilesNative() {
+            const FS = getNativePlugin('Filesystem');
+            if (!FS) { nativeStorageFolderActive = false; updateStorageFolderStatusUI(); return; }
+            try {
+                const recordsSnapshot = allRecords.slice();
+                const notesSnapshot = dailyNotes.slice();
+                const monthKeys = new Set(recordsSnapshot.map(r => r.monthKey));
+                monthKeys.add(currentJalali.monthKey);
+
+                for (const monthKey of monthKeys) {
+                    const monthRecords = recordsSnapshot.filter(r => r.monthKey === monthKey);
+                    const sig = monthRecordsSignature(monthRecords);
+                    if (folderWrittenSig.get(monthKey) === sig) continue;
+                    const [year, monthNumStr] = String(monthKey).split('-');
+                    const monthNum = parseInt(monthNumStr, 10);
+                    const monthName = PERSIAN_MONTHS[monthNum - 1] || 'نامشخص';
+                    const path = `${NATIVE_STORAGE_FOLDER_BASE}/${getMonthFolderName(monthKey)}/${getMonthFileName(monthKey)}`;
+                    await FS.writeFile({
+                        path, directory: 'DOCUMENTS', encoding: 'utf8', recursive: true,
+                        data: JSON.stringify({ app: 'sewing_statistics', monthKey, monthName, year, updatedAt: new Date().toISOString(), records: monthRecords }, null, 2)
+                    });
+                    folderWrittenSig.set(monthKey, sig);
+                }
+
+                const settingsPayload = { notes: notesSnapshot, settings: appSettings, installSalt: getOrCreateInstallSalt(), tombstones: tombstones };
+                const settingsSig = JSON.stringify(settingsPayload);
+                if (settingsSig !== folderSettingsSig) {
+                    await FS.writeFile({
+                        path: `${NATIVE_STORAGE_FOLDER_BASE}/${SETTINGS_FILE_NAME}`, directory: 'DOCUMENTS', encoding: 'utf8', recursive: true,
+                        data: JSON.stringify({ app: 'sewing_statistics', updatedAt: new Date().toISOString(), ...settingsPayload }, null, 2)
+                    });
+                    folderSettingsSig = settingsSig;
+                }
+
+                nativeStorageFolderActive = true;
+                dirHandlePermissionState = 'granted';
+                updateStorageFolderStatusUI();
+                saveRotatingBackupToFolder();
+            } catch (err) {
+                console.error('خطا در ذخیره فایل‌های پوشه ذخیره داده (اپ نصب‌شده):', err);
+                addLog('خطا در ذخیره‌سازی خودکار در پوشه ذخیره داده (حافظه دستگاه).', 'warn');
+            }
+        }
+
+        async function loadAllMonthFilesNative() {
+            const result = { records: [], notes: null, settings: null, salt: null, tombstones: null, hasAnyFile: false };
+            const FS = getNativePlugin('Filesystem');
+            if (!FS) return result;
+
+            function absorbParsedFile(parsed) {
+                if (!parsed || parsed.app !== 'sewing_statistics') return;
+                result.hasAnyFile = true;
+                if (Array.isArray(parsed.records)) parsed.records.forEach(rr => { const clean = sanitizeRecord(rr); if (clean) result.records.push(clean); });
+                if (parsed.notes || parsed.settings) {
+                    result.notes = parsed.notes || result.notes;
+                    result.settings = parsed.settings || result.settings;
+                    if (parsed.installSalt) result.salt = parsed.installSalt;
+                    if (parsed.tombstones) { const tb = normalizeTombstones(parsed.tombstones); result.tombstones = result.tombstones ? mergeTombstones(result.tombstones, tb) : tb; }
+                }
+            }
+            async function readJsonSafe(path) {
+                try {
+                    const res = await FS.readFile({ path, directory: 'DOCUMENTS', encoding: 'utf8' });
+                    return JSON.parse(res.data);
+                } catch (e) { return null; }
+            }
+
+            let topEntries = [];
+            try {
+                const res = await FS.readdir({ path: NATIVE_STORAGE_FOLDER_BASE, directory: 'DOCUMENTS' });
+                topEntries = (res && res.files) ? res.files : [];
+            } catch (e) {
+                return result; // پوشه هنوز ساخته نشده؛ یعنی هنوز چیزی ذخیره نشده است
+            }
+
+            for (const entry of topEntries) {
+                const name = typeof entry === 'string' ? entry : (entry && entry.name);
+                if (!name) continue;
+                if (name.toLowerCase().endsWith('.json')) {
+                    absorbParsedFile(await readJsonSafe(`${NATIVE_STORAGE_FOLDER_BASE}/${name}`));
+                    continue;
+                }
+                // احتمالاً پوشه‌ی مخصوص یک ماه است
+                try {
+                    const inner = await FS.readdir({ path: `${NATIVE_STORAGE_FOLDER_BASE}/${name}`, directory: 'DOCUMENTS' });
+                    const innerFiles = (inner && inner.files) ? inner.files : [];
+                    for (const innerEntry of innerFiles) {
+                        const innerName = typeof innerEntry === 'string' ? innerEntry : (innerEntry && innerEntry.name);
+                        if (!innerName || !innerName.toLowerCase().endsWith('.json')) continue;
+                        absorbParsedFile(await readJsonSafe(`${NATIVE_STORAGE_FOLDER_BASE}/${name}/${innerName}`));
+                    }
+                } catch (e) { /* فایل بود نه پوشه، یا قابل خواندن نبود؛ نادیده گرفته می‌شود */ }
+            }
+
+            const newest = new Map();
+            result.records.forEach(r => { const cur = newest.get(r.id); if (!cur || r.updatedAt > cur.updatedAt) newest.set(r.id, r); });
+            result.records = [...newest.values()];
+            if (Array.isArray(result.notes)) result.notes = result.notes.map(sanitizeNote).filter(Boolean);
+            return result;
         }
 
         async function saveAllMonthFilesToDirectoryImpl() {
@@ -4202,6 +4359,7 @@
         }
 
         async function loadAllMonthFilesFromDirectory() {
+            if (isRunningInInstalledApp()) return loadAllMonthFilesNative();
             const collectedRecords = [];
             let collectedNotes = null;
             let collectedSettings = null;
@@ -4301,7 +4459,7 @@
         async function chooseStorageFolder() {
             if (!supportsFileSystemAccess) {
                 showFeedbackBanner(isRunningInInstalledApp()
-                    ? 'اتصال مستقیم به پوشه دستگاه در اپ نصب‌شده پشتیبانی نمی‌شود (محدودیت پوسته‌ی WebView اندروید). داده‌ها همچنان داخل خود برنامه ذخیره می‌مانند؛ برای پشتیبان از گزینه «پشتیبان‌گیری» استفاده کنید.'
+                    ? 'در اپ نصب‌شده، پوشه ذخیره داده به‌صورت خودکار در حافظه دستگاه فعال است و نیازی به انتخاب دستی پوشه نیست.'
                     : 'مرورگر شما از ذخیره‌سازی مستقیم در پوشه دستگاه پشتیبانی نمی‌کند (این قابلیت فقط در Chrome/Edge روی رایانه یا اندروید در دسترس است). می‌توانید از گزینه «پشتیبان‌گیری» برای ذخیره دستی فایل استفاده کنید.', 'warn');
                 return;
             }
@@ -4344,6 +4502,17 @@
         // در هر لحظه با یک لمس، نوشتن فوریِ همه‌ی فایل‌های ماه/تنظیمات را در پوشه‌ی متصل‌شده تضمین کند
         // (مثلاً درست قبل از بستن برنامه یا خاموش کردن دستگاه، برای خیالِ راحت).
         async function manualSaveToFolder() {
+            if (isRunningInInstalledApp()) {
+                if (!nativeStorageFolderActive) {
+                    showFeedbackBanner('پلاگین ذخیره‌سازی (Filesystem) در این نسخه از اپ فعال نیست؛ ذخیره در پوشه دستگاه انجام نشد.', 'warn');
+                    return;
+                }
+                resetFolderWriteCache(); // تا حتی بدون تغییرِ تازه هم، همه‌ی فایل‌ها همین الان بازنویسی و تضمین شوند
+                await saveAllMonthFilesToDirectory();
+                addLog('ذخیره دستی در پوشه ذخیره داده (حافظه دستگاه) انجام شد.', 'success');
+                showFeedbackBanner(`داده‌ها همین الان در پوشه «Documents/${NATIVE_STORAGE_FOLDER_BASE}» ذخیره شد.`, 'success');
+                return;
+            }
             if (!supportsFileSystemAccess) {
                 showFeedbackBanner('مرورگر شما از این قابلیت پشتیبانی نمی‌کند (فقط در Chrome/Edge روی رایانه یا اندروید در دسترس است).', 'warn');
                 return;
@@ -4382,6 +4551,39 @@
         // متصل‌شده (همان پوشه‌ای که مجوزش معمولاً هر بار موقع ورود گرفته می‌شود، مثلاً در اندروید)
         // داده‌ها را بخواند و با داده‌های فعلی برنامه ادغام کند.
         async function manualLoadFromFolder() {
+            if (isRunningInInstalledApp()) {
+                if (!nativeStorageFolderActive) {
+                    showFeedbackBanner('پلاگین ذخیره‌سازی (Filesystem) در این نسخه از اپ فعال نیست.', 'warn');
+                    return;
+                }
+                try {
+                    const loaded = await loadAllMonthFilesNative();
+                    if (!loaded.hasAnyFile) {
+                        showFeedbackBanner('هیچ فایل داده‌ای در پوشه ذخیره داده پیدا نشد.', 'warn');
+                        return;
+                    }
+                    allRecords = mergeById(allRecords, loaded.records, 'records', loaded.tombstones);
+                    if (loaded.notes) dailyNotes = mergeById(dailyNotes, loaded.notes, 'notes', null);
+                    if (loaded.settings) {
+                        const localUpdatedAt = appSettings.updatedAt ? new Date(appSettings.updatedAt).getTime() : 0;
+                        const folderUpdatedAt = loaded.settings.updatedAt ? new Date(loaded.settings.updatedAt).getTime() : 0;
+                        if (folderUpdatedAt > localUpdatedAt) {
+                            appSettings = sanitizeSettings(adoptExternalSettings(loaded.settings, loaded.salt));
+                            localStorage.setItem('sewing_app_settings_v13', JSON.stringify(appSettings));
+                            applyAppSettingsToUI();
+                        }
+                    }
+                    saveRecords();
+                    renderDashboard();
+                    updateStorageFolderStatusUI();
+                    addLog('بارگذاری دستی از پوشه ذخیره داده (حافظه دستگاه) انجام شد.', 'success');
+                    showFeedbackBanner(`بارگذاری از پوشه ذخیره داده با موفقیت انجام شد. تعداد کل رکوردها اکنون: ${formatNumber(allRecords.length)}`, 'success');
+                } catch (err) {
+                    console.error(err);
+                    showFeedbackBanner('خطا در بارگذاری از پوشه ذخیره داده.', 'warn');
+                }
+                return;
+            }
             if (!supportsFileSystemAccess) {
                 showFeedbackBanner('مرورگر شما از این قابلیت پشتیبانی نمی‌کند (فقط در Chrome/Edge روی رایانه یا اندروید در دسترس است).', 'warn');
                 return;
@@ -4467,14 +4669,21 @@
             const chooseBtn = document.getElementById('dataFolderChooseBtn');
             const disconnectBtn = document.getElementById('dataFolderDisconnectBtn');
             const loadBtn = document.getElementById('dataFolderLoadBtn');
-            if (loadBtn) loadBtn.classList.toggle('hidden', !appDirHandle || !supportsFileSystemAccess);
             const saveBtn = document.getElementById('dataFolderSaveBtn');
-            if (saveBtn) saveBtn.classList.toggle('hidden', !appDirHandle || !supportsFileSystemAccess);
+            if (loadBtn) loadBtn.classList.toggle('hidden', !storageFolderIsActive());
+            if (saveBtn) saveBtn.classList.toggle('hidden', !storageFolderIsActive());
             if (!statusEl) return;
+            if (isRunningInInstalledApp()) {
+                statusEl.innerText = nativeStorageFolderActive
+                    ? `وضعیت: فعال — ذخیره خودکار در حافظه دستگاه (Documents/${NATIVE_STORAGE_FOLDER_BASE})`
+                    : 'پلاگین ذخیره‌سازی (Filesystem) در این نسخه از اپ فعال نیست؛ داده فقط داخل برنامه ذخیره می‌شود.';
+                statusEl.className = nativeStorageFolderActive ? 'text-xs font-semibold text-emerald-600 dark:text-emerald-400' : 'text-xs font-semibold text-rose-600 dark:text-rose-400';
+                if (chooseBtn) chooseBtn.classList.add('hidden');
+                if (disconnectBtn) disconnectBtn.classList.add('hidden');
+                return;
+            }
             if (!supportsFileSystemAccess) {
-                statusEl.innerText = isRunningInInstalledApp()
-                    ? 'در اپ نصب‌شده، اتصال به پوشه دستگاه پشتیبانی نمی‌شود؛ فقط ذخیره‌ی داخل برنامه فعال است.'
-                    : 'این مرورگر از انتخاب پوشه پشتیبانی نمی‌کند؛ فقط ذخیره‌ی مرورگر فعال است.';
+                statusEl.innerText = 'این مرورگر از انتخاب پوشه پشتیبانی نمی‌کند؛ فقط ذخیره‌ی مرورگر فعال است.';
                 statusEl.className = 'text-xs font-semibold text-slate-400';
                 if (chooseBtn) chooseBtn.classList.add('hidden');
                 if (disconnectBtn) disconnectBtn.classList.add('hidden');
@@ -4501,6 +4710,23 @@
             const menuIcon = document.getElementById('folderMenuBtnIcon');
             const disconnectBtn = document.getElementById('folderDisconnectBtn');
             if (!line) return;
+
+            if (isRunningInInstalledApp()) {
+                if (nativeStorageFolderActive) {
+                    line.className = "inline-flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-950/50 px-3 py-1 rounded-full border border-emerald-100 dark:border-emerald-900";
+                    line.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> ذخیره خودکار در پوشه دستگاه فعال است`;
+                    line.onclick = null;
+                    if (menuLabel) menuLabel.innerText = 'تنظیمات پوشه دستگاه';
+                    if (menuIcon) menuIcon.className = 'fa-solid fa-folder-open text-teal-600 dark:text-teal-400 text-xs';
+                    line.classList.remove('hidden');
+                } else {
+                    line.classList.add('hidden');
+                    if (menuLabel) menuLabel.innerText = 'اتصال پوشه دستگاه (در این نسخه از اپ فعال نیست)';
+                    if (menuIcon) menuIcon.className = 'fa-solid fa-folder-open text-slate-400 text-xs';
+                }
+                if (disconnectBtn) disconnectBtn.classList.add('hidden');
+                return;
+            }
 
             if (!supportsFileSystemAccess) {
                 line.classList.add('hidden');
@@ -4536,6 +4762,10 @@
         }
 
         async function initStorageFolderConnection() {
+            if (isRunningInInstalledApp()) {
+                await initNativeStorageFolder();
+                return;
+            }
             updateStorageFolderStatusUI();
             if (!supportsFileSystemAccess) return;
             try {
@@ -4553,6 +4783,34 @@
                 console.error('خطا در بازیابی پوشه ذخیره‌سازی:', err);
                 updateStorageFolderStatusUI();
             }
+        }
+        async function initNativeStorageFolder() {
+            const FS = getNativePlugin('Filesystem');
+            if (!FS) { nativeStorageFolderActive = false; updateStorageFolderStatusUI(); return; }
+            nativeStorageFolderActive = true;
+            dirHandlePermissionState = 'granted';
+            try {
+                const loaded = await loadAllMonthFilesNative();
+                if (loaded.hasAnyFile) {
+                    allRecords = mergeById(allRecords, loaded.records, 'records', loaded.tombstones);
+                    if (loaded.notes) dailyNotes = mergeById(dailyNotes, loaded.notes, 'notes', null);
+                    if (loaded.settings) {
+                        const localUpdatedAt = appSettings.updatedAt ? new Date(appSettings.updatedAt).getTime() : 0;
+                        const folderUpdatedAt = loaded.settings.updatedAt ? new Date(loaded.settings.updatedAt).getTime() : 0;
+                        if (folderUpdatedAt > localUpdatedAt) {
+                            appSettings = sanitizeSettings(adoptExternalSettings(loaded.settings, loaded.salt));
+                            localStorage.setItem('sewing_app_settings_v13', JSON.stringify(appSettings));
+                            applyAppSettingsToUI();
+                        }
+                    }
+                    saveRecords();
+                    renderDashboard();
+                }
+                await saveAllMonthFilesToDirectory();
+            } catch (err) {
+                console.warn('خطا در اتصال اولیه به پوشه ذخیره داده (اپ نصب‌شده):', err);
+            }
+            updateStorageFolderStatusUI();
         }
         /* ============ پایان مدیریت ذخیره‌سازی در پوشه‌ی دستگاه ============ */
 
@@ -5399,7 +5657,7 @@
 
             appSettings.updatedAt = new Date().toISOString();
             localStorage.setItem('sewing_app_settings_v13', JSON.stringify(appSettings));
-            if (appDirHandle) saveAllMonthFilesToDirectory(); // تا فایل تنظیمات در پوشه‌ی متصل هم بلافاصله به‌روز شود
+            if (storageFolderIsActive()) saveAllMonthFilesToDirectory(); // تا فایل تنظیمات در پوشه‌ی متصل هم بلافاصله به‌روز شود
             applyAppSettingsToUI();
             runAutoDeliveryCalculation(true);
             renderDashboard();
@@ -5424,7 +5682,7 @@
             appSettings.delaySummaryVisible = isOpen;
             appSettings.updatedAt = new Date().toISOString();
             localStorage.setItem('sewing_app_settings_v13', JSON.stringify(appSettings));
-            if (typeof appDirHandle !== 'undefined' && appDirHandle) saveAllMonthFilesToDirectory();
+            if (storageFolderIsActive()) saveAllMonthFilesToDirectory();
             if (isOpen) body.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
@@ -5448,7 +5706,7 @@
             appSettings.duplicateCodesVisible = isOpen;
             appSettings.updatedAt = new Date().toISOString();
             localStorage.setItem('sewing_app_settings_v13', JSON.stringify(appSettings));
-            if (typeof appDirHandle !== 'undefined' && appDirHandle) saveAllMonthFilesToDirectory();
+            if (storageFolderIsActive()) saveAllMonthFilesToDirectory();
             if (isOpen) body.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
@@ -5743,7 +6001,7 @@
                     broadcastLocalDataChange();
                     updateStorageQuotaUI();
 
-                    if (appDirHandle) {
+                    if (storageFolderIsActive()) {
                         saveAllMonthFilesToDirectory();
                     }
 
@@ -6833,7 +7091,7 @@
             if (changed) {
                 appSettings.updatedAt = new Date().toISOString();
                 localStorage.setItem('sewing_app_settings_v13', JSON.stringify(appSettings));
-                if (appDirHandle) saveAllMonthFilesToDirectory();
+                if (storageFolderIsActive()) saveAllMonthFilesToDirectory();
             }
 
             const mode = appSettings.incomeGoalMode === 'monthly' ? 'monthly' : 'weekly';
@@ -7973,7 +8231,7 @@
                 appSettings.bestStreak = best;
                 appSettings.updatedAt = new Date().toISOString();
                 localStorage.setItem('sewing_app_settings_v13', JSON.stringify(appSettings));
-                if (appDirHandle) saveAllMonthFilesToDirectory();
+                if (storageFolderIsActive()) saveAllMonthFilesToDirectory();
             }
         }
 
