@@ -60,6 +60,9 @@ jobs:
           echo "----- app/build.gradle -----"
           cat android/app/build.gradle 2>/dev/null || echo "(missing)"
 
+      - name: Download offline vendor files (Tailwind, Font Awesome, Persian fonts)
+        run: node fetch-vendor.mjs www
+
       - name: Sync web assets into Android project
         run: npx cap sync android
 
