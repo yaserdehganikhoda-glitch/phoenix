@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سامانه ی کارگاه هوشمند</title>
+    <title>سامانه‌ی کارگاه هوشمند</title>
     
     <!-- تنظیمات PWA و مانیفست -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4f46e5">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="کارگاه هوشمند">
     <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -19,8 +20,10 @@
     <script src="vendor/tailwind.js"></script>
     <script>if (!window.tailwind) document.write('<script src="https://cdn.tailwindcss.com"><\/script>');</script>
     <script>
-        tailwind.config = {
-            darkMode: 'class',
+        if (window.tailwind) {
+            tailwind.config = {
+                darkMode: 'class',
+            };
         }
     </script>
     <!-- FontAwesome Icons -->
@@ -300,6 +303,11 @@
             color: #fff;
             box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
         }
+        body[data-mode="employer"] #activeProgressCard { display: none !important; }
+        body[data-mode="employer"] .main-tab-btn { font-size: 12px; gap: 4px; padding-left: 4px; padding-right: 4px; line-height: 1.3; text-align: center; }
+        @media (min-width: 640px) { body[data-mode="employer"] .main-tab-btn { font-size: 14px; gap: 8px; } }
+        @media (max-width: 420px) { body[data-mode="employer"] .main-tab-btn i { display: none; } }
+        body[data-wpage="1"] #kpiCardWrap { display: none; }
     </style>
     <style>
         /* نمای کارتی واکنش‌گرا برای جدول رکوردها: زیر ۶۴۰px جدول جای خود را به کارت‌ها می‌دهد */
@@ -401,13 +409,106 @@
         }
 
         /* سربرگ جدول رکوردها: کمی برجسته‌تر و خواناتر */
+        /* پس‌زمینه‌ی سربرگ کاملاً مات است (رنگِ پایه + لایه‌ی ملایم روی آن)؛ تا هنگام اسکرول، ردیف‌ها زیر آن دیده نشوند */
         #recordsTableCard table thead th {
-            background: linear-gradient(180deg, rgba(99,102,241,0.06), rgba(99,102,241,0.02));
+            background-color: #f1f5f9; /* slate-100 */
+            background-image: linear-gradient(180deg, rgba(99,102,241,0.06), rgba(99,102,241,0.02));
             font-weight: 700;
         }
         .dark #recordsTableCard table thead th {
-            background: linear-gradient(180deg, rgba(99,102,241,0.10), rgba(99,102,241,0.03));
+            background-color: #1e293b; /* slate-800 */
+            background-image: linear-gradient(180deg, rgba(99,102,241,0.10), rgba(99,102,241,0.03));
         }
+    </style>
+    <style>
+        /* ============ کادر پرسنل صفحه‌ی اصلی (حالت کارفرما) ============ */
+        .mgr-panel { position: relative; overflow: hidden; border-radius: 1.25rem; border: 1px solid rgb(203 213 225); background: #fff; box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 10px 26px -14px rgba(79,70,229,.28); }
+        .dark .mgr-panel { background: rgb(15 23 42); border-color: rgb(71 85 105); box-shadow: 0 10px 26px -14px rgba(0,0,0,.7); }
+        .mgr-head, .mgr-hero { position: relative; padding: 14px 16px; color: #fff; overflow: hidden; }
+        .mgr-head { background: linear-gradient(135deg, #4f46e5, #7c3aed 55%, #a855f7); }
+        .mgr-head::after, .mgr-hero::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 12% -10%, rgba(255,255,255,.28), transparent 55%), radial-gradient(circle at 100% 120%, rgba(255,255,255,.14), transparent 50%); }
+        .mgr-hero { padding: 14px 16px 18px; }
+        .mgr-head-ico { width: 34px; height: 34px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; background: rgba(255,255,255,.2); box-shadow: inset 0 0 0 1px rgba(255,255,255,.3); flex-shrink: 0; }
+        .mgr-head-btn, .mgr-hero-btn { font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 999px; background: #fff; color: #6d28d9; white-space: nowrap; box-shadow: 0 4px 12px -4px rgba(0,0,0,.35); }
+        .mgr-hero-btn { background: rgba(255,255,255,.22); color: #fff; box-shadow: inset 0 0 0 1px rgba(255,255,255,.4); }
+        .mgr-chips { display: flex; gap: 6px; margin-top: 12px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+        .mgr-chips::-webkit-scrollbar { display: none; }
+        .mgr-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap; background: rgba(255,255,255,.14); color: #fff; border: 1px solid rgba(255,255,255,.28); }
+        .mgr-chip em { font-style: normal; font-size: 10px; padding: 0 6px; border-radius: 999px; background: rgba(255,255,255,.25); }
+        .mgr-chip-on { background: #fff; color: #5b21b6; border-color: #fff; }
+        .mgr-chip-on em { background: rgb(237 233 254); }
+        .mgr-body { padding: 12px; }
+
+        .mgr-card { position: relative; display: flex; flex-direction: column; gap: 10px; padding: 12px 14px 12px 12px; border-radius: 1rem; border: 1px solid rgb(226 232 240); background: linear-gradient(180deg, #fff, #f8fafc); cursor: pointer; overflow: hidden; text-align: right; transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+        .mgr-card::before { content: ""; position: absolute; top: 0; bottom: 0; inset-inline-start: 0; width: 4px; background: var(--mgr-c); }
+        .mgr-card:hover { transform: translateY(-2px); box-shadow: 0 12px 24px -12px var(--mgr-c); border-color: var(--mgr-c); }
+        .mgr-card:focus-visible { outline: 2px solid var(--mgr-c); outline-offset: 2px; }
+        .dark .mgr-card { background: linear-gradient(180deg, rgb(30 41 59), rgb(15 23 42)); border-color: rgb(71 85 105); }
+        .mgr-card-late { animation: mgrLatePulse 2.6s ease-in-out infinite; }
+        .mgr-card-late:hover { animation: none; }
+        .mgr-name { font-size: 13px; font-weight: 800; color: rgb(30 41 59); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .dark .mgr-name { color: rgb(241 245 249); }
+        .mgr-sub { font-size: 10.5px; color: rgb(100 116 139); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .dark .mgr-sub { color: rgb(148 163 184); }
+
+        .mgr-avatar { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 30%; color: #fff; font-weight: 800; box-shadow: 0 6px 14px -6px rgba(15,23,42,.55); }
+        .mgr-dot { position: absolute; bottom: -2px; inset-inline-start: -2px; width: 13px; height: 13px; border-radius: 50%; background: var(--mgr-c); border: 2px solid #fff; }
+        .dark .mgr-dot { border-color: rgb(15 23 42); }
+        .mgr-dot-ok::after, .mgr-dot-warn::after, .mgr-dot-urgent::after, .mgr-dot-late::after { content: ""; position: absolute; inset: -2px; border-radius: 50%; background: var(--mgr-c); opacity: .55; animation: mgrPing 1.9s cubic-bezier(0,0,.2,1) infinite; }
+
+        .mgr-badge { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
+        .mgr-b-ok { background: #d1fae5; color: #047857; } .mgr-b-warn { background: #fef3c7; color: #b45309; } .mgr-b-urgent { background: #ffedd5; color: #c2410c; } .mgr-b-late { background: #ffe4e6; color: #be123c; } .mgr-b-idle { background: #e2e8f0; color: #475569; }
+        .dark .mgr-b-ok { background: rgba(16,185,129,.16); color: #6ee7b7; } .dark .mgr-b-warn { background: rgba(245,158,11,.16); color: #fcd34d; } .dark .mgr-b-urgent { background: rgba(249,115,22,.16); color: #fdba74; } .dark .mgr-b-late { background: rgba(225,29,72,.18); color: #fda4af; } .dark .mgr-b-idle { background: rgba(148,163,184,.16); color: #cbd5e1; }
+
+        .mgr-ring { position: relative; flex-shrink: 0; filter: drop-shadow(0 2px 4px rgba(15,23,42,.18)); }
+        @supports (color: color-mix(in srgb, red, blue)) { .mgr-ring { filter: drop-shadow(0 0 5px color-mix(in srgb, var(--mgr-c) 50%, transparent)); } }
+        .mgr-ring-track { stroke: rgb(226 232 240); } .dark .mgr-ring-track { stroke: rgb(51 65 85); }
+        .mgr-ring-arc { transition: stroke-dashoffset .8s ease; }
+        .mgr-ring-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 800; color: rgb(51 65 85); }
+        .dark .mgr-ring-text { color: rgb(241 245 249); }
+
+        .mgr-job-title { font-size: 11.5px; font-weight: 700; color: rgb(51 65 85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .dark .mgr-job-title { color: rgb(226 232 240); }
+        .mgr-job-sub { font-size: 11px; margin-top: 2px; color: rgb(100 116 139); } .dark .mgr-job-sub { color: rgb(148 163 184); }
+        .mgr-job-sub i { margin-inline-end: 4px; font-size: 10px; }
+        .mgr-over { color: #e11d48 !important; font-weight: 700; } .dark .mgr-over { color: #fb7185 !important; }
+        .mgr-job-meta { font-size: 10px; margin-top: 2px; color: rgb(148 163 184); }
+        .mgr-job-empty { font-size: 11.5px; color: rgb(148 163 184); } .mgr-job-empty i { margin-inline-end: 4px; }
+
+        .mgr-bar { height: 6px; border-radius: 999px; background: rgb(226 232 240); overflow: hidden; } .dark .mgr-bar { background: rgb(51 65 85); }
+        .mgr-bar-fill { display: block; height: 100%; border-radius: 999px; position: relative; overflow: hidden; transition: width .6s ease; }
+        .mgr-bar-fill::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,.5), transparent); transform: translateX(100%); animation: mgrShimmer 2.2s linear infinite; }
+        .mgr-bar-off::after { display: none; }
+
+        .mgr-stats { display: flex; gap: 6px; }
+        .mgr-stat { flex: 1; text-align: center; border-radius: .75rem; padding: 6px 4px; background: rgb(241 245 249); } .dark .mgr-stat { background: rgba(51,65,85,.55); }
+        .mgr-stat b { display: block; font-size: 13px; font-weight: 800; color: rgb(30 41 59); } .dark .mgr-stat b { color: rgb(241 245 249); }
+        .mgr-stat span { font-size: 10px; color: rgb(100 116 139); } .dark .mgr-stat span { color: rgb(148 163 184); }
+        .mgr-finish { align-self: flex-start; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: .75rem; color: #fff; background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 6px 14px -6px rgba(5,150,105,.7); }
+        .mgr-finish i { margin-inline-end: 4px; }
+
+        .mgr-hero-name { font-size: 17px; font-weight: 800; line-height: 1.4; }
+        .mgr-hero-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; padding: 3px 9px; border-radius: 999px; background: rgba(255,255,255,.2); box-shadow: inset 0 0 0 1px rgba(255,255,255,.3); }
+        .mgr-jobpanel { display: flex; flex-direction: column; gap: 12px; padding: 14px; border-radius: 1rem; background: rgb(248 250 252); border: 1px solid rgb(226 232 240); }
+        .dark .mgr-jobpanel { background: rgba(30,41,59,.6); border-color: rgb(51 65 85); }
+        .mgr-page .mgr-job-title { font-size: 13px; } .mgr-page .mgr-job-sub { font-size: 12px; }
+        .mgr-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+        @media (min-width: 640px) { .mgr-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+        .mgr-tile { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px 6px; border-radius: 1rem; text-align: center; background: rgb(248 250 252); border: 1px solid rgb(226 232 240); }
+        .dark .mgr-tile { background: rgba(30,41,59,.6); border-color: rgb(51 65 85); }
+        .mgr-tile b { font-size: 16px; font-weight: 800; color: rgb(30 41 59); } .dark .mgr-tile b { color: rgb(241 245 249); }
+        .mgr-tile > span:last-child { font-size: 10px; color: rgb(100 116 139); } .dark .mgr-tile > span:last-child { color: rgb(148 163 184); }
+        .mgr-tile-ic { width: 28px; height: 28px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; margin-bottom: 4px; }
+
+        .mgr-enter .mgr-card { animation: mgrUp .45s ease both; }
+        .mgr-enter .mgr-ring-arc { animation: mgrRingDraw .9s ease-out both; }
+        @keyframes mgrUp { from { opacity: 0; transform: translateY(8px); } }
+        @keyframes mgrRingDraw { from { stroke-dashoffset: var(--mgr-full); } }
+        @keyframes mgrPing { 75%, 100% { transform: scale(2.2); opacity: 0; } }
+        @keyframes mgrShimmer { to { transform: translateX(-100%); } }
+        @keyframes mgrLatePulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(225,29,72,0); } 50% { box-shadow: 0 0 0 4px rgba(225,29,72,.14); } }
+        body.modal-anim-paused .mgr-panel *, body.modal-anim-paused .mgr-panel { animation: none !important; transition: none !important; }
+        @media (prefers-reduced-motion: reduce) { .mgr-panel *, .mgr-panel { animation: none !important; transition: none !important; } }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 antialiased min-h-screen pb-28 font-normal-size" id="appBody">
@@ -416,8 +517,8 @@
     <div id="appSplashScreen" class="fixed inset-0 z-[200] flex flex-col items-center justify-between bg-slate-50 dark:bg-slate-950 text-center px-6 py-10 transition-opacity duration-700">
         <div></div>
         <div class="flex flex-col items-center">
-            <img src="icon-192.png" alt="لوگوی سامانه ی کارگاه هوشمند" class="w-24 h-24 rounded-2xl shadow-lg mb-5">
-            <h1 class="text-2xl font-extrabold text-slate-800 dark:text-white tracking-tight">سامانه‌ی کارگاه هوشمند</h1>
+            <img src="icon-192.png" alt="لوگوی سامانه‌ی کارگاه هوشمند" class="w-24 h-24 rounded-2xl shadow-lg mb-5">
+            <p class="text-2xl font-extrabold text-slate-800 dark:text-white tracking-tight">سامانه‌ی کارگاه هوشمند</p>
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">مدیریت هوشمند کارگاه</p>
             <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1">ساخته‌شده برای تمامی صنف‌های کارگاهی</p>
             <div class="mt-6 flex items-center gap-1.5">
@@ -451,7 +552,7 @@
             <div class="inline-flex items-center justify-center w-16 h-16 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 rounded-2xl mb-4">
                 <i class="fa-solid fa-lock text-2xl"></i>
             </div>
-            <h2 class="text-lg font-bold text-slate-800 dark:text-white mb-1">ورود به سامانه ی کارگاه هوشمند</h2>
+            <h2 class="text-lg font-bold text-slate-800 dark:text-white mb-1">ورود به سامانه‌ی کارگاه هوشمند</h2>
             <p class="text-xs text-slate-500 dark:text-slate-400 mb-5">برای مشاهده اطلاعات، رمز عبور را وارد کنید.</p>
             <form onsubmit="attemptUnlock(event)" class="space-y-3">
                 <input type="password" id="pinLockInput" inputmode="numeric" required autocomplete="off" class="w-full p-3 border border-slate-400 dark:border-slate-500 rounded-xl text-center text-lg tracking-[0.3em] bg-slate-50 dark:bg-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none" placeholder="رمز عبور">
@@ -533,10 +634,6 @@
                                         <span class="block text-[9px] text-slate-400">خلاصه آمار</span>
                                     </span>
                                 </button>
-                                <button id="mgrToolsBtn" onclick="openManagerPanel(); closeToolsDropdown();" class="hidden tactile-btn flex items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
-                                    <span class="w-9 h-9 shrink-0 rounded-full bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center"><i class="fa-solid fa-user-tie text-xs"></i></span>
-                                    <span class="min-w-0"><span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">پنل کارفرما</span></span>
-                                </button>
                                 <button onclick="openSettingsModal(); closeToolsDropdown();" class="tactile-btn flex items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
                                     <span class="w-9 h-9 shrink-0 rounded-full bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 flex items-center justify-center">
                                         <i class="fa-solid fa-gear text-xs"></i>
@@ -564,14 +661,6 @@
                                 <button  onclick="bottomNavGoNotes(); closeToolsDropdown();" class="tactile-btn flex items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
                                     <span class="w-9 h-9 shrink-0 rounded-full bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 flex items-center justify-center"><i class="fa-solid fa-note-sticky text-xs"></i></span>
                                     <span class="min-w-0"><span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">یادداشت‌های روز</span><span class="block text-[9px] text-slate-400">تعطیلی، سفارش خاص</span></span>
-                                </button>
-                                <button  onclick="openWageCalculator(); closeToolsDropdown();" class="tactile-btn flex items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
-                                    <span class="w-9 h-9 shrink-0 rounded-full bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 flex items-center justify-center"><i class="fa-solid fa-calculator text-xs"></i></span>
-                                    <span class="min-w-0"><span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">ماشین‌حساب مزد</span><span class="block text-[9px] text-slate-400">تعداد × نرخ واحد</span></span>
-                                </button>
-                                <button  onclick="openSettingsModal('work'); closeToolsDropdown();" class="tactile-btn flex items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
-                                    <span class="w-9 h-9 shrink-0 rounded-full bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 flex items-center justify-center"><i class="fa-solid fa-briefcase text-xs"></i></span>
-                                    <span class="min-w-0"><span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">نوع کسب‌وکار</span><span class="block text-[9px] text-slate-400">نام فیلدها و صنف</span></span>
                                 </button>
                                 </div>
                             <div class="grid grid-cols-1 gap-1.5">
@@ -792,7 +881,7 @@
                 <img src="icon-192.png" alt="لوگوی سامانه" class="w-11 h-11 object-contain rounded-lg">
             </div>
             <h1 id="mainAppTitle" class="text-2xl md:text-3xl font-bold text-white tracking-tight relative z-10">
-                سامانه ی کارگاه هوشمند
+                سامانه‌ی کارگاه هوشمند
             </h1>
             <p id="mainAppSubtitle" class="text-sm text-indigo-100 mt-2 font-normal relative z-10">سیستم هوشمند آمار و مدیریت کار</p>
             <p id="ownerInfoLine" class="hidden text-xs text-indigo-100/80 mt-1 relative z-10"></p>
@@ -830,7 +919,7 @@
         </div>
 
         <!-- کارت آمار کلیدی (ارزش کل کارکرد) -->
-        <div class="grid grid-cols-1 mb-6">
+        <div id="kpiCardWrap" class="grid grid-cols-1 mb-6">
             <div class="bg-white dark:bg-slate-900 p-6 pro-card rounded-2xl shadow-sm border border-slate-300 dark:border-slate-600 flex flex-wrap items-center justify-between transition-all hover:shadow-md">
                 <div>
                     <div class="flex items-center gap-1.5">
@@ -840,7 +929,7 @@
                         </button>
                     </div>
                     <div id="kpiPriceValueWrap">
-                        <h3 id="kpiTotalPrice" class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1 tracking-tight">۰</h3>
+                        <p id="kpiTotalPrice" class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1 tracking-tight">۰</p>
                         <p id="kpiUnknownPriceNote" class="hidden text-[11px] text-amber-600 dark:text-amber-400 mt-1"></p>
                     </div>
                 </div>
@@ -876,10 +965,10 @@
         <!-- کارت پیشرفت کار جاری و اعلان‌های هوشمند تحویل -->
         <div id="activeProgressCard" class="hidden bg-white dark:bg-slate-900 p-5 pro-card rounded-2xl shadow-sm border border-slate-300 dark:border-slate-600 mb-6 transition-all">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                <h2 class="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
                     <i class="fa-solid fa-stopwatch text-indigo-600 dark:text-indigo-400"></i>
                     ویجت پیشرفت کار جاری
-                </h3>
+                </h2>
                 <span id="activeProgressPercentBadge" class="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">—</span>
             </div>
             <div class="flex items-center gap-4">
@@ -951,7 +1040,7 @@
                 </div>
 
                 <div id="workerFieldWrap" class="hidden">
-                    <label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1.5" for="recordWorker"><i class="fa-solid fa-user-gear text-indigo-500 ml-1"></i>کارگر مسئول (ارجاع کار)</label>
+                    <label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1.5" for="recordWorker"><i class="fa-solid fa-user-gear text-indigo-500 ml-1"></i>پرسنل مسئول (ارجاع کار)</label>
                     <select id="recordWorker" class="w-full p-3 border border-slate-400 dark:border-slate-500 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none bg-white dark:bg-slate-800 field-box-bg dark:text-slate-100 transition-all"></select>
                 </div>
 
@@ -1213,9 +1302,8 @@
                         <tr>
                             <th class="sticky top-0 z-10 p-3.5 bg-slate-100 dark:bg-slate-800 border-b-2 border-slate-400 dark:border-slate-500 shadow-sm">#</th>
                             <th class="sticky top-0 z-10 p-3.5 no-print bg-slate-100 dark:bg-slate-800 border-b-2 border-slate-400 dark:border-slate-500 shadow-sm">عکس</th>
-                            <th id="thWorker" class="hidden sticky top-0 z-10 p-3.5 bg-slate-100 dark:bg-slate-800 border-b-2 border-slate-400 dark:border-slate-500 shadow-sm">کارگر</th>
+                            <th id="thWorker" class="hidden sticky top-0 z-10 p-3.5 bg-slate-100 dark:bg-slate-800 border-b-2 border-slate-400 dark:border-slate-500 shadow-sm">پرسنل</th>
                             <th id="thSection" class="hidden sticky top-0 z-10 p-3.5 bg-slate-100 dark:bg-slate-800 border-b-2 border-slate-400 dark:border-slate-500 shadow-sm">بخش</th>
-                            <th id="thWage" class="hidden sticky top-0 z-10 p-3.5 bg-slate-100 dark:bg-slate-800 border-b-2 border-slate-400 dark:border-slate-500 shadow-sm">مزد کارگر</th>
                             <th class="sticky top-0 z-10 p-3.5 bg-slate-100 dark:bg-slate-800 border-b-2 border-slate-400 dark:border-slate-500 shadow-sm" data-field-label="itemCode">کد</th>
                             <th class="sticky top-0 z-10 p-3.5 bg-slate-100 dark:bg-slate-800 border-b-2 border-slate-400 dark:border-slate-500 shadow-sm" data-field-label="itemTitle">عنوان کار</th>
                             <th class="sticky top-0 z-10 p-3.5 bg-slate-100 dark:bg-slate-800 border-b-2 border-slate-400 dark:border-slate-500 shadow-sm" data-field-label="itemColor">رنگ / مشخصات</th>
@@ -1255,9 +1343,9 @@
 
             <div id="delaySummaryBody" class="hidden no-print p-4 border-t border-slate-300 dark:border-slate-600 bg-slate-50/50 dark:bg-slate-900/50">
                 <div class="bg-white dark:bg-slate-800 field-box-bg rounded-xl p-4 border border-slate-300 dark:border-slate-600">
-                    <h4 class="text-xs font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1.5 mb-2">
+                    <h3 class="text-xs font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1.5 mb-2">
                         <i class="fa-solid fa-hourglass-half"></i> جمع مدت زمان تاخیر
-                    </h4>
+                    </h3>
                     <p id="totalDelaySummaryText" class="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">—</p>
                     <p id="workdayBasisNote" class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">بر مبنای ۸ ساعت و ۱۵ دقیقه کاری در هر روز</p>
                 </div>
@@ -1485,7 +1573,7 @@
                     </div>
                     <div class="min-w-0">
                         <p id="settingsProfilePreviewName" class="text-sm font-bold truncate">کاربر مهمان</p>
-                        <p id="settingsProfilePreviewSub" class="text-[11px] text-white/70 truncate">سامانه ی کارگاه هوشمند</p>
+                        <p id="settingsProfilePreviewSub" class="text-[11px] text-white/70 truncate">سامانه‌ی کارگاه هوشمند</p>
                     </div>
                 </div>
             </div>
@@ -1523,6 +1611,13 @@
                     <p class="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">ماهی که می‌خواهید لیست کارکردها و آمار آن نمایش داده شود را انتخاب کنید؛ همه‌ی ماه‌های گذشته و یک ماه آینده قابل انتخاب هستند.</p>
                     <select id="monthFilterSelect" onchange="onMonthFilterChange(event)" class="w-full p-2.5 border border-slate-400 dark:border-slate-500 rounded-xl text-sm bg-white dark:bg-slate-800 field-box-bg dark:text-slate-100 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all">
                     </select>
+                </div>
+                <div id="settingsWorkerPickWrap" class="hidden space-y-3 pb-4 border-b border-slate-200 dark:border-slate-700">
+                    <h3 class="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-gear"></i> انتخاب پرسنل
+                    </h3>
+                    <p class="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">پرسنل مورد نظر را از لیست انتخاب کنید تا صفحه‌ی اختصاصی او برای ثبت کارکرد باز شود.</p>
+                    <select id="settingsWorkerSelect" onchange="settingsPickWorker(this.value)" class="w-full p-2.5 border border-slate-400 dark:border-slate-500 rounded-xl text-sm bg-white dark:bg-slate-800 field-box-bg dark:text-slate-100 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all"></select>
                 </div>
                 <div class="space-y-3 pb-4 border-b border-slate-200 dark:border-slate-700">
                     <h3 class="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -1594,7 +1689,7 @@
                 <div id="settingsTab-work" class="settings-tab-panel hidden space-y-4">
                 <div class="space-y-3 pb-4 border-b border-slate-300 dark:border-slate-600">
                     <button type="button" onclick="toggleSettingsSection('workHoursSectionBody', 'workHoursSectionIcon', 'sewing_settings_workhours_collapsed')" class="w-full flex items-center justify-between gap-2 text-right">
-                        <h3 class="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider flex items-center gap-1.5"><i class="fa-solid fa-clock"></i> ساعات کاری و استراحت‌ها</h3>
+                        <span class="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider flex items-center gap-1.5"><i class="fa-solid fa-clock"></i> ساعات کاری و استراحت‌ها</span>
                         <i id="workHoursSectionIcon" class="fa-solid fa-chevron-up text-[10px] text-slate-400 shrink-0 transition-transform"></i>
                     </button>
                     <div id="workHoursSectionBody" class="space-y-3">
@@ -1651,7 +1746,7 @@
                 </div>
                 <div class="space-y-3">
                     <button type="button" onclick="toggleSettingsSection('formLabelsSectionBody', 'formLabelsSectionIcon', 'sewing_settings_formlabels_collapsed')" class="w-full flex items-center justify-between gap-2 text-right">
-                        <h3 class="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider flex items-center gap-1.5"><i class="fa-solid fa-pen-ruler"></i> نام فیلدهای فرم «ثبت کارکرد جدید»</h3>
+                        <span class="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider flex items-center gap-1.5"><i class="fa-solid fa-pen-ruler"></i> نام فیلدهای فرم «ثبت کارکرد جدید»</span>
                         <i id="formLabelsSectionIcon" class="fa-solid fa-chevron-up text-[10px] text-slate-400 shrink-0 transition-transform"></i>
                     </button>
                     <div id="formLabelsSectionBody" class="space-y-3">
@@ -1673,7 +1768,7 @@
 
                 <div id="settingsTab-manager" class="settings-tab-panel hidden space-y-4">
                     <h3 class="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider flex items-center gap-1.5"><i class="fa-solid fa-user-tie"></i> قابلیت کارفرما (مدیر کارگاه)</h3>
-                    <p class="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">کارفرما مدیر کارگاه است و همه‌ی بخش‌ها و کارگران را مدیریت می‌کند: تعریف بخش‌ها و کارگران، ارجاع کار به کارگر، حضور و غیاب، و محاسبه‌ی حقوق و مزد ماهانه. غیرفعال‌سازی هیچ داده‌ای را پاک نمی‌کند و فقط بخش‌های مربوط پنهان می‌شوند.</p>
+                    <p class="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">کارفرما مدیر کارگاه است و همه‌ی بخش‌ها و پرسنل را مدیریت می‌کند: تعریف بخش‌ها و پرسنل و ارجاع کار به پرسنل. غیرفعال‌سازی هیچ داده‌ای را پاک نمی‌کند و فقط بخش‌های مربوط پنهان می‌شوند.</p>
                     <label class="flex items-center justify-between gap-3 cursor-pointer bg-slate-50 dark:bg-slate-800/60 rounded-xl p-3 border border-slate-300 dark:border-slate-600">
                         <span class="text-xs font-bold text-slate-700 dark:text-slate-200">فعال‌سازی قابلیت کارفرما</span>
                         <input type="checkbox" id="settingManagerEnabled" onchange="mgrToggle(this.checked)" class="w-5 h-5 accent-purple-600 cursor-pointer">
@@ -1985,8 +2080,8 @@
 
                 <div id="settingsTab-about" class="settings-tab-panel hidden space-y-4">
                 <div class="space-y-3 pb-4 border-b border-slate-300 dark:border-slate-600">
-                    <h3 class="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider flex items-center gap-1.5"><i class="fa-solid fa-circle-info"></i> درباره سامانه ی کارگاه هوشمند</h3>
-                    <p class="text-[12px] leading-relaxed text-slate-600 dark:text-slate-300">این سامانه یک ابزار آفلاین (PWA) برای ثبت و مدیریت کارکرد روزانه‌ی هر شغل کارمزدی یا پروژه‌ای است: هر کد کار با عنوان، رنگ/مشخصات، تعداد و قیمت ثبت می‌شود، مدت‌زمان تحویل به‌صورت خودکار از روی آمار روزانه محاسبه می‌شود و وضعیت «به‌موقع / تاخیر / زودتر از موعد» خودکار تعیین می‌گردد.</p>
+                    <h3 class="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider flex items-center gap-1.5"><i class="fa-solid fa-circle-info"></i> درباره سامانه‌ی کارگاه هوشمند</h3>
+                    <p class="text-[12px] leading-relaxed text-slate-600 dark:text-slate-300">این سامانه‌یک ابزار آفلاین (PWA) برای ثبت و مدیریت کارکرد روزانه‌ی هر شغل کارمزدی یا پروژه‌ای است: هر کد کار با عنوان، رنگ/مشخصات، تعداد و قیمت ثبت می‌شود، مدت‌زمان تحویل به‌صورت خودکار از روی آمار روزانه محاسبه می‌شود و وضعیت «به‌موقع / تاخیر / زودتر از موعد» خودکار تعیین می‌گردد.</p>
                 </div>
                 <div class="space-y-2 pb-4 border-b border-slate-300 dark:border-slate-600">
                     <h4 class="text-[11px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">امکانات کلیدی</h4>
@@ -2032,7 +2127,7 @@
                     <div class="inline-flex items-center justify-center w-14 h-14 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 rounded-2xl mb-2 shadow-inner overflow-hidden">
                         <img src="icon-192.png" alt="لوگوی سامانه" class="w-10 h-10 object-contain rounded-lg">
                     </div>
-                    <p class="text-sm font-bold text-slate-800 dark:text-white">سامانه ی کارگاه هوشمند</p>
+                    <p class="text-sm font-bold text-slate-800 dark:text-white">سامانه‌ی کارگاه هوشمند</p>
                     <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">نسخه ۱۳.۰</p>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-3">طراحی و توسعه توسط تیم <span class="font-bold text-indigo-600 dark:text-indigo-400">Phoenix.Yaser</span></p>
                 </div>
@@ -2107,6 +2202,8 @@
                         </div>
                     </div>
                 </div>
+
+                <div id="overviewEmployerBox" class="hidden mb-6"></div>
 
                 <div class="bg-slate-50 dark:bg-slate-800/60 rounded-2xl p-4 mb-6 border border-slate-300 dark:border-slate-600 grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
                     <div>
@@ -2381,7 +2478,7 @@
             if (navigator.share) {
                 try {
                     await navigator.share({
-                        title: 'سامانه ی کارگاه هوشمند',
+                        title: 'سامانه‌ی کارگاه هوشمند',
                         text: 'این سامانه‌ی هوشمند آمار و مدیریت کار رو ببین:',
                         url: shareUrl
                     });
@@ -3003,45 +3100,11 @@
             const I = v => String(v == null ? '' : v).replace(/[^\w-]/g, '').slice(0, 40);
             const N = v => { const n = Number(v); return (Number.isFinite(n) && n > 0) ? Math.min(n, 1e13) : 0; };
             const dk = v => { const p = toEnglishDigits(String(v || '')).split('/').map(Number); return (p.length === 3 && p.every(Number.isFinite) && p[0] > 1200 && p[1] >= 1 && p[1] <= 12 && p[2] >= 1 && p[2] <= 31) ? `${p[0]}/${String(p[1]).padStart(2, '0')}/${String(p[2]).padStart(2, '0')}` : ''; };
-            const att = {};
-            if (m.attendance && typeof m.attendance === 'object') Object.keys(m.attendance).forEach(k => {
-                const key = dk(k), day = m.attendance[k];
-                if (!key || !day || typeof day !== 'object') return;
-                att[key] = att[key] || {};
-                Object.keys(day).forEach(w => { if (['p', 'a', 'l', 'h'].includes(day[w])) att[key][I(w)] = day[w]; });
-            });
-            const ot = {};
-            if (m.overtime && typeof m.overtime === 'object') Object.keys(m.overtime).forEach(k => {
-                const key = dk(k), day = m.overtime[k];
-                if (!key || !day || typeof day !== 'object') return;
-                Object.keys(day).forEach(w => { const h = Math.round(Number(day[w]) * 4) / 4; if (Number.isFinite(h) && h > 0 && h <= 16) (ot[key] = ot[key] || {})[I(w)] = h; });
-            });
-            const abh = {};
-            if (m.absHours && typeof m.absHours === 'object') Object.keys(m.absHours).forEach(k => {
-                const key = dk(k), day = m.absHours[k];
-                if (!key || !day || typeof day !== 'object') return;
-                Object.keys(day).forEach(w => { const h = Math.round(Number(day[w]) * 4) / 4; if (Number.isFinite(h) && h > 0 && h <= 24 && att[key] && ['a', 'l'].includes(att[key][I(w)])) (abh[key] = abh[key] || {})[I(w)] = h; });
-            });
-            const mulRaw = Number(m.otMultiplier), dhRaw = Number(m.dayHours);
-            const hol = {};
-            if (m.holidays && typeof m.holidays === 'object') Object.entries(m.holidays).slice(0, 400).forEach(([k, v]) => { const key = dk(k); if (key) hol[key] = T(v, 60) || 'تعطیل'; });
-            const closed = {};
-            if (m.closed && typeof m.closed === 'object') Object.keys(m.closed).forEach(k => {
-                const c = m.closed[k]; if (!/^\d{4}-\d{1,2}$/.test(k) || !c || !Array.isArray(c.rows)) return;
-                closed[k] = { at: T(c.at, 40), rows: c.rows.slice(0, 500).map(r => r && { id: I(r.id), name: T(r.name, 100), days: N(r.days), qty: N(r.qty), base: N(r.base), oh: N(r.oh), otPay: N(r.otPay), bonus: N(r.bonus), advance: N(r.advance), deduction: N(r.deduction), net: Number(r.net) || 0 }).filter(r => r && r.id) };
-            });
-            const paid = {};
-            if (m.paid && typeof m.paid === 'object') Object.keys(m.paid).forEach(k => {
-                const d = m.paid[k]; if (!/^\d{4}-\d{1,2}$/.test(k) || !d || typeof d !== 'object') return;
-                Object.keys(d).forEach(w => { if (d[w]) (paid[k] = paid[k] || {})[I(w)] = /^\d{4}\/\d{2}\/\d{2}$/.test(d[w]) ? d[w] : true; });
-            });
             s.manager = {
                 enabled: !!m.enabled,
                 sections: A(m.sections).map(x => x && { id: I(x.id) || mgrId('s'), name: T(x.name, 60) }).filter(x => x && x.name).slice(0, 50),
-                workers: A(m.workers).map(x => x && { id: I(x.id) || mgrId('w'), name: T(x.name, 100), phone: T(x.phone, 40), sectionId: I(x.sectionId), role: T(x.role, 60), payType: ['daily', 'monthly', 'piece'].includes(x.payType) ? x.payType : 'daily', rate: N(x.rate), otRate: N(x.otRate), rates: (x.rates && typeof x.rates === 'object' && !Array.isArray(x.rates)) ? Object.fromEntries(Object.entries(x.rates).slice(0, 100).map(([k, v]) => [T(k, 80), N(v)]).filter(([k, v]) => k && v)) : {}, note: T(x.note, 300), startDate: dk(x.startDate), endDate: dk(x.endDate), active: x.active !== false }).filter(x => x && x.name).slice(0, 500),
-                attendance: att, overtime: ot, absHours: abh, paid, closed, absDeduct: !!m.absDeduct, leaveDeduct: !!m.leaveDeduct, absHourRate: N(m.absHourRate), leaveHourRate: N(m.leaveHourRate), carryOver: !!m.carryOver, holidays: hol, fridayOff: m.fridayOff !== false, holidaysOn: m.holidaysOn !== false, paidOff: !!m.paidOff, pieceDoneOnly: !!m.pieceDoneOnly, schema: 2, lateFine: N(m.lateFine), onTimeBonus: N(m.onTimeBonus),
-                otMultiplier: (mulRaw >= 1 && mulRaw <= 5) ? mulRaw : 1.4, dayHours: (dhRaw >= 1 && dhRaw <= 24) ? dhRaw : 8,
-                txns: A(m.txns).map(x => x && { id: I(x.id) || mgrId('t'), workerId: I(x.workerId), date: dk(x.date), type: ['advance', 'bonus', 'deduction'].includes(x.type) ? x.type : 'advance', amount: N(x.amount), note: T(x.note, 200) }).filter(x => x && x.workerId && x.date && x.amount > 0).slice(0, 5000)
+                workers: A(m.workers).map(x => x && { id: I(x.id) || mgrId('w'), name: T(x.name, 100), phone: T(x.phone, 40), sectionId: I(x.sectionId), role: T(x.role, 60), note: T(x.note, 300), startDate: dk(x.startDate), endDate: dk(x.endDate), active: x.active !== false }).filter(x => x && x.name).slice(0, 500),
+                schema: 3
             };
             return s;
         }
@@ -3633,7 +3696,7 @@
             const badMonthCount = allRecords.filter(r => !/^\d{4}-\d{1,2}$/.test(String(r.monthKey))).length;
             if (badMonthCount) issues.push({ key: 'bad_month', severity: 'warn', text: `${formatNumber(badMonthCount)} رکورد با کلید ماهِ نامعتبر (احتمالاً از فایل خراب وارد شده).`, fixable: true });
 
-            const staleLinksCount = allRecords.filter(r => r.nextCodeStartDate && !allRecords.some(o => o.id !== r.id && sameDT(o.date, o.time, r.nextCodeStartDate, r.nextCodeStartTime))).length;
+            const staleLinksCount = allRecords.filter(r => r.nextCodeStartDate && !allRecords.some(o => o.id !== r.id && recOwnerKey(o) === recOwnerKey(r) && sameDT(o.date, o.time, r.nextCodeStartDate, r.nextCodeStartTime))).length;
             if (staleLinksCount) issues.push({ key: 'stale_links', severity: 'warn', text: `${formatNumber(staleLinksCount)} رکورد با اشاره‌گر «شروع کد بعد» نامعتبر/قدیمی.`, fixable: true });
 
             const noteDateCounts = new Map();
@@ -3672,7 +3735,7 @@
                 });
             } else if (key === 'stale_links') {
                 allRecords.forEach(r => {
-                    if (r.nextCodeStartDate && !allRecords.some(o => o.id !== r.id && sameDT(o.date, o.time, r.nextCodeStartDate, r.nextCodeStartTime))) {
+                    if (r.nextCodeStartDate && !allRecords.some(o => o.id !== r.id && recOwnerKey(o) === recOwnerKey(r) && sameDT(o.date, o.time, r.nextCodeStartDate, r.nextCodeStartTime))) {
                         syncNextCodeStartLink(r);
                         fixedCount++;
                     }
@@ -3837,7 +3900,7 @@
         const DEFAULT_APP_SETTINGS = {
             workdayMinutes: 495, shiftStart: '08:00', shiftEnd: '18:00', shiftBreaks: null, formLabels: {}, optionalFields: { itemColor: true }, businessType: 'general',
             schemaVersion: 1,
-            shopName: 'سامانه ی کارگاه هوشمند',
+            shopName: 'سامانه‌ی کارگاه هوشمند',
             currency: 'تومان',
             defaultStatus: 'به موقع',
             onTimeToleranceMinutes: 5,
@@ -5465,7 +5528,7 @@
                     const monthName = PERSIAN_MONTHS[parseInt(monthNum, 10) - 1] || '';
                     return `${monthName} ${formatYearDigits(year)}`;
                 })();
-            const shopName = (appSettings.shopName || 'سامانه ی کارگاه هوشمند');
+            const shopName = (appSettings.shopName || 'سامانه‌ی کارگاه هوشمند');
             const currency = appSettings.currency || 'تومان';
             const totalAmountSum = sumTotalPrice(records);
             const unknownPriceCount = countUnknownPriceRecords(records);
@@ -5579,7 +5642,6 @@
                 input.value = formatJalaliDate(jy, jm, day);
                 if (targetId === 'recordDate') { recordDateTouched = true; runAutoDeliveryCalculation(); }
                 if (targetId === 'manualEndDate') { syncManualEndDateTime(); }
-                if (targetId === 'mgrAttDate' || targetId === 'mgrTxDate') mgrDateChosen(targetId, input.value);
             }
             closeDatePicker();
         }
@@ -5591,7 +5653,6 @@
                 input.value = currentJalali.fullDateStr;
                 if (targetId === 'recordDate') { recordDateTouched = true; runAutoDeliveryCalculation(); }
                 if (targetId === 'manualEndDate') { syncManualEndDateTime(); }
-                if (targetId === 'mgrAttDate' || targetId === 'mgrTxDate') mgrDateChosen(targetId, input.value);
             }
             closeDatePicker();
         }
@@ -5871,7 +5932,7 @@
                 removePhotoBtn.classList.add('hidden');
             }
 
-            document.getElementById('settingShopName').value = appSettings.shopName || 'سامانه ی کارگاه هوشمند';
+            document.getElementById('settingShopName').value = appSettings.shopName || 'سامانه‌ی کارگاه هوشمند';
             document.getElementById('settingCurrency').value = appSettings.currency || 'تومان';
             document.getElementById('settingDefaultStatus').value = appSettings.defaultStatus || 'به موقع';
             document.getElementById('settingOnTimeTolerance').value = formatNumber(getOnTimeTolerance()).replace(/,/g, '');
@@ -5912,6 +5973,7 @@
 
             updateSettingsProfilePreview();
             mgrRenderSettings();
+            mgrFillSettingsWorkerSelect();
             switchSettingsTab(initialTab || 'profile');
             updateBackupFolderStatusUI();
             updateDataFolderSettingsUI();
@@ -5936,7 +5998,7 @@
             const ownerAddressVal = document.getElementById('settingOwnerAddress').value.trim();
             // اگر نام فروشگاه خالی گذاشته شود، از مقدار پیش‌فرض استفاده می‌شود؛ قبلاً در این حالت
             // کل فرم (از جمله تم، فونت، رنگ‌ها و واحد پول) بدون هیچ پیام خطایی ذخیره نمی‌شد.
-            const shopNameVal = document.getElementById('settingShopName').value.trim() || appSettings.shopName || 'سامانه ی کارگاه هوشمند';
+            const shopNameVal = document.getElementById('settingShopName').value.trim() || appSettings.shopName || 'سامانه‌ی کارگاه هوشمند';
             const currencyVal = document.getElementById('settingCurrency').value;
             const defaultStatusVal = document.getElementById('settingDefaultStatus').value;
             const themeVal = document.getElementById('settingTheme').value;
@@ -6426,7 +6488,7 @@
                         await FS.writeFile({ path, data: jsonString, directory: 'CACHE', encoding: 'utf8', recursive: true });
                         const uriResult = await FS.getUri({ path, directory: 'CACHE' });
                         await ShareApi.share({
-                            title: 'پشتیبان سامانه ی کارگاه هوشمند',
+                            title: 'پشتیبان سامانه‌ی کارگاه هوشمند',
                             text: `فایل پشتیبان ماه جاری (${jsonFilename})`,
                             url: uriResult.uri,
                             dialogTitle: 'ارسال فایل پشتیبان'
@@ -6481,7 +6543,7 @@
             try {
                 await navigator.share({
                     files: [file],
-                    title: 'پشتیبان سامانه ی کارگاه هوشمند',
+                    title: 'پشتیبان سامانه‌ی کارگاه هوشمند',
                     text: `فایل پشتیبان ماه جاری (${jsonFilename}) — محتوای آن JSON است؛ به‌دلیل محدودیت اشتراک‌گذاری فایل در مرورگر با پسوند txt ارسال شده است.`
                 });
                 addLog('فایل پشتیبان از طریق منوی اشتراک‌گذاری سیستم ارسال شد.', 'success');
@@ -6517,13 +6579,13 @@
                 return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
             };
             const withW = mgrOn();
-            const headers = ['تاریخ', 'ساعت', ...(withW ? ['کارگر'] : []), 'کد کالا', 'عنوان', 'رنگ/مشخصات', 'تعداد', 'قیمت واحد', 'قیمت کل', 'وضعیت', 'مدت زمان', ...(withW ? ['بخش', 'مزد کارگر'] : [])];
+            const headers = ['تاریخ', 'ساعت', ...(withW ? ['پرسنل'] : []), 'کد کالا', 'عنوان', 'رنگ/مشخصات', 'تعداد', 'قیمت واحد', 'قیمت کل', 'وضعیت', 'مدت زمان', ...(withW ? ['بخش'] : [])];
             const lines = [headers.map(csvCell).join(',')];
             records.forEach(r => {
                 lines.push([
                     r.date, r.time, ...(withW ? [mgrRecWorker(r)] : []), r.itemCode, r.itemTitle, r.itemColor,
                     r.quantity, (r.unitPrice === null ? '' : r.unitPrice), (r.totalPrice === null ? '' : r.totalPrice),
-                    getDisplayStatus(r), r.durationTime, ...(withW ? [mgrRecSection(r), mgrRecWage(r) === null ? '' : mgrRecWage(r)] : [])
+                    getDisplayStatus(r), r.durationTime, ...(withW ? [mgrRecSection(r)] : [])
                 ].map(csvCell).join(','));
             });
             // BOM ابتدای فایل برای نمایش صحیح حروف فارسی در اکسل ویندوز ضروری است
@@ -6619,7 +6681,7 @@
             renderTodayDateBar();
             const titleElement = document.getElementById('mainAppTitle');
             if (titleElement) {
-                const customShopName = appSettings.shopName || 'سامانه ی کارگاه هوشمند';
+                const customShopName = appSettings.shopName || 'سامانه‌ی کارگاه هوشمند';
                 titleElement.innerText = `${customShopName} - گزارش ماه ${currentJalali.monthName} ${formatYearDigits(currentJalali.yearEn)}`;
             }
             const ownerLine = document.getElementById('ownerInfoLine');
@@ -6757,7 +6819,7 @@
                 const shopName = shopInput ? shopInput.value.trim() : (appSettings.shopName || '');
 
                 nameEl.innerText = ownerName || 'کاربر مهمان';
-                subEl.innerText = shopName || 'سامانه ی کارگاه هوشمند';
+                subEl.innerText = shopName || 'سامانه‌ی کارگاه هوشمند';
 
                 if (currentOwnerPhotoData) {
                     imgEl.src = currentOwnerPhotoData;
@@ -6805,8 +6867,19 @@
         /* ============ پایان مدیریت عکس هر رکورد ============ */
 
         /* ============ ثبت/به‌روزرسانی خودکار «شروع کد بعد» روی رکورد قبلی، هنگام ثبت یا ویرایش هر رکورد ============ */
-        // نزدیک‌ترین رکوردِ پیش از لحظه‌ی (تاریخ+ساعت) داده‌شده را پیدا می‌کند (رکورد «قبلی»)
-        function findPreviousRecordByDateTime(dateStr, timeStr, excludeId) {
+        // هویتِ «صاحبِ رکورد»: هر پرسنل زنجیره‌ی کاریِ مستقل خودش را دارد؛ رکوردِ پرسنلِ دیگر هرگز
+        // «قبلی/بعدیِ» رکورد او حساب نمی‌شود و پایانِ کارِ او را ثبت نمی‌کند. رکوردهای بدون پرسنل (حالت شخصی)
+        // همگی یک زنجیره‌ی مشترک‌اند (کلید خالی).
+        function recOwnerKey(r) {
+            if (!r) return '';
+            if (r.workerId) return 'w:' + r.workerId;
+            if (r.workerName) return 'n:' + r.workerName;
+            return '';
+        }
+
+        // نزدیک‌ترین رکوردِ پیش از لحظه‌ی (تاریخ+ساعت) داده‌شده را پیدا می‌کند (رکورد «قبلی»)؛
+        // اگر ownerKey داده شود فقط در بین رکوردهای همان پرسنل جست‌وجو می‌شود.
+        function findPreviousRecordByDateTime(dateStr, timeStr, excludeId, ownerKey) {
             const refJdn = parseJalaliDateToJdn(dateStr);
             const refMinutes = parseTimeToMinutes(timeStr);
             const refKey = refJdn * 1440 + refMinutes;
@@ -6814,6 +6887,7 @@
             let prevKey = -Infinity;
             allRecords.forEach(r => {
                 if (excludeId && r.id === excludeId) return;
+                if (ownerKey !== undefined && recOwnerKey(r) !== ownerKey) return;
                 const rJdn = parseJalaliDateToJdn(r.date);
                 const rMinutes = parseTimeToMinutes(r.time);
                 const rKey = rJdn * 1440 + rMinutes;
@@ -6827,7 +6901,7 @@
 
         // نزدیک‌ترین رکوردِ پس از لحظه‌ی (تاریخ+ساعت) داده‌شده را پیدا می‌کند (رکورد «بعدی»)؛
         // معکوسِ findPreviousRecordByDateTime و برای پیدا کردنِ «شروع کد بعدِ واقعی» یک رکورد به کار می‌رود.
-        function findNextRecordByDateTime(dateStr, timeStr, excludeId) {
+        function findNextRecordByDateTime(dateStr, timeStr, excludeId, ownerKey) {
             const refJdn = parseJalaliDateToJdn(dateStr);
             const refMinutes = parseTimeToMinutes(timeStr);
             const refKey = refJdn * 1440 + refMinutes;
@@ -6835,6 +6909,7 @@
             let nextKey = Infinity;
             allRecords.forEach(r => {
                 if (excludeId && r.id === excludeId) return;
+                if (ownerKey !== undefined && recOwnerKey(r) !== ownerKey) return;
                 const rJdn = parseJalaliDateToJdn(r.date);
                 const rMinutes = parseTimeToMinutes(r.time);
                 const rKey = rJdn * 1440 + rMinutes;
@@ -6965,7 +7040,7 @@
                 if (rec.finishedDate) continue;
                 let next = null;
                 for (let j = i + 1; j < list.length; j++) {
-                    if (list[j].key > list[i].key) { next = list[j].r; break; }
+                    if (list[j].key > list[i].key && recOwnerKey(list[j].r) === recOwnerKey(rec)) { next = list[j].r; break; }
                 }
                 const hasPointer = !!rec.nextCodeStartDate;
                 if (next) {
@@ -7003,7 +7078,7 @@
         // همین الان آن تخمین/مقدار را ارسال کرده است.
         function refreshOwnNextCodeStartLink(rec) {
             if (rec.finishedDate) { evaluateDeliveryAgainst(rec, rec.finishedDate, rec.finishedTime); return; }
-            const next = findNextRecordByDateTime(rec.date, rec.time, rec.id);
+            const next = findNextRecordByDateTime(rec.date, rec.time, rec.id, recOwnerKey(rec));
             if (next) {
                 const updated = computeAndSetDeliveryStatus(rec, next.date, next.time);
                 if (updated) {
@@ -7022,7 +7097,7 @@
         // اصلاح رکوردهایی به کار می‌رود که رکورد بعدیِ آن‌ها (از نظر زمانی) ویرایش شده است.
         function syncNextCodeStartLink(rec) {
             if (rec.finishedDate) return;
-            const next = findNextRecordByDateTime(rec.date, rec.time, rec.id);
+            const next = findNextRecordByDateTime(rec.date, rec.time, rec.id, recOwnerKey(rec));
             if (next) {
                 const updated = computeAndSetDeliveryStatus(rec, next.date, next.time);
                 if (updated) {
@@ -7038,8 +7113,8 @@
         // زمانی) هنوز تاریخ/ساعت «شروع کد بعد» نداشته باشد، همین لحظه به‌عنوان آن ثبت و وضعیت
         // تحویل + مدت زمان تاخیر/زودتر از موعدِ آن رکورد قبلی دوباره محاسبه می‌شود. این تنها مسیر
         // پر شدن «شروع کد بعد» است (بدون ورودی دستی) و هم بعد از ثبت و هم بعد از ویرایش اجرا می‌شود.
-        function applyNextCodeStartToPreviousRecord(newDate, newTime, excludeId) {
-            const prev = findPreviousRecordByDateTime(newDate, newTime, excludeId);
+        function applyNextCodeStartToPreviousRecord(newDate, newTime, excludeId, ownerKey) {
+            const prev = findPreviousRecordByDateTime(newDate, newTime, excludeId, ownerKey);
             if (!prev) return;
             if (prev.finishedDate) return;
 
@@ -7080,11 +7155,6 @@
             const info = getCurrentJalaliInfo();
             const editingIdRaw = document.getElementById('editingRecordId').value;
             const editingId = editingIdRaw ? Number(editingIdRaw) : '';
-            if (mgrOn()) {
-                const ex = editingId ? allRecords.find(r => r.id === editingId) : null, fw = mgrReadFormWorker(ex), cl = mgr().closed || {};
-                const dt = mgrDK(document.getElementById('recordDate').value || getCurrentJalaliInfo().fullDateStr);
-                if (mgrRecLocked(ex) || (fw.workerId && dt && cl[mgrMK(dt)])) { showFeedbackBanner('ماهِ این کارکرد در پنل کارفرما بسته شده است. برای تغییر، ابتدا قفل ماه را باز کنید.', 'warn'); return; }
-            }
             const code = normalizeCodeValue(document.getElementById('itemCode').value);
             const title = document.getElementById('itemTitle').value.trim();
             const color = document.getElementById('itemColor').value.trim();
@@ -7161,6 +7231,7 @@
                     const movedToDifferentMonth = allRecords[targetIndex].monthKey !== dateInfo.monthKey;
                     const oldDate = allRecords[targetIndex].date;
                     const oldTime = allRecords[targetIndex].time;
+                    const oldOwner = recOwnerKey(allRecords[targetIndex]);
                     allRecords[targetIndex] = {
                         ...allRecords[targetIndex],
                         itemCode: code, itemTitle: title, itemColor: color,
@@ -7176,9 +7247,10 @@
                     // اگر تاریخ/ساعت ثبتِ همین رکورد تغییر کرده باشد، ممکن است رکوردی که قبلاً
                     // همین لحظه‌ی قدیمی را به‌عنوان «شروع کد بعد» خودش ثبت کرده بود، دیگر با واقعیت
                     // هم‌خوانی نداشته باشد؛ آن رکورد پیدا و دوباره با رکورد بعدیِ واقعی‌اش همگام می‌شود.
-                    if (oldDate !== date || oldTime !== time) {
+                    const newOwner = recOwnerKey(allRecords[targetIndex]);
+                    if (oldDate !== date || oldTime !== time || oldOwner !== newOwner) {
                         const staleOwner = allRecords.find(r =>
-                            r.id !== editingId && sameDT(r.nextCodeStartDate, r.nextCodeStartTime, oldDate, oldTime)
+                            r.id !== editingId && recOwnerKey(r) === oldOwner && sameDT(r.nextCodeStartDate, r.nextCodeStartTime, oldDate, oldTime)
                         );
                         if (staleOwner) syncNextCodeStartLink(staleOwner);
                     }
@@ -7198,7 +7270,7 @@
                     // مشابه ثبت رکورد جدید: رکورد قبلیِ (از نظر زمانی) همین رکورد نیز، در صورتی که
                     // هنوز «شروع کد بعد» نداشته باشد، بر اساس تاریخ/ساعت (جدید یا بازویرایش‌شده‌ی)
                     // همین رکورد به‌روزرسانی و وضعیت تحویلش دوباره محاسبه می‌شود.
-                    applyNextCodeStartToPreviousRecord(date, time, editingId);
+                    applyNextCodeStartToPreviousRecord(date, time, editingId, newOwner);
 
                     addLog(`رکورد ${code} ویرایش شد.`, 'warn');
                     showFeedbackBanner(
@@ -7221,7 +7293,7 @@
                 // پیش از افزودن رکورد جدید، اگر رکورد قبلی (از نظر زمانی) هنوز «تاریخ/ساعت شروع کد بعد»
                 // نداشته باشد، همین لحظه‌ی شروع کد جدید به‌عنوان آن ثبت و وضعیت/تاخیرِ رکورد قبلی
                 // به‌صورت خودکار محاسبه و در لیست کارکردها به‌روزرسانی می‌شود.
-                applyNextCodeStartToPreviousRecord(date, time, null);
+                applyNextCodeStartToPreviousRecord(date, time, null, recOwnerKey(newRecord));
                 allRecords.unshift(newRecord);
                 applyManualEndToRecord(newRecord, manualEnd);
                 // اگر رکوردی بعد از این تاریخ/ساعت از قبل وجود دارد (ثبت عقب‌افتاده)، لینک «شروع کد بعد» همین رکورد هم ساخته شود
@@ -7333,9 +7405,7 @@
             document.getElementById('cancelEditBtn').classList.remove('flex');
         }
 
-        function mgrRecLocked(r) { return !!(mgrOn() && r && r.workerId && (mgr().closed || {})[r.monthKey]); }
         function deleteRecord(id) {
-            if (mgrRecLocked(allRecords.find(r => r.id === id))) return showFeedbackBanner('این کارکرد به کارگری در ماه بسته‌شده ارجاع شده است. برای حذف، ابتدا قفل ماه را در پنل کارفرما باز کنید.', 'warn');
             showCustomConfirm('آیا از حذف این رکورد اطمینان دارید؟ (تا ۳۰ روز از سطل بازیافت قابل بازگردانی است)', (confirmed) => {
                 if (confirmed) {
                     addTombstone('records', id);
@@ -7344,7 +7414,7 @@
                     allRecords = allRecords.filter(r => r.id !== id);
                     if (removedRec) {
                         // رکوردی که «شروع کد بعد»ش به رکورد حذف‌شده اشاره می‌کرد، دوباره با رکورد بعدیِ واقعی همگام می‌شود
-                        const owner = allRecords.find(r => sameDT(r.nextCodeStartDate, r.nextCodeStartTime, removedRec.date, removedRec.time));
+                        const owner = allRecords.find(r => recOwnerKey(r) === recOwnerKey(removedRec) && sameDT(r.nextCodeStartDate, r.nextCodeStartTime, removedRec.date, removedRec.time));
                         if (owner) syncNextCodeStartLink(owner);
                     }
                     saveRecords();
@@ -8429,12 +8499,15 @@
             const delayBody = document.getElementById('delaySummaryBody');
             const dupBody = document.getElementById('duplicateCodesBody');
             if (!bar || !delayText || !dupText) return;
+            const twoBtns = [document.getElementById('delaySummaryToggleBtn'), document.getElementById('duplicateCodesToggleBtn')];
             if (!records || records.length === 0) {
-                bar.classList.add('hidden');
+                if (mgrOn()) { bar.classList.remove('hidden'); twoBtns.forEach(b => b && b.classList.add('hidden')); }
+                else bar.classList.add('hidden');
                 if (delayBody) delayBody.classList.add('hidden');
                 if (dupBody) dupBody.classList.add('hidden');
                 return;
             }
+            twoBtns.forEach(b => b && b.classList.remove('hidden'));
             bar.classList.remove('hidden');
             delayText.innerHTML = formatDelayDurationSummary(records);
             dupText.innerHTML = formatDuplicateCodesSummary(records);
@@ -8446,9 +8519,10 @@
         function getStaleOverdueMinutes() { return 3 * SHIFT_MINUTES; }
 
         // رکورد «در حال انجام» فعلی: جدیدترین رکوردی که هنوز «شروع کد بعد» برایش ثبت نشده؛
-        // یعنی همان کدی که کارگر همین الان روی آن مشغول است.
+        // یعنی همان کدی که پرسنل همین الان روی آن مشغول است.
         function getCurrentActiveRecord() {
-            const openRecords = allRecords.filter(r => !r.nextCodeStartDate && !r.finishedDate && r.workDuration && r.date && r.time);
+            const employerView = (typeof mgrOn === 'function') && mgrOn();
+            const openRecords = allRecords.filter(r => !r.nextCodeStartDate && !r.finishedDate && r.workDuration && r.date && r.time && (employerView || recOwnerKey(r) === ''));
             if (openRecords.length === 0) return null;
             return openRecords.reduce((latest, r) => {
                 const rKey = parseJalaliDateToJdn(r.date) * 1440 + parseTimeToMinutes(r.time);
@@ -9033,34 +9107,11 @@
             container.innerHTML = records.map((r, index) => buildRecordCardHTML(r, index)).join('');
         }
 
-        /* ==================== قابلیت کارفرما (مدیر کارگاه): بخش‌ها، کارگران، ارجاع کار، حضور و غیاب، حقوق ==================== */
-        var mgrTab = 'dash', mgrEditW = '', mgrEditS = '', mgrAttDate = '', mgrTxDate = '', mgrLastTab = '';
-        const MGR_TABS = [['dash', 'fa-gauge', 'خلاصه'], ['workers', 'fa-users', 'کارگران'], ['sections', 'fa-sitemap', 'بخش‌ها'], ['att', 'fa-calendar-check', 'حضور و غیاب'], ['pay', 'fa-money-bill-wave', 'حقوق و مزد']];
-        const MGR_PAY = { daily: 'روزمزد', monthly: 'ماهانه (ثابت)', piece: 'کارمزدی (هر قطعه)' };
-        const MGR_ATT = [['p', 'حاضر', 'emerald'], ['h', 'نیم‌روز', 'sky'], ['l', 'مرخصی', 'amber'], ['a', 'غایب', 'rose']];
-        const MGR_TX = { advance: 'مساعده', bonus: 'پاداش', deduction: 'کسورات' };
+        /* ==================== قابلیت کارفرما (مدیر کارگاه): بخش‌ها، پرسنل و ارجاع کار ==================== */
+        var mgrTab = 'workers', mgrEditW = '', mgrEditS = '', mgrLastTab = '';
+        const MGR_TABS = [['workers', 'fa-users', 'پرسنل'], ['sections', 'fa-sitemap', 'بخش‌ها']];
         const MI = 'w-full p-2.5 border border-slate-400 dark:border-slate-500 rounded-xl text-sm bg-white dark:bg-slate-800 field-box-bg dark:text-slate-100 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all';
-        const mgrCap = v => Math.min(Math.max(Number(v) || 0, 0), 1e13);
-        // نرخ ویژه‌ی هر نوع کار: تطبیق بدون حساسیت به ی/ي، ک/ك، ارقام فارسی و انگلیسی و فاصله
-        function mgrRateFor(w, title) {
-            if (!w) return 0;
-            const rt = w.rates || {}, raw = String(title || '').trim();
-            if (rt[raw]) return rt[raw];
-            const t = normalizeSearchText(raw);
-            for (const k in rt) if (normalizeSearchText(k) === t) return rt[k];
-            return w.rate || 0;
-        }
-        var mgrVer = 0, mgrPayCache = { sig: '', map: {} }, mgrEarliest = 0;
-        function mgrMkNum(mk) { const [y, m] = String(mk).split('-').map(Number); return (y || 0) * 100 + (m || 0); }
-        function mgrEarliestMk() {
-            const M = mgr(); let best = 0;
-            const up = n => { if (n && (!best || n < best)) best = n; };
-            Object.keys(M.attendance).forEach(k => up(mgrMkNum(mgrMK(k))));
-            (M.txns || []).forEach(t => up(mgrMkNum(mgrMK(t.date))));
-            allRecords.forEach(r => { if (r.workerId) up(mgrMkNum(r.monthKey)); });
-            return best;
-        }
-        function mgrSig() { let a = 0; for (const r of allRecords) a += (Number(r.updatedAt) || 0) % 1e9; return [mgrVer, appSettings.updatedAt, allRecords.length, a, Math.floor(Date.now() / 60000)].join('|'); }
+        var mgrVer = 0;
         function mgrId(p) { return p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
         function mgrOn() { return !!(appSettings && appSettings.manager && appSettings.manager.enabled); }
         function mgr() { return appSettings.manager; }
@@ -9068,16 +9119,6 @@
         function mgrSection(id) { return id ? (mgr().sections.find(x => x.id === String(id)) || null) : null; }
         function mgrRecWorker(r) { const w = mgrWorker(r && r.workerId); return w ? w.name : ((r && r.workerName) || ''); }
         function mgrDK(d) { const p = toEnglishDigits(String(d || '')).split('/').map(Number); return (p.length === 3 && p.every(Number.isFinite) && p[0] > 1200 && p[1] >= 1 && p[1] <= 12 && p[2] >= 1 && p[2] <= 31) ? `${p[0]}/${String(p[1]).padStart(2, '0')}/${String(p[2]).padStart(2, '0')}` : ''; }
-        function mgrMK(dk) { const p = dk.split('/').map(Number); return `${p[0]}-${p[1]}`; }
-        function mgrToday() { return getCurrentJalaliInfo().fullDateStr; }
-        function mgrEmployed(w, dk) { return !dk || !((w.startDate && dk < w.startDate) || (w.endDate && dk > w.endDate)); }
-        // سهم ماه از حقوق ماهانه بر مبنای ۳۰ روز، طبق تاریخ شروع/پایان همکاری
-        function mgrFrac(w, mk) {
-            const n = mgrMkNum(mk), s = w.startDate ? mgrMkNum(mgrMK(w.startDate)) : 0, e = w.endDate ? mgrMkNum(mgrMK(w.endDate)) : 1e9;
-            if (n < s || n > e) return 0;
-            const a = n === s ? Math.min(30, +w.startDate.slice(8, 10)) : 1, b = n === e ? Math.min(30, +w.endDate.slice(8, 10)) : 30;
-            return Math.min(1, Math.max(0, (b - a + 1) / 30));
-        }
         function mgrSave() {
             mgrVer++; appSettings.updatedAt = new Date().toISOString();
             try { localStorage.setItem('sewing_app_settings_v13', JSON.stringify(appSettings)); }
@@ -9086,19 +9127,9 @@
         }
 
         /* ---------- نمای صفحه‌ی اصلی در حالت کارفرما ---------- */
-        var mgrListFilter = '', mgrSumPickerOpen = false;
-        var mgrSumOff = (function () { try { return JSON.parse(localStorage.getItem('mgr_summary_off') || '{}') || {}; } catch (e) { return {}; } })();
-        function mgrSumPicker() { mgrSumPickerOpen = !mgrSumPickerOpen; mgrApplyMainView(); }
-        function mgrSumToggle(k, on) { if (on) delete mgrSumOff[k]; else mgrSumOff[k] = 1; try { localStorage.setItem('mgr_summary_off', JSON.stringify(mgrSumOff)); } catch (e) {} mgrApplyMainView(); }
+        var mgrListFilter = '';
         function mgrRecSection(r) { const w = mgrWorker(r && r.workerId), sc = w ? mgrSection(w.sectionId) : null; return sc ? sc.name : ''; }
-        // مزد کارگر برای این کارکرد: فقط کارمزدی (تعداد × نرخ ویژه‌ی همان کار یا نرخ عمومی)؛ روزمزد/ماهانه در جدول حقوق محاسبه می‌شود
-        function mgrRecWage(r) {
-            const w = mgrWorker(r && r.workerId);
-            if (!w || w.payType !== 'piece') return null;
-            if (mgr().pieceDoneOnly && isRecordPending(r)) return 0;
-            return Math.round((Number(r.quantity) || 0) * mgrRateFor(w, r.itemTitle));
-        }
-        var mgrGrouped = (function () { try { return localStorage.getItem('mgr_grouped') !== '0'; } catch (e) { return true; } })();
+        var mgrGrouped = false;
         function mgrSetGrouped(v) { mgrGrouped = !!v; try { localStorage.setItem('mgr_grouped', v ? '1' : '0'); } catch (e) {} renderDashboard(); }
         var mgrGroupKeys = [];
         function mgrToggleGroupAt(i) { const id = mgrGroupKeys[i]; if (id === undefined) return; mgrCollapsed[id] = !mgrCollapsed[id]; renderDashboard(); }
@@ -9106,20 +9137,20 @@
         function mgrHtmlWorkerLists(list) {
             const M = mgr(), cur = escapeHTML(appSettings.currency || 'تومان'), f = formatNumber;
             const groups = [];
-            M.workers.forEach(w => groups.push({ id: w.id, name: w.name + (w.active ? '' : ' (غیرفعال)'), sec: (mgrSection(w.sectionId) || {}).name || '', pay: MGR_PAY[w.payType] || '', recs: [] }));
-            const none = { id: '__none', name: 'بدون ارجاع', sec: '', pay: '', recs: [] };
-            list.forEach(r => { const g = groups.find(x => x.id === String(r.workerId)) || ((r.workerId || r.workerName) ? (groups.push({ id: '__del' + (r.workerName || ''), name: (r.workerName || 'کارگر حذف‌شده') + ' (حذف‌شده)', sec: '', pay: '', recs: [] }), groups[groups.length - 1]) : none); if (g.id.indexOf('__del') === 0) { const ex = groups.find(x => x.id === g.id && x !== g); if (ex && ex.recs.length) { groups.pop(); ex.recs.push(r); return; } } g.recs.push(r); });
+            M.workers.forEach(w => groups.push({ id: w.id, name: w.name + (w.active ? '' : ' (غیرفعال)'), sec: (mgrSection(w.sectionId) || {}).name || '', recs: [] }));
+            const none = { id: '__none', name: 'بدون ارجاع', sec: '', recs: [] };
+            list.forEach(r => { const g = groups.find(x => x.id === String(r.workerId)) || ((r.workerId || r.workerName) ? (groups.push({ id: '__del' + (r.workerName || ''), name: (r.workerName || 'پرسنل حذف‌شده') + ' (حذف‌شده)', sec: '', recs: [] }), groups[groups.length - 1]) : none); if (g.id.indexOf('__del') === 0) { const ex = groups.find(x => x.id === g.id && x !== g); if (ex && ex.recs.length) { groups.pop(); ex.recs.push(r); return; } } g.recs.push(r); });
             groups.push(none);
             const th = 'p-2.5 text-xs font-bold bg-slate-100 dark:bg-slate-800';
             const vis = groups.filter(g => g.recs.length || (g.id !== '__none' && g.id.indexOf('__del') !== 0 && !mgrListFilter));
             mgrGroupKeys = vis.map(g => g.id);
             return vis.map((g, gi) => {
-                const qty = g.recs.reduce((a, r) => a + (Number(r.quantity) || 0), 0), tot = sumTotalPrice(g.recs), wage = g.recs.reduce((a, r) => a + (mgrRecWage(r) || 0), 0), open = !mgrCollapsed[g.id];
-                const rows = g.recs.map((r, i) => `<tr class="border-t border-slate-200 dark:border-slate-700"><td class="p-2.5 text-slate-400">${f(i + 1)}</td><td class="p-2.5 font-mono text-[11px]">${escapeHTML(r.itemCode) || '-'}</td><td class="p-2.5 font-semibold">${escapeHTML(r.itemTitle)}</td><td class="p-2.5">${escapeHTML(r.itemColor) || '-'}</td><td class="p-2.5 tabular-nums">${f(r.quantity)}</td><td class="p-2.5 tabular-nums">${formatPriceValue(r.unitPrice)}</td><td class="p-2.5 tabular-nums font-bold ${r.totalPrice == null ? 'text-amber-600' : 'text-emerald-600'}">${formatPriceValue(r.totalPrice)}</td><td class="p-2.5 tabular-nums text-indigo-600 dark:text-indigo-300">${mgrRecWage(r) === null ? '-' : f(mgrRecWage(r))}</td><td class="p-2.5"><span class="text-[11px] px-2 py-0.5 rounded-full border whitespace-nowrap ${getStatusBadgeClass(getDisplayStatus(r))}">${formatStatusWithDuration(getDisplayStatus(r), r.durationTime)}</span></td><td class="p-2.5 whitespace-nowrap text-slate-500">${escapeHTML(r.date)} ${escapeHTML(r.time)}</td><td class="p-2.5 no-print whitespace-nowrap"><button data-action="edit" data-id="${Number(r.id)}" class="w-7 h-7 rounded-full text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30" title="ویرایش"><i class="fa-solid fa-pen text-xs"></i></button><button data-action="delete" data-id="${Number(r.id)}" class="w-7 h-7 rounded-full text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30" title="حذف"><i class="fa-solid fa-trash text-xs"></i></button></td></tr>`).join('');
+                const qty = g.recs.reduce((a, r) => a + (Number(r.quantity) || 0), 0), tot = sumTotalPrice(g.recs), open = !mgrCollapsed[g.id];
+                const rows = g.recs.map((r, i) => `<tr class="border-t border-slate-200 dark:border-slate-700"><td class="p-2.5 text-slate-400">${f(i + 1)}</td><td class="p-2.5 font-mono text-[11px]">${escapeHTML(r.itemCode) || '-'}</td><td class="p-2.5 font-semibold">${escapeHTML(r.itemTitle)}</td><td class="p-2.5">${escapeHTML(r.itemColor) || '-'}</td><td class="p-2.5 tabular-nums">${f(r.quantity)}</td><td class="p-2.5 tabular-nums">${formatPriceValue(r.unitPrice)}</td><td class="p-2.5 tabular-nums font-bold ${r.totalPrice == null ? 'text-amber-600' : 'text-emerald-600'}">${formatPriceValue(r.totalPrice)}</td><td class="p-2.5"><span class="text-[11px] px-2 py-0.5 rounded-full border whitespace-nowrap ${getStatusBadgeClass(getDisplayStatus(r))}">${formatStatusWithDuration(getDisplayStatus(r), r.durationTime)}</span></td><td class="p-2.5 whitespace-nowrap text-slate-500">${escapeHTML(r.date)} ${escapeHTML(r.time)}</td><td class="p-2.5 no-print whitespace-nowrap"><button data-action="edit" data-id="${Number(r.id)}" class="w-7 h-7 rounded-full text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30" title="ویرایش"><i class="fa-solid fa-pen text-xs"></i></button><button data-action="delete" data-id="${Number(r.id)}" class="w-7 h-7 rounded-full text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30" title="حذف"><i class="fa-solid fa-trash text-xs"></i></button></td></tr>`).join('');
                 return `<div class="rounded-2xl border border-slate-300 dark:border-slate-600 overflow-hidden"><button type="button" onclick="mgrToggleGroupAt(${gi})" class="w-full flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-indigo-50/60 dark:bg-indigo-950/20 text-right">
-                    <span class="text-sm font-bold text-slate-800 dark:text-slate-100"><i class="fa-solid ${open ? 'fa-chevron-down' : 'fa-chevron-left'} text-[10px] ml-2"></i><i class="fa-solid fa-user-gear text-indigo-500 ml-1"></i>${escapeHTML(g.name)} <span class="text-[11px] font-normal text-slate-500">${[escapeHTML(g.sec), g.pay].filter(Boolean).join(' • ')}</span></span>
-                    <span class="text-[11px] text-slate-600 dark:text-slate-300">${f(g.recs.length)} کارکرد • ${f(qty)} عدد • ${f(tot)} ${cur}${wage ? ' • مزد: ' + f(wage) : ''}</span></button>
-                    ${open ? (g.recs.length ? `<div class="overflow-x-auto"><table class="w-full text-xs text-right"><thead><tr><th class="${th}">#</th><th class="${th}">کد</th><th class="${th}">عنوان کار</th><th class="${th}">مشخصات</th><th class="${th}">تعداد</th><th class="${th}">قیمت واحد</th><th class="${th}">مبلغ کل</th><th class="${th}">مزد کارگر</th><th class="${th}">وضعیت</th><th class="${th}">تاریخ</th><th class="${th} no-print"></th></tr></thead><tbody>${rows}</tbody></table></div>` : mgrEmpty('کارکردی در این دوره ندارد.')) : ''}</div>`;
+                    <span class="text-sm font-bold text-slate-800 dark:text-slate-100"><i class="fa-solid ${open ? 'fa-chevron-down' : 'fa-chevron-left'} text-[10px] ml-2"></i><i class="fa-solid fa-user-gear text-indigo-500 ml-1"></i>${escapeHTML(g.name)} <span class="text-[11px] font-normal text-slate-500">${[escapeHTML(g.sec)].filter(Boolean).join(' • ')}</span></span>
+                    <span class="text-[11px] text-slate-600 dark:text-slate-300">${f(g.recs.length)} کارکرد • ${f(qty)} عدد • ${f(tot)} ${cur}</span></button>
+                    ${open ? (g.recs.length ? `<div class="overflow-x-auto"><table class="w-full text-xs text-right"><thead><tr><th class="${th}">#</th><th class="${th}">کد</th><th class="${th}">عنوان کار</th><th class="${th}">مشخصات</th><th class="${th}">تعداد</th><th class="${th}">قیمت واحد</th><th class="${th}">مبلغ کل</th><th class="${th}">وضعیت</th><th class="${th}">تاریخ</th><th class="${th} no-print"></th></tr></thead><tbody>${rows}</tbody></table></div>` : mgrEmpty('کارکردی در این دوره ندارد.')) : ''}</div>`;
             }).join('');
         }
         function mgrSetListFilter(v) { mgrListFilter = v; renderDashboard(); }
@@ -9134,51 +9165,30 @@
         function mgrApplyMainView() {
             const on = mgrOn(), cur = escapeHTML(appSettings.currency || 'تومان');
             document.body.dataset.mode = on ? 'employer' : 'worker';
-            ['thSection', 'thWage'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.toggle('hidden', !on); });
+            ['thSection'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.toggle('hidden', !on); });
             const badge = mgrEnsureEl('mgrModeBadge', document.getElementById('mainAppSubtitle'), 'after');
-            if (badge) { badge.className = on ? 'relative z-10 mt-2' : ''; badge.innerHTML = on ? '<span class="inline-flex items-center gap-1 text-[11px] bg-white/20 text-white rounded-full px-3 py-1"><i class="fa-solid fa-user-tie"></i> حالت کارفرما فعال است</span>' : ''; }
+            if (badge) { badge.className = 'relative z-10 mt-2 flex flex-wrap items-center gap-2'; badge.innerHTML = `<button type="button" onclick="mgrToggle(!mgrOn())" title="تغییر حالت" class="tactile-btn inline-flex items-center gap-1.5 text-[11px] bg-white hover:bg-slate-100 text-purple-700 font-bold rounded-full px-3 py-1.5"><i class="fa-solid fa-repeat"></i> ${on ? 'حالت کارفرما' : 'حالت پرسنل'} <span class="opacity-60 font-normal">• رفتن به ${on ? 'پرسنل' : 'کارفرما'}</span></button>` + (on ? `<button type="button" onclick="openManagerPanel()" class="tactile-btn inline-flex items-center gap-1.5 text-[11px] bg-white text-purple-700 rounded-full px-3 py-1.5 font-bold"><i class="fa-solid fa-user-tie"></i> پنل کارفرما</button>` : ''); }
             const goal = document.getElementById('incomeGoalSection'); if (goal) goal.style.display = on ? 'none' : '';
             const stats = mgrEnsureEl('mgrMainStats', document.getElementById('activeProgressCard'));
             const bar = mgrEnsureEl('mgrFilterBar', document.getElementById('historyIncompleteBanner'));
             const sum = mgrEnsureEl('mgrListSummary', document.getElementById('emptyState'), 'after');
             const grp = mgrEnsureEl('mgrWorkerLists', document.getElementById('emptyState'), 'after');
             document.body.dataset.grouped = (on && mgrGrouped) ? '1' : '0';
-            if (!on) { [stats, bar, sum, grp].forEach(e => { if (e) e.innerHTML = ''; }); return; }
-            const M = mgr(), mk = selectedMonthFilter, act = M.workers.filter(w => w.active), day = M.attendance[mgrDK(mgrToday())] || {};
-            const pr = mgrPayroll(mk), recs = allRecords.filter(r => r.monthKey === mk), paid = (M.paid || {})[mk] || {};
+            if (!on) { mgrPageW = ''; delete document.body.dataset.wpage; [stats, bar, sum, grp].forEach(e => { if (e) e.innerHTML = ''; }); return; }
+            if (mgrPageW && !mgrWorker(mgrPageW)) { mgrPageW = ''; mgrListFilter = ''; delete document.body.dataset.wpage; }
+            const wfw = document.getElementById('workerFieldWrap'); if (wfw) wfw.classList.toggle('hidden', !!mgrPageW);
+            const M = mgr(), mk = selectedMonthFilter;
+            const recs = allRecords.filter(r => r.monthKey === mk);
             const kl = document.getElementById('kpiPriceLabel'); if (kl) kl.innerText = `ارزش کل کارکرد کارگاه (${appSettings.currency || 'تومان'})`;
-            const f0 = formatNumber, sumN = k => pr.reduce((a, x) => a + x[k], 0);
-            const items = [
-                ['workers', 'کارگران فعال', f0(act.length), ''],
-                ['present', 'حاضر امروز', f0(act.filter(w => day[w.id] === 'p' || day[w.id] === 'h').length), 'text-emerald-600'],
-                ['assigned', 'کارکرد ارجاع‌شده / بدون ارجاع', f0(recs.filter(r => r.workerId).length) + ' / ' + f0(recs.filter(r => !r.workerId).length), 'text-amber-600'],
-                ['net', 'جمع خالص حقوق', f0(sumN('net')) + ' ' + cur, 'text-indigo-600'],
-                ['unpaid', 'تسویه‌نشده', f0(pr.filter(x => !paid[x.w.id]).reduce((a, x) => a + Math.max(0, x.net), 0)) + ' ' + cur, 'text-rose-600'],
-                ['piece', 'مزد کارمزدی کارکردها', f0(recs.reduce((a, r) => a + (mgrRecWage(r) || 0), 0)) + ' ' + cur, 'text-sky-600'],
-                ['advance', 'جمع مساعده', f0(sumN('advance')) + ' ' + cur, 'text-amber-600'],
-                ['ot', 'مبلغ اضافه‌کاری', f0(sumN('otPay')) + ' ' + cur, 'text-sky-600']
-            ];
-            const shown = items.filter(it => !mgrSumOff[it[0]]);
             stats.className = 'mb-6';
-            stats.innerHTML = `<div class="bg-white dark:bg-slate-900 pro-card rounded-2xl border border-slate-300 dark:border-slate-600 p-4 space-y-3">
-                <div class="flex items-center justify-between gap-2"><h3 class="text-sm font-bold text-purple-700 dark:text-purple-300 flex items-center gap-2"><i class="fa-solid fa-user-tie"></i> خلاصه‌ی کارگاه — ${mgrMonthLabel()}</h3>
-                <span class="flex items-center gap-1.5"><button type="button" onclick="mgrSumPicker()" title="فعال/غیرفعال کردن موارد خلاصه" class="w-8 h-8 rounded-full border border-slate-300 dark:border-slate-600 text-slate-500 hover:text-purple-600"><i class="fa-solid fa-gear text-xs"></i></button><button type="button" onclick="openManagerPanel()" class="tactile-btn px-3 py-1.5 bg-purple-600 text-white rounded-xl text-[11px]">پنل کارفرما</button></span></div>
-                ${mgrSumPickerOpen ? `<div class="rounded-xl border border-slate-300 dark:border-slate-600 p-3 bg-slate-50 dark:bg-slate-800/40"><p class="text-[11px] text-slate-500 dark:text-slate-400 mb-2">موارد نمایش‌داده‌شده در خلاصه را انتخاب کنید:</p><div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">${items.map(it => `<label class="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-200 cursor-pointer"><input type="checkbox" ${mgrSumOff[it[0]] ? '' : 'checked'} onchange="mgrSumToggle('${it[0]}', this.checked)"> ${it[1]}</label>`).join('')}</div></div>` : ''}
-                ${shown.length ? `<div class="grid grid-cols-2 sm:grid-cols-3 gap-2">${shown.map(it => mgrStat(it[1], it[2], it[3])).join('')}</div>` : mgrEmpty('همه‌ی موارد خلاصه غیرفعال است؛ با دکمه‌ی ⚙ فعالشان کنید.')}
-                </div>`;
+            mgrRenderWorkerCards(stats);
             const opts = '<option value="">همه‌ی کارکردها</option><option value="__none">بدون ارجاع</option>' + M.workers.map(w => `<option value="${escapeHTML(w.id)}">${escapeHTML(w.name)}${w.active ? '' : ' (غیرفعال)'}</option>`).join('');
             bar.className = 'no-print px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex items-center gap-2 text-xs';
-            bar.innerHTML = `<i class="fa-solid fa-user-gear text-indigo-500"></i><span class="text-slate-500 dark:text-slate-400">نمایش کارکرد:</span><select onchange="mgrSetListFilter(this.value)" class="${MI} !w-auto !py-1.5 !text-xs">${opts}</select><label class="flex items-center gap-1 mr-auto text-slate-600 dark:text-slate-300 cursor-pointer"><input type="checkbox" ${mgrGrouped ? 'checked' : ''} onchange="mgrSetGrouped(this.checked)"> لیست جدا برای هر کارگر</label>`;
-            bar.querySelector('select').value = [...bar.querySelectorAll('option')].some(o => o.value === mgrListFilter) ? mgrListFilter : '';
-            const f = formatNumber, sec = M.sections.map(sc => { const q = recs.reduce((a, r) => { const w = mgrWorker(r.workerId); return a + ((w && w.sectionId === sc.id) ? (Number(r.quantity) || 0) : 0); }, 0); return q ? `<span class="inline-flex bg-slate-100 dark:bg-slate-800 rounded-full px-2.5 py-1 text-[11px]">${escapeHTML(sc.name)}: ${f(q)}</span>` : ''; }).join('');
-            const rows = pr.map(x => { const sc = mgrSection(x.w.sectionId); return `<tr class="border-t border-slate-200 dark:border-slate-700"><td class="p-2 font-semibold whitespace-nowrap">${escapeHTML(x.w.name)}</td><td class="p-2 whitespace-nowrap">${escapeHTML(sc ? sc.name : '-')}</td><td class="p-2 text-center">${f(x.qty)}</td><td class="p-2 text-center">${f(x.days)}</td><td class="p-2 text-center">${f(x.base)}</td><td class="p-2 text-center">${f(x.otPay)}</td><td class="p-2 text-center">${f(x.advance)}</td><td class="p-2 text-center">${f(x.deduction)}</td><td class="p-2 text-center font-bold ${x.net < 0 ? 'text-rose-600' : 'text-emerald-600'}">${f(x.net)}</td></tr>`; }).join('');
-            const t = k => f(pr.reduce((a, x) => a + x[k], 0));
-            sum.className = 'no-print border-t border-slate-200 dark:border-slate-700 p-4 space-y-3';
-            sum.innerHTML = `<h4 class="text-xs font-bold text-slate-700 dark:text-slate-200">کارکرد و حقوق کارگران — ${mgrMonthLabel()} (${cur})</h4>${sec ? `<div class="flex flex-wrap gap-1.5">${sec}</div>` : ''}
-                <div class="overflow-x-auto rounded-xl border border-slate-300 dark:border-slate-600"><table class="w-full text-xs text-right"><thead class="bg-slate-100 dark:bg-slate-800"><tr><th class="p-2">کارگر</th><th class="p-2">بخش</th><th class="p-2 text-center">تعداد کار</th><th class="p-2 text-center">روز کارکرد</th><th class="p-2 text-center">پایه</th><th class="p-2 text-center">اضافه‌کاری</th><th class="p-2 text-center">مساعده</th><th class="p-2 text-center">کسورات</th><th class="p-2 text-center">خالص</th></tr></thead>
-                <tbody>${rows || `<tr><td colspan="9">${mgrEmpty('داده‌ای برای این ماه نیست.')}</td></tr>`}</tbody>
-                <tfoot class="bg-slate-50 dark:bg-slate-800/60 font-bold"><tr class="border-t-2 border-slate-300"><td class="p-2" colspan="2">جمع</td><td class="p-2 text-center">${t('qty')}</td><td class="p-2 text-center">${t('days')}</td><td class="p-2 text-center">${t('base')}</td><td class="p-2 text-center">${t('otPay')}</td><td class="p-2 text-center">${t('advance')}</td><td class="p-2 text-center">${t('deduction')}</td><td class="p-2 text-center">${t('net')}</td></tr></tfoot></table></div>`;
-            // کارت‌های نمای موبایل: نام کارگر و مزد
+            bar.innerHTML = `<i class="fa-solid fa-user-gear text-indigo-500"></i><span class="text-slate-500 dark:text-slate-400">نمایش کارکرد:</span><select onchange="mgrSetListFilter(this.value)" class="${MI} !w-auto !py-1.5 !text-xs">${opts}</select>`;
+            bar.style.display = mgrPageW ? 'none' : ''; bar.querySelector('select').value = [...bar.querySelectorAll('option')].some(o => o.value === mgrListFilter) ? mgrListFilter : '';
+            const f = formatNumber;
+            sum.innerHTML = ''; sum.className = 'hidden';
+            // کارت‌های نمای موبایل: نام پرسنل و بخش
             const list = getFilteredRecords();
             mgrA11y(stats); mgrA11y(bar);
             grp.className = mgrGrouped ? 'p-3 space-y-3' : '';
@@ -9187,12 +9197,145 @@
             if (cards.length === list.length) list.forEach((r, i) => {
                 if (!r.workerId && !r.workerName) return;
                 cards[i].querySelectorAll('[data-mgr-x]').forEach(n => n.remove());
-                const wg = mgrRecWage(r), d = document.createElement('div'); d.setAttribute('data-mgr-x', '1');
+                const d = document.createElement('div'); d.setAttribute('data-mgr-x', '1');
                 d.className = 'px-4 pb-2 -mt-1 text-[11px] text-indigo-600 dark:text-indigo-300';
-                d.innerHTML = `<i class="fa-solid fa-user-gear ml-1"></i>${escapeHTML(mgrRecWorker(r))}${mgrRecSection(r) ? ' • ' + escapeHTML(mgrRecSection(r)) : ''}${wg === null ? '' : ' • مزد: ' + formatNumber(wg)}`;
+                d.innerHTML = `<i class="fa-solid fa-user-gear ml-1"></i>${escapeHTML(mgrRecWorker(r))}${mgrRecSection(r) ? ' • ' + escapeHTML(mgrRecSection(r)) : ''}`;
                 cards[i].appendChild(d);
             });
         }
+
+        /* ---------- لیست پرسنل با ویجت پیشرفت و صفحه‌ی اختصاصی هر پرسنل ---------- */
+        var mgrPageW = '';
+        function mgrWorkerOpenRec(w) {
+            const o = allRecords.filter(r => String(r.workerId || '') === w.id && !r.nextCodeStartDate && !r.finishedDate && r.workDuration && r.date && r.time);
+            if (!o.length) return null;
+            const key = r => parseJalaliDateToJdn(r.date) * 1440 + parseTimeToMinutes(r.time);
+            return o.reduce((a, r) => key(r) > key(a) ? r : a);
+        }
+        /* ---------- کادر پرسنل صفحه‌ی اصلی: کارت‌های پیشرفته با حلقه‌ی پیشرفت، وضعیت زنده و آمار ماه ---------- */
+        var mgrCardFilter = 'all';
+        function mgrSetCardFilter(v) { mgrCardFilter = v; mgrRenderWorkerCards(); }
+        function mgrCardClick(ev, el) {
+            if (ev.target.closest && ev.target.closest('[data-action]')) return;
+            mgrOpenWorkerPage(el.dataset.wid);
+        }
+        var MGR_GRADS = [['#6366f1', '#8b5cf6'], ['#0ea5e9', '#6366f1'], ['#10b981', '#0ea5e9'], ['#f59e0b', '#ef4444'], ['#ec4899', '#8b5cf6'], ['#14b8a6', '#22c55e'], ['#f97316', '#ec4899'], ['#3b82f6', '#06b6d4']];
+        function mgrGrad(w) {
+            let h = 0; const s = String(w.id || w.name || '');
+            for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+            return MGR_GRADS[h % MGR_GRADS.length];
+        }
+        function mgrInitials(name) {
+            const p = String(name || '').trim().split(/[\s\u200c]+/).filter(Boolean);
+            if (!p.length) return '؟';
+            const a = Array.from(p[0])[0];
+            return p.length > 1 ? a + '\u200c' + Array.from(p[1])[0] : a;
+        }
+        // وضعیتِ زنده‌ی هر پرسنل: کار جاری، درصد پیشرفت، دسته‌ی وضعیت و آمار ماهِ در حال نمایش
+        function mgrWorkerState(w) {
+            const rec = mgrWorkerOpenRec(w), p = rec ? computeRecordProgress(rec) : null, pct = p ? Math.max(0, p.percent) : 0;
+            let key = 'idle';
+            if (p) key = pct >= 100 ? 'late' : pct >= 90 ? 'urgent' : pct >= 50 ? 'warn' : 'ok';
+            const hex = { idle: '#94a3b8', ok: '#10b981', warn: '#f59e0b', urgent: '#f97316', late: '#e11d48' }[key];
+            const my = allRecords.filter(r => r.monthKey === selectedMonthFilter && String(r.workerId || '') === w.id);
+            const judged = my.filter(r => r.status === 'به موقع' || r.status === 'تاخیر' || r.status === 'زودتر از موعد');
+            const lateCnt = judged.filter(r => r.status === 'تاخیر').length;
+            return {
+                w, rec, p, pct, key, hex, sc: mgrSection(w.sectionId),
+                cat: key === 'idle' ? 'idle' : key === 'late' ? 'late' : 'work',
+                cnt: my.length, qty: my.reduce((a, r) => a + (Number(r.quantity) || 0), 0), lateCnt,
+                onTime: judged.length ? Math.round((judged.length - lateCnt) / judged.length * 100) : null
+            };
+        }
+        function mgrBadge(st) {
+            const m = { idle: ['fa-mug-hot', 'بدون کار جاری'], ok: ['fa-bolt', 'در حال کار'], warn: ['fa-bolt', 'در حال کار'], urgent: ['fa-hourglass-half', 'نزدیک موعد'], late: ['fa-triangle-exclamation', 'دارای تاخیر'] }[st.key];
+            return `<span class="mgr-badge mgr-b-${st.key}"><i class="fa-solid ${m[0]}"></i>${m[1]}</span>`;
+        }
+        function mgrAvatar(st, sz, onHero) {
+            const g = mgrGrad(st.w);
+            const bg = onHero ? 'background:rgba(255,255,255,.22);border:2px solid rgba(255,255,255,.6)' : `background:linear-gradient(135deg,${g[0]},${g[1]})`;
+            return `<span class="mgr-avatar" style="width:${sz}px;height:${sz}px;font-size:${Math.round(sz * 0.36)}px;${bg};--mgr-c:${st.hex}">${escapeHTML(mgrInitials(st.w.name))}${onHero ? '' : `<i class="mgr-dot mgr-dot-${st.key}"></i>`}</span>`;
+        }
+        function mgrRing(st, sz) {
+            const C = 2 * Math.PI * 18, ratio = Math.max(0, Math.min(1, st.pct / 100)), off = (C * (1 - ratio)).toFixed(2);
+            return `<div class="mgr-ring" style="width:${sz}px;height:${sz}px;--mgr-c:${st.hex}"><svg viewBox="0 0 44 44" class="w-full h-full -rotate-90"><circle cx="22" cy="22" r="18" fill="none" stroke-width="4" class="mgr-ring-track"></circle><circle cx="22" cy="22" r="18" fill="none" stroke-width="4" stroke-linecap="round" class="mgr-ring-arc" stroke="${st.hex}" stroke-dasharray="${C.toFixed(2)}" stroke-dashoffset="${off}" style="--mgr-full:${C.toFixed(2)};opacity:${ratio > 0 ? 1 : 0}"></circle></svg><span class="mgr-ring-text" style="font-size:${Math.round(sz * 0.22)}px">${st.p ? formatNumber(Math.min(999, st.pct)) + '٪' : '—'}</span></div>`;
+        }
+        function mgrBar(st) {
+            return `<div class="mgr-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.min(100, st.pct)}"><span class="mgr-bar-fill${st.p ? '' : ' mgr-bar-off'}" style="width:${Math.min(100, st.pct)}%;background:${st.hex}"></span></div>`;
+        }
+        function mgrJobInfo(st, big) {
+            if (!st.rec) return '<div class="mgr-job-empty"><i class="fa-solid fa-mug-hot"></i> کار جاری ندارد</div>';
+            const r = st.rec, over = st.key === 'late';
+            return `<div class="mgr-job-title">کد ${escapeHTML(r.itemCode) || '-'} — ${escapeHTML(r.itemTitle) || '-'}</div>`
+                + `<div class="mgr-job-sub${over ? ' mgr-over' : ''}"><i class="fa-solid ${over ? 'fa-triangle-exclamation' : 'fa-clock'}"></i> ${formatMinutesDuration(st.p.remainingMinutes)} ${over ? 'تاخیر از موعد' : 'تا موعد باقی مانده'}</div>`
+                + `<div class="mgr-job-meta">شروع: ${escapeHTML(r.date)} - ${escapeHTML(r.time)}${big ? ' • مهلت هدف: ' + escapeHTML(r.workDuration) : ''}</div>`;
+        }
+        function mgrFinishBtn(st) {
+            return st.rec ? `<button type="button" data-action="finish-active" data-id="${Number(st.rec.id)}" class="mgr-finish no-print"><i class="fa-solid fa-check"></i> کار تمام شد</button>` : '';
+        }
+        function mgrWorkerCardHTML(st, i, first) {
+            const w = st.w, f = formatNumber, sub = [st.sc ? escapeHTML(st.sc.name) : '', escapeHTML(w.role || '')].filter(Boolean).join(' • ');
+            return `<div role="button" tabindex="0" data-wid="${escapeHTML(w.id)}" class="mgr-card mgr-card-${st.key}" style="--mgr-c:${st.hex}${first ? ';animation-delay:' + (i * 60) + 'ms' : ''}" onclick="mgrCardClick(event,this)" onkeydown="if((event.key==='Enter'||event.key===' ')&&event.target===this){event.preventDefault();mgrOpenWorkerPage(this.dataset.wid)}" aria-label="${escapeHTML(w.name)}">`
+                + `<div class="flex items-center gap-2.5">${mgrAvatar(st, 42)}<div class="min-w-0 flex-1"><div class="mgr-name">${escapeHTML(w.name)}</div><div class="mgr-sub">${sub || '&nbsp;'}</div></div>${mgrBadge(st)}</div>`
+                + `<div class="flex items-center gap-3">${mgrRing(st, 56)}<div class="min-w-0 flex-1">${mgrJobInfo(st, false)}</div></div>`
+                + mgrBar(st)
+                + `<div class="mgr-stats"><div class="mgr-stat"><b>${f(st.cnt)}</b><span>کارکرد ماه</span></div><div class="mgr-stat"><b>${f(st.qty)}</b><span>تعداد</span></div><div class="mgr-stat"><b>${st.onTime === null ? '—' : f(st.onTime) + '٪'}</b><span>به‌موقع</span></div></div>`
+                + mgrFinishBtn(st)
+                + '</div>';
+        }
+        function mgrRenderWorkerCards(el) {
+            el = el || document.getElementById('mgrMainStats'); if (!el || !mgrOn()) return;
+            const M = mgr(), f = formatNumber, first = !el.firstElementChild;
+            if (mgrPageW) {
+                const w = mgrWorker(mgrPageW); if (!w) return;
+                const st = mgrWorkerState(w), g = mgrGrad(w);
+                const chips = [st.sc ? ['fa-sitemap', st.sc.name] : null, w.role ? ['fa-briefcase', w.role] : null, w.phone ? ['fa-phone', w.phone] : null].filter(Boolean).map(c => `<span class="mgr-hero-chip"><i class="fa-solid ${c[0]}"></i>${escapeHTML(c[1])}</span>`).join('');
+                const tile = (ic, col, v, t) => `<div class="mgr-tile"><span class="mgr-tile-ic" style="background:${col}"><i class="fa-solid ${ic}"></i></span><b>${v}</b><span>${t}</span></div>`;
+                el.innerHTML = `<div class="mgr-panel mgr-page${first ? ' mgr-enter' : ''}" style="--mgr-c:${st.hex}">`
+                    + `<div class="mgr-hero" style="background:linear-gradient(135deg,${g[0]},${g[1]})"><div class="flex items-start justify-between gap-2 relative z-10"><button type="button" onclick="mgrCloseWorkerPage()" class="mgr-hero-btn no-print"><i class="fa-solid fa-arrow-right"></i> لیست پرسنل</button>${mgrBadge(st)}</div>`
+                    + `<div class="flex items-center gap-3 mt-4 relative z-10">${mgrAvatar(st, 64, true)}<div class="min-w-0 flex-1"><h3 class="mgr-hero-name">${escapeHTML(w.name)}</h3><div class="flex flex-wrap gap-1.5 mt-1.5">${chips}</div></div></div></div>`
+                    + `<div class="mgr-body space-y-3"><div class="mgr-jobpanel"><div class="flex items-center gap-4">${mgrRing(st, 84)}<div class="min-w-0 flex-1">${mgrJobInfo(st, true)}</div></div>${mgrBar(st)}${mgrFinishBtn(st)}</div>`
+                    + `<div class="mgr-tiles">${tile('fa-clipboard-list', '#6366f1', f(st.cnt), 'کارکرد ' + mgrMonthLabel())}${tile('fa-cubes', '#0ea5e9', f(st.qty), 'مجموع تعداد')}${tile('fa-circle-check', '#10b981', st.onTime === null ? '—' : f(st.onTime) + '٪', 'نرخ به‌موقع')}${tile('fa-triangle-exclamation', '#e11d48', f(st.lateCnt), 'تحویل با تاخیر')}</div></div></div>`;
+                return;
+            }
+            const all = M.workers.filter(w => w.active).map(w => mgrWorkerState(w));
+            const cnt = { all: all.length, work: all.filter(s => s.cat === 'work').length, late: all.filter(s => s.cat === 'late').length, idle: all.filter(s => s.cat === 'idle').length };
+            if (mgrCardFilter !== 'all' && !cnt[mgrCardFilter]) mgrCardFilter = 'all';
+            const ord = { late: 0, urgent: 1, warn: 2, ok: 3, idle: 4 };
+            const shown = all.filter(s => mgrCardFilter === 'all' || s.cat === mgrCardFilter).sort((a, b) => ord[a.key] - ord[b.key] || b.pct - a.pct);
+            const chip = (k, ic, t) => `<button type="button" onclick="mgrSetCardFilter('${k}')" class="mgr-chip${mgrCardFilter === k ? ' mgr-chip-on' : ''}" aria-pressed="${mgrCardFilter === k}"><i class="fa-solid ${ic}"></i>${t}<em>${f(cnt[k])}</em></button>`;
+            const totalCnt = all.reduce((a, s) => a + s.cnt, 0);
+            const body = shown.length ? `<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">${shown.map((s, i) => mgrWorkerCardHTML(s, i, first)).join('')}</div>` : (all.length ? mgrEmpty('پرسنلی با این وضعیت وجود ندارد.') : mgrEmpty('هنوز پرسنل فعالی ثبت نشده؛ از «پنل کارفرما ← پرسنل» اضافه کنید.'));
+            el.innerHTML = `<div class="mgr-panel${first ? ' mgr-enter' : ''}"><div class="mgr-head"><div class="flex items-center justify-between gap-2 relative z-10"><div class="flex items-center gap-2.5 min-w-0"><span class="mgr-head-ico"><i class="fa-solid fa-users"></i></span><div class="min-w-0"><h3 class="text-sm font-extrabold">پرسنل — پیشرفت کار</h3><p class="text-[11px] opacity-80 truncate">${mgrMonthLabel()} • ${f(totalCnt)} کارکرد ثبت‌شده</p></div></div><button type="button" onclick="openManagerPanel()" class="mgr-head-btn no-print"><i class="fa-solid fa-user-tie"></i> پنل کارفرما</button></div>`
+                + `<div class="mgr-chips relative z-10">${chip('all', 'fa-layer-group', 'همه')}${chip('work', 'fa-bolt', 'در حال کار')}${chip('late', 'fa-triangle-exclamation', 'تاخیر')}${chip('idle', 'fa-mug-hot', 'بدون کار')}</div></div>`
+                + `<div class="mgr-body">${body}</div></div>`;
+        }
+
+        function mgrFillSettingsWorkerSelect() {
+            const wrap = document.getElementById('settingsWorkerPickWrap'), sel = document.getElementById('settingsWorkerSelect');
+            if (!wrap || !sel) return;
+            const on = mgrOn();
+            wrap.classList.toggle('hidden', !on);
+            if (!on) return;
+            sel.innerHTML = '<option value="">— بدون پرسنل (صفحه‌ی اصلی) —</option>' + mgr().workers.filter(w => w.active).map(w => { const sc = mgrSection(w.sectionId); return `<option value="${escapeHTML(w.id)}">${escapeHTML(w.name)}${sc ? ' — ' + escapeHTML(sc.name) : ''}</option>`; }).join('');
+            sel.value = mgrPageW && [...sel.options].some(o => o.value === mgrPageW) ? mgrPageW : '';
+        }
+        function settingsPickWorker(id) {
+            closeSettingsModal();
+            if (id) mgrOpenWorkerPage(id); else if (mgrPageW) mgrCloseWorkerPage();
+        }
+        function mgrOpenWorkerPage(id) {
+            if (!mgrWorker(id)) return;
+            mgrPageW = String(id); mgrListFilter = mgrPageW; document.body.dataset.wpage = '1';
+            if (document.getElementById('editingRecordId').value) resetFormState(); else mgrSetFormWorker(null);
+            switchMainTab('entry'); renderDashboard(); window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        function mgrCloseWorkerPage() {
+            mgrPageW = ''; mgrListFilter = ''; delete document.body.dataset.wpage;
+            if (document.getElementById('editingRecordId').value) resetFormState(); else mgrSetFormWorker(null);
+            renderDashboard(); window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        setInterval(() => { try { mgrRenderWorkerCards(); } catch (e) {} }, 30 * 1000);
         function renderDashboard() {
             if (mgrListFilter && (!mgrOn() || (mgrListFilter !== '__none' && !mgrWorker(mgrListFilter)))) mgrListFilter = '';
             renderDashboardBase(); mgrApplyMainView();
@@ -9203,7 +9346,6 @@
         function applyManagerToUI() {
             const on = mgrOn();
             ['workerFieldWrap', 'thWorker'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.toggle('hidden', !on); });
-            const b = document.getElementById('mgrToolsBtn'); if (b) b.classList.toggle('hidden', !on);
             if (!on) { const md = document.getElementById('managerModal'); if (md) md.classList.add('hidden'); return; }
             const sel = document.getElementById('recordWorker'); if (!sel) return;
             const cur = sel.value;
@@ -9216,11 +9358,11 @@
         function mgrSetFormWorker(r) {
             const sel = document.getElementById('recordWorker'); if (!sel) return;
             sel.querySelectorAll('option[data-temp]').forEach(o => o.remove());
-            let v = (r && r.workerId) ? String(r.workerId) : '';
+            let v = (r && r.workerId) ? String(r.workerId) : ((!r && mgrPageW) ? mgrPageW : '');
             const w = mgrWorker(v);
             if (v && (!w || ![...sel.options].some(o => o.value === v))) {
                 const o = document.createElement('option'); o.dataset.temp = '1';
-                o.value = w ? w.id : '__snap'; o.textContent = (w ? w.name : (r.workerName || 'کارگر حذف‌شده')) + (w ? ' (غیرفعال)' : ' (حذف‌شده)');
+                o.value = w ? w.id : '__snap'; o.textContent = (w ? w.name : (r.workerName || 'پرسنل حذف‌شده')) + (w ? ' (غیرفعال)' : ' (حذف‌شده)');
                 sel.appendChild(o); v = o.value;
             } else if (!v && r && r.workerName) {
                 const o = document.createElement('option'); o.dataset.temp = '1'; o.value = '__snap'; o.textContent = r.workerName + ' (حذف‌شده)';
@@ -9240,18 +9382,17 @@
             cb.checked = mgrOn();
             document.getElementById('mgrOpenBtn').classList.toggle('hidden', !mgrOn());
             document.getElementById('mgrSettingsNote').innerText = mgrOn()
-                ? `فعال است — ${formatNumber(mgr().workers.length)} کارگر، ${formatNumber(mgr().sections.length)} بخش.`
+                ? `فعال است — ${formatNumber(mgr().workers.length)} پرسنل، ${formatNumber(mgr().sections.length)} بخش.`
                 : 'غیرفعال است؛ اطلاعات ثبت‌شده حفظ می‌شود.';
         }
         function mgrToggle(on) {
             mgr().enabled = !!on; mgrSave();
             applyManagerToUI(); mgrRenderSettings(); renderDashboard();
             addLog(on ? 'قابلیت کارفرما فعال شد.' : 'قابلیت کارفرما غیرفعال شد.', 'info');
-            showFeedbackBanner(on ? 'قابلیت کارفرما فعال شد. از منوی ابزارها «پنل کارفرما» را باز کنید.' : 'قابلیت کارفرما غیرفعال شد؛ اطلاعات حفظ شده است.', 'success');
+            showFeedbackBanner(on ? 'حالت کارفرما فعال شد.' : 'حالت پرسنل فعال شد؛ اطلاعات کارفرما حفظ شده است.', 'success');
         }
         function openManagerPanel() {
             if (!mgrOn()) return;
-            mgrAttDate = mgrAttDate || mgrToday(); mgrTxDate = mgrTxDate || mgrToday();
             const md = document.getElementById('managerModal');
             mgrLastFocus = document.activeElement; md.setAttribute('role', 'dialog'); md.setAttribute('aria-modal', 'true'); md.setAttribute('aria-label', 'پنل کارفرما');
             md.classList.remove('hidden');
@@ -9259,67 +9400,12 @@
             const cb = md.querySelector('button'); if (cb) cb.focus();
         }
         function closeManagerPanel() { document.getElementById('managerModal').classList.add('hidden'); if (mgrLastFocus && mgrLastFocus.focus) { try { mgrLastFocus.focus(); } catch (e) {} } }
-        function mgrDateChosen(id, v) { if (id === 'mgrAttDate') { mgrAttDate = v; mgrRender(); } else mgrTxDate = v; }
 
-        function mgrOtRate(w) {
-            const M = mgr(), dh = M.dayHours || 8, k = M.otMultiplier || 1.4;
-            if (w.otRate > 0) return w.otRate;
-            if (w.payType === 'daily') return w.rate / dh * k;
-            if (w.payType === 'monthly') return w.rate / (30 * dh) * k;
-            return 0;
-        }
-        function mgrPrevMk(mk) { const [y, m] = mk.split('-').map(Number); return m === 1 ? `${y - 1}-12` : `${y}-${m - 1}`; }
-        // فقط مانده‌ی منفی (بدهی کارگر) به ماه بعد منتقل می‌شود؛ عمق محدود برای جلوگیری از محاسبه‌ی بی‌پایان
-        function mgrCarryMap(mk, depth) {
-            const out = {}; if (!mgr().carryOver || depth > 240 || (mgrEarliest && mgrMkNum(mgrPrevMk(mk)) < mgrEarliest)) return out;
-            mgrPayroll(mgrPrevMk(mk), false, depth + 1).forEach(x => { if (x.net < 0) out[x.w.id] = x.net; });
-            return out;
-        }
-        function mgrParseRates(t) { const o = {}; String(t || '').split(/\n/).forEach(l => { const i = l.lastIndexOf('='); if (i < 1) return; const k = l.slice(0, i).trim().slice(0, 80), v = mgrCap(parsePersianInt(l.slice(i + 1))); if (k && v > 0) o[k] = v; }); return o; }
-        function mgrPayroll(mk, live, depth) {
-            const sg = mgrSig(); if (mgrPayCache.sig !== sg) mgrPayCache = { sig: sg, map: {} };
-            const key = mk + (live ? ':l' : '');
-            if (!mgrPayCache.map[key]) { if (!depth) mgrEarliest = mgrEarliestMk(); mgrPayCache.map[key] = mgrPayrollCalc(mk, live, depth); }
-            return mgrPayCache.map[key];
-        }
-        function mgrPayrollCalc(mk, live, depth) {
-            const M = mgr();
-            if (!live && M.closed && M.closed[mk]) return M.closed[mk].rows.map(r => ({ w: { ...(mgrWorker(r.id) || { active: false }), id: r.id, name: r.name }, days: r.days, qty: r.qty, base: r.base, oh: r.oh, otPay: r.otPay, bonus: r.bonus, advance: r.advance, deduction: r.deduction, absDed: 0, carryDed: 0, net: r.net, used: true }));
-            const days = {}, qty = {}, tx = {}, oh = {}, ab = {}, lv = {}, pc = {}, hasAtt = {};
-            Object.keys(M.attendance).forEach(k => {
-                if (mgrMK(k) !== mk) return;
-                Object.entries(M.attendance[k]).forEach(([w, st]) => {
-                    const dhh = M.dayHours || 8, ah = ((M.absHours || {})[k] || {})[w] || 0, part = ((st === 'a' || st === 'l') && ah > 0) ? Math.min(1, ah / dhh) : 0;
-                    hasAtt[w] = true;
-                    days[w] = (days[w] || 0) + (st === 'p' ? 1 : st === 'h' ? 0.5 : (part > 0 ? 1 - part : 0));
-                    if (!mgrOff(k)) { ab[w] = (ab[w] || 0) + (st === 'a' ? (part > 0 ? part : 1) : st === 'h' ? 0.5 : 0); if (st === 'l') lv[w] = (lv[w] || 0) + (part > 0 ? part : 1); }
-                });
-            });
-            Object.keys(M.overtime).forEach(k => {
-                if (mgrMK(k) !== mk) return;
-                Object.entries(M.overtime[k]).forEach(([w, h]) => { oh[w] = (oh[w] || 0) + h; });
-            });
-            allRecords.forEach(r => { if (r.workerId && r.monthKey === mk) { const n = Number(r.quantity) || 0, wk = mgrWorker(r.workerId); qty[r.workerId] = (qty[r.workerId] || 0) + n; if (!(M.pieceDoneOnly && isRecordPending(r))) pc[r.workerId] = (pc[r.workerId] || 0) + n * mgrRateFor(wk, r.itemTitle); } });
-            M.txns.forEach(t => { if (mgrMK(t.date) === mk) { tx[t.workerId] = tx[t.workerId] || { advance: 0, bonus: 0, deduction: 0 }; tx[t.workerId][t.type] += t.amount; } });
-            const lt = {}, okc = {};
-            allRecords.forEach(r => { if (!r.workerId || r.monthKey !== mk) return; const st = getDisplayStatus(r); if (st === 'تاخیر') lt[r.workerId] = (lt[r.workerId] || 0) + 1; else if (st !== 'در انتظار') okc[r.workerId] = (okc[r.workerId] || 0) + 1; });
-            // روزمزدها: جمعه‌ها و تعطیلی‌های ماه (اگر ثبت حضوری برایشان نیست) با حقوق حساب می‌شود
-            if (M.paidOff) { const offs = mgrOffDaysOfMonth(mk); M.workers.forEach(w => { if (w.payType !== 'daily' || !hasAtt[w.id]) return; offs.forEach(k => { if ((w.startDate && k < w.startDate) || (w.endDate && k > w.endDate)) return; if (!((M.attendance[k] || {})[w.id])) days[w.id] = (days[w.id] || 0) + 1; }); }); }
-            const carry = mgrCarryMap(mk, depth || 0);
-            return M.workers.map(w => {
-                const d = days[w.id] || 0, q = qty[w.id] || 0, h = oh[w.id] || 0, t = tx[w.id] || { advance: 0, bonus: 0, deduction: 0 };
-                const base = w.payType === 'monthly' ? Math.round(w.rate * mgrFrac(w, mk)) : (w.payType === 'piece' ? Math.round(pc[w.id] || 0) : Math.round(d * w.rate));
-                const otPay = Math.round(h * mgrOtRate(w)), dhh = M.dayHours || 8, autoHr = w.payType === 'monthly' ? w.rate / (30 * dhh) : 0,
-                    absDed = M.absDeduct ? Math.round((ab[w.id] || 0) * dhh * (M.absHourRate > 0 ? M.absHourRate : autoHr)) : 0,
-                    leaveDed = M.leaveDeduct ? Math.round((lv[w.id] || 0) * dhh * (M.leaveHourRate > 0 ? M.leaveHourRate : autoHr)) : 0, carryDed = carry[w.id] ? -carry[w.id] : 0, fine = (lt[w.id] || 0) * (M.lateFine || 0), autoB = (okc[w.id] || 0) * (M.onTimeBonus || 0), ded = t.deduction + absDed + leaveDed + carryDed + fine;
-                return { w, days: d, qty: q, base, oh: h, otPay, bonus: t.bonus + autoB, advance: t.advance, deduction: ded, absDed, leaveDed, carryDed, fine, autoB, net: base + otPay + t.bonus + autoB - t.advance - ded, used: carryDed > 0 || d > 0 || q > 0 || h > 0 || t.bonus + t.advance + t.deduction > 0 };
-            }).filter(x => x.w.active || x.used);
-        }
 
         function mgrRender() {
             document.getElementById('mgrHeaderSub').innerText = `دوره‌ی گزارش: ${mgrMonthLabel()}`;
             document.getElementById('mgrTabs').innerHTML = MGR_TABS.map(([k, ic, t]) => `<button type="button" data-mgr="tab" data-k="${k}" class="shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-t-xl text-xs font-bold ${k === mgrTab ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-b-2 border-purple-600' : 'text-slate-400 dark:text-slate-500'}"><i class="fa-solid ${ic}"></i> ${t}</button>`).join('');
-            const fn = { dash: mgrHtmlDash, workers: mgrHtmlWorkers, sections: mgrHtmlSections, att: mgrHtmlAtt, pay: mgrHtmlPay }[mgrTab];
+            const fn = { workers: mgrHtmlWorkers, sections: mgrHtmlSections }[mgrTab];
             const bodyEl = document.getElementById('mgrBody'), keepTop = (mgrLastTab === mgrTab) ? bodyEl.scrollTop : 0;
             bodyEl.innerHTML = fn(); bodyEl.scrollTop = keepTop; mgrLastTab = mgrTab; mgrApplyMainView();
             const tabs = document.getElementById('mgrTabs'); tabs.setAttribute('role', 'tablist');
@@ -9330,75 +9416,43 @@
         const mgrStat = (t, v, c) => `<div class="rounded-xl border border-slate-300 dark:border-slate-600 p-3 text-center"><p class="text-[11px] text-slate-500 dark:text-slate-400">${t}</p><p class="text-lg font-bold ${c || 'text-slate-800 dark:text-slate-100'} mt-1">${v}</p></div>`;
         const mgrEmpty = t => `<p class="text-[11px] text-slate-400 text-center py-4">${t}</p>`;
 
-        function mgrHtmlDash() {
-            const M = mgr(), cur = appSettings.currency || 'تومان', mk = selectedMonthFilter, td = mgrDK(mgrToday()), day = M.attendance[td] || {};
-            const act = M.workers.filter(w => w.active);
-            const cnt = st => act.filter(w => day[w.id] === st).length;
-            const pr = mgrPayroll(mk), recs = allRecords.filter(r => r.monthKey === mk);
-            const secRows = M.sections.map(sc => {
-                const ws = act.filter(w => w.sectionId === sc.id);
-                const q = recs.reduce((a, r) => { const w = mgrWorker(r.workerId); return a + ((w && w.sectionId === sc.id) ? (Number(r.quantity) || 0) : 0); }, 0);
-                return `<tr><td class="p-2">${escapeHTML(sc.name)}</td><td class="p-2 text-center">${formatNumber(ws.length)}</td><td class="p-2 text-center">${formatNumber(q)}</td></tr>`;
-            }).join('');
-            return `<div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                ${mgrStat('کارگران فعال', formatNumber(act.length))}
-                ${mgrStat('حاضر امروز', formatNumber(cnt('p') + cnt('h')), 'text-emerald-600')}
-                ${mgrStat('غایب / مرخصی امروز', formatNumber(cnt('a') + cnt('l')), 'text-rose-600')}
-                ${mgrStat('بدون ثبت حضور امروز', formatNumber(mgrOff(td) ? 0 : act.filter(w => !day[w.id]).length), 'text-amber-600')}
-                ${mgrStat('کارکردهای ماه', formatNumber(recs.length))}
-                ${mgrStat('بدون ارجاع به کارگر', formatNumber(recs.filter(r => !r.workerId).length), 'text-amber-600')}
-                ${mgrStat('تعداد ارجاع‌شده', formatNumber(recs.filter(r => r.workerId).reduce((a, r) => a + (Number(r.quantity) || 0), 0)))}
-                ${mgrStat('جمع خالص حقوق ماه', formatNumber(pr.reduce((a, x) => a + x.net, 0)) + ' ' + escapeHTML(cur), 'text-indigo-600')}
-                ${mgrStat('تسویه‌نشده', formatNumber(pr.filter(x => !((M.paid || {})[mk] || {})[x.w.id]).reduce((a, x) => a + Math.max(0, x.net), 0)) + ' ' + escapeHTML(cur), 'text-rose-600')}
-                ${mgrStat('جمع مساعده‌ی ماه', formatNumber(pr.reduce((a, x) => a + x.advance, 0)) + ' ' + escapeHTML(cur), 'text-amber-600')}
-                ${mgrStat('اضافه‌کاری ماه (ساعت)', formatNumber(pr.reduce((a, x) => a + x.oh, 0)), 'text-sky-600')}
-                ${mgrStat('مبلغ اضافه‌کاری ماه', formatNumber(pr.reduce((a, x) => a + x.otPay, 0)) + ' ' + escapeHTML(cur), 'text-sky-600')}
-            </div>
-            <div class="rounded-xl border border-slate-300 dark:border-slate-600 overflow-hidden"><table class="w-full text-xs text-right"><thead class="bg-slate-100 dark:bg-slate-800"><tr><th class="p-2">بخش</th><th class="p-2 text-center">کارگر فعال</th><th class="p-2 text-center">تعداد کار ماه</th></tr></thead><tbody>${secRows || `<tr><td colspan="3">${mgrEmpty('هنوز بخشی تعریف نشده است.')}</td></tr>`}</tbody></table></div>
-            ${mgrHtmlAlerts(recs, pr)}${mgrHtmlRank(recs)}${mgrHtmlLoad()}`;
-        }
 
         function mgrHtmlWorkers() {
             const M = mgr(), e = M.workers.find(w => w.id === mgrEditW) || {};
             const secOpts = '<option value="">— بدون بخش —</option>' + M.sections.map(x => `<option value="${escapeHTML(x.id)}" ${e.sectionId === x.id ? 'selected' : ''}>${escapeHTML(x.name)}</option>`).join('');
-            const payOpts = Object.entries(MGR_PAY).map(([k, t]) => `<option value="${k}" ${(e.payType || 'daily') === k ? 'selected' : ''}>${t}</option>`).join('');
             const list = M.workers.map(w => {
                 const sc = mgrSection(w.sectionId);
                 return `<div class="rounded-xl border border-slate-300 dark:border-slate-600 p-3 flex items-start justify-between gap-2 ${w.active ? '' : 'opacity-60'}">
                     <div class="min-w-0"><p class="text-sm font-bold text-slate-800 dark:text-slate-100">${escapeHTML(w.name)} ${w.active ? '' : '<span class="text-[10px] text-rose-500">(غیرفعال)</span>'}</p>
-                    <p class="text-[11px] text-slate-500 dark:text-slate-400">${[sc ? escapeHTML(sc.name) : '', escapeHTML(w.role), MGR_PAY[w.payType] + ': ' + formatNumber(w.rate), w.startDate ? 'از ' + escapeHTML(w.startDate) : '', w.endDate ? 'تا ' + escapeHTML(w.endDate) : '', escapeHTML(w.phone)].filter(Boolean).join(' • ')}</p>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400">${[sc ? escapeHTML(sc.name) : '', escapeHTML(w.role), w.startDate ? 'از ' + escapeHTML(w.startDate) : '', w.endDate ? 'تا ' + escapeHTML(w.endDate) : '', escapeHTML(w.phone)].filter(Boolean).join(' • ')}</p>
                     ${w.note ? `<p class="text-[11px] text-slate-400">${escapeHTML(w.note)}</p>` : ''}</div>
                     <div class="flex items-center gap-1 shrink-0">
-                        <button type="button" data-mgr="w-dl" data-id="${escapeHTML(w.id)}" title="دانلود فایل این کارگر" class="w-8 h-8 rounded-full text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/40"><i class="fa-solid fa-file-arrow-down text-xs"></i></button>
+                        <button type="button" data-mgr="w-dl" data-id="${escapeHTML(w.id)}" title="دانلود فایل این پرسنل" class="w-8 h-8 rounded-full text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/40"><i class="fa-solid fa-file-arrow-down text-xs"></i></button>
                         <button type="button" data-mgr="w-edit" data-id="${escapeHTML(w.id)}" title="ویرایش" class="w-8 h-8 rounded-full text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40"><i class="fa-solid fa-pen text-xs"></i></button>
                         <button type="button" data-mgr="w-toggle" data-id="${escapeHTML(w.id)}" title="${w.active ? 'غیرفعال کردن' : 'فعال کردن'}" class="w-8 h-8 rounded-full text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950/40"><i class="fa-solid ${w.active ? 'fa-user-slash' : 'fa-user-check'} text-xs"></i></button>
                         <button type="button" data-mgr="w-del" data-id="${escapeHTML(w.id)}" title="حذف" class="w-8 h-8 rounded-full text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40"><i class="fa-solid fa-trash text-xs"></i></button></div></div>`;
             }).join('');
-            return `<div class="flex flex-wrap gap-2"><button type="button" data-mgr="w-dl-all" class="tactile-btn px-3 py-2 rounded-xl border border-indigo-500 text-indigo-600 dark:text-indigo-300 text-xs"><i class="fa-solid fa-file-arrow-down ml-1"></i> دانلود فایل جداگانه‌ی هر کارگر</button>
-                <label class="tactile-btn cursor-pointer px-3 py-2 rounded-xl border border-slate-400 dark:border-slate-500 text-slate-600 dark:text-slate-300 text-xs"><i class="fa-solid fa-file-arrow-up ml-1"></i> بازیابی از فایل کارگر<input type="file" accept=".json,application/json" multiple class="hidden" onchange="mgrImportFiles(event)"></label></div>
+            return `<div class="flex flex-wrap gap-2"><button type="button" data-mgr="w-dl-all" class="tactile-btn px-3 py-2 rounded-xl border border-indigo-500 text-indigo-600 dark:text-indigo-300 text-xs"><i class="fa-solid fa-file-arrow-down ml-1"></i> دانلود فایل جداگانه‌ی هر پرسنل</button>
+                <label class="tactile-btn cursor-pointer px-3 py-2 rounded-xl border border-slate-400 dark:border-slate-500 text-slate-600 dark:text-slate-300 text-xs"><i class="fa-solid fa-file-arrow-up ml-1"></i> بازیابی از فایل پرسنل<input type="file" accept=".json,application/json" multiple class="hidden" onchange="mgrImportFiles(event)"></label></div>
                 <div class="space-y-2 bg-slate-50 dark:bg-slate-800/40 rounded-xl p-3 border border-slate-300 dark:border-slate-600">
-                <h4 class="text-xs font-bold text-slate-700 dark:text-slate-200">${e.id ? 'ویرایش کارگر' : 'افزودن کارگر'}</h4>
+                <h4 class="text-xs font-bold text-slate-700 dark:text-slate-200">${e.id ? 'ویرایش پرسنل' : 'افزودن پرسنل'}</h4>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <input id="mgrWName" maxlength="100" placeholder="نام و نام خانوادگی (الزامی)" value="${escapeHTML(e.name || '')}" class="${MI}">
                     <input id="mgrWPhone" inputmode="tel" maxlength="40" placeholder="شماره تماس" value="${escapeHTML(e.phone || '')}" class="${MI}">
                     <select id="mgrWSection" class="${MI}">${secOpts}</select>
                     <input id="mgrWRole" maxlength="60" placeholder="سمت / مهارت (${escapeHTML(currentBusinessHints().role)})" value="${escapeHTML(e.role || '')}" class="${MI}">
-                    <select id="mgrWPay" class="${MI}">${payOpts}</select>
-                    <input id="mgrWRate" inputmode="numeric" data-thousands="1" placeholder="مبلغ (روزانه / ماهانه / هر قطعه)" value="${e.rate || ''}" class="${MI}">
-                    <input id="mgrWOt" inputmode="numeric" data-thousands="1" placeholder="نرخ هر ساعت اضافه‌کاری (خالی = خودکار)" value="${e.otRate || ''}" class="${MI}">
                     <input id="mgrWStart" maxlength="10" inputmode="numeric" placeholder="شروع همکاری (مثلاً ۱۴۰۵/۰۱/۱۵)" value="${escapeHTML(e.startDate || '')}" class="${MI}">
                     <input id="mgrWEnd" maxlength="10" inputmode="numeric" placeholder="پایان همکاری (اختیاری)" value="${escapeHTML(e.endDate || '')}" class="${MI}">
                 </div>
-                <textarea id="mgrWRates" rows="2" placeholder="نرخ ویژه‌ی هر نوع کار (فقط کارمزدی) — هر خط: عنوان کار = مبلغ" class="${MI}">${escapeHTML(Object.entries(e.rates || {}).map(([k, v]) => k + ' = ' + v).join('\n'))}</textarea>
                 <input id="mgrWNote" maxlength="300" placeholder="توضیحات" value="${escapeHTML(e.note || '')}" class="${MI}">
                 <div class="flex gap-2"><button type="button" data-mgr="w-save" class="tactile-btn px-4 py-2 bg-purple-600 text-white rounded-xl text-xs font-medium">${e.id ? 'ذخیره' : 'افزودن'}</button>
                 ${e.id ? '<button type="button" data-mgr="w-cancel" class="px-4 py-2 border border-slate-400 rounded-xl text-xs text-slate-600 dark:text-slate-300">انصراف</button>' : ''}</div></div>
-                ${M.workers.length > 6 ? `<input placeholder="جستجوی کارگر…" oninput="mgrFilterW(this.value)" class="${MI}">` : ''}<div id="mgrWList" class="space-y-2">${list || mgrEmpty('هنوز کارگری ثبت نشده است.')}</div>`;
+                ${M.workers.length > 6 ? `<input placeholder="جستجوی پرسنل…" oninput="mgrFilterW(this.value)" class="${MI}">` : ''}<div id="mgrWList" class="space-y-2">${list || mgrEmpty('هنوز پرسنلی ثبت نشده است.')}</div>`;
         }
 
         function mgrHtmlSections() {
             const M = mgr(), e = M.sections.find(x => x.id === mgrEditS) || {};
-            const list = M.sections.map(x => `<div class="rounded-xl border border-slate-300 dark:border-slate-600 p-3 flex items-center justify-between gap-2"><div><p class="text-sm font-bold text-slate-800 dark:text-slate-100">${escapeHTML(x.name)}</p><p class="text-[11px] text-slate-500">${formatNumber(M.workers.filter(w => w.sectionId === x.id).length)} کارگر</p></div>
+            const list = M.sections.map(x => `<div class="rounded-xl border border-slate-300 dark:border-slate-600 p-3 flex items-center justify-between gap-2"><div><p class="text-sm font-bold text-slate-800 dark:text-slate-100">${escapeHTML(x.name)}</p><p class="text-[11px] text-slate-500">${formatNumber(M.workers.filter(w => w.sectionId === x.id).length)} پرسنل</p></div>
                 <div class="flex gap-1"><button type="button" data-mgr="s-edit" data-id="${escapeHTML(x.id)}" class="w-8 h-8 rounded-full text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40"><i class="fa-solid fa-pen text-xs"></i></button>
                 <button type="button" data-mgr="s-del" data-id="${escapeHTML(x.id)}" class="w-8 h-8 rounded-full text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40"><i class="fa-solid fa-trash text-xs"></i></button></div></div>`).join('');
             return `<div class="flex gap-2"><input id="mgrSName" maxlength="60" placeholder="نام بخش (${escapeHTML(currentBusinessHints().section)})" value="${escapeHTML(e.name || '')}" class="${MI}" onkeydown="if(event.key==='Enter'){event.preventDefault();mgrAct('s-save');}">
@@ -9407,95 +9461,39 @@
                 <div class="space-y-2">${list || mgrEmpty('هنوز بخشی تعریف نشده است.')}</div>`;
         }
 
-        function mgrHtmlAtt() {
-            const M = mgr(), dk = mgrDK(mgrAttDate), day = M.attendance[dk] || {}, ot = (M.overtime[dk] || {}), act = M.workers.filter(w => w.active && mgrEmployed(w, dk));
-            const rows = act.map(w => `<div class="rounded-xl border border-slate-300 dark:border-slate-600 p-3 flex flex-wrap items-center justify-between gap-2"><span class="text-xs font-bold text-slate-800 dark:text-slate-100">${escapeHTML(w.name)}</span>
-                <div class="flex gap-1">${MGR_ATT.map(([k, t, c]) => `<button type="button" data-mgr="att" data-id="${escapeHTML(w.id)}" data-st="${k}" class="px-2.5 py-1.5 rounded-lg text-[11px] border ${day[w.id] === k ? `bg-${c}-600 text-white border-${c}-600` : 'border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-300'}">${t}</button>`).join('')}</div>
-                <label class="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400">اضافه‌کاری <input data-mgr-change="ot" data-id="${escapeHTML(w.id)}" inputmode="decimal" value="${ot[w.id] || ''}" placeholder="۰" class="w-14 p-1 text-center border border-slate-300 dark:border-slate-600 rounded-lg text-xs bg-white dark:bg-slate-800 dark:text-slate-100"> ساعت</label>
-                ${(day[w.id] === 'a' || day[w.id] === 'l') ? `<label class="basis-full flex items-center gap-1 text-[11px] text-rose-600 dark:text-rose-300">مدت ${day[w.id] === 'a' ? 'غیبت' : 'مرخصی'} <input data-mgr-change="abh" data-id="${escapeHTML(w.id)}" inputmode="decimal" value="${((M.absHours || {})[dk] || {})[w.id] || ''}" placeholder="کل روز" class="w-16 p-1 text-center border border-slate-300 dark:border-slate-600 rounded-lg text-xs bg-white dark:bg-slate-800 dark:text-slate-100"> ساعت <span class="text-slate-400">(خالی = کل روز؛ مثلاً ۲ یعنی فقط ۲ ساعت از روز)</span></label>` : ''}</div>`).join('');
-            return `<div class="flex flex-wrap items-center gap-2"><div class="relative w-44"><input id="mgrAttDate" readonly value="${escapeHTML(mgrAttDate)}" onclick="openDatePicker('mgrAttDate', event)" class="${MI} cursor-pointer pr-9"><span class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-slate-400"><i class="fa-solid fa-calendar-days"></i></span></div>
-                <button type="button" data-mgr="att-all" class="tactile-btn px-3 py-2 rounded-xl border border-emerald-500 text-emerald-600 text-xs">همه حاضر</button></div>
-                ${mgrOff(dk) ? `<p class="text-[11px] text-sky-600 dark:text-sky-300">${M.holidays[dk] ? 'تعطیل: ' + escapeHTML(M.holidays[dk]) : 'جمعه'} — این روز تعطیل است و غیبت کسر نمی‌شود.</p>` : ''}
-                <div class="flex flex-wrap items-center gap-2"><input id="mgrHolName" maxlength="60" placeholder="نام تعطیلی (اختیاری)" class="${MI} w-44"><button type="button" data-mgr="hol-toggle" class="tactile-btn px-3 py-2 rounded-xl border border-sky-500 text-sky-600 text-xs">${M.holidays[dk] ? 'لغو تعطیلی این روز' : 'تعطیل کردن این روز'}</button></div>
-                ${(() => { const hl = Object.keys(M.holidays).filter(k => mgrMK(k) === mgrMK(dk)).sort(); return hl.length ? `<div class="flex flex-wrap gap-1">${hl.map(k => `<span class="inline-flex items-center gap-1 text-[11px] bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-900 rounded-full px-2 py-1">${escapeHTML(formatDateDigits(k))} ${escapeHTML(M.holidays[k])} <button type="button" data-mgr="hol-del" data-id="${escapeHTML(k)}" class="text-rose-500"><i class="fa-solid fa-xmark"></i></button></span>`).join('')}</div>` : ''; })()}
-                <div class="space-y-2">${rows || mgrEmpty('ابتدا کارگر فعال ثبت کنید.')}</div>${mgrHtmlAttMonth(dk)}`;
-        }
 
-        function mgrHtmlPay() {
-            const M = mgr(), cur = escapeHTML(appSettings.currency || 'تومان'), mk = selectedMonthFilter, rows = mgrPayroll(mk);
-            const f = v => formatNumber(v), sum = k => rows.reduce((a, x) => a + x[k], 0);
-            const body = rows.map(x => `<tr class="border-t border-slate-200 dark:border-slate-700"><td class="p-2 font-semibold whitespace-nowrap">${escapeHTML(x.w.name)} <button type="button" data-mgr="paid" data-id="${escapeHTML(x.w.id)}" title="${(() => { const pd = ((M.paid || {})[mk] || {})[x.w.id]; return typeof pd === 'string' ? 'تسویه در ' + formatDateDigits(pd) : 'تسویه‌شد / نشد'; })()}" data-t="تسویه‌شد / نشد" class="mr-1 ${((M.paid || {})[mk] || {})[x.w.id] ? 'text-emerald-600' : 'text-slate-300 dark:text-slate-600'}"><i class="fa-solid fa-circle-check"></i></button><button type="button" data-mgr="slip" data-id="${escapeHTML(x.w.id)}" title="ارسال فیش حقوق" class="mr-1 text-indigo-500"><i class="fa-solid fa-share-nodes"></i></button></td><td class="p-2 text-center">${f(x.days)}</td><td class="p-2 text-center">${f(x.qty)}</td><td class="p-2 text-center">${f(x.base)}</td><td class="p-2 text-center text-sky-600">${f(x.oh)}</td><td class="p-2 text-center text-sky-600">${f(x.otPay)}</td><td class="p-2 text-center text-emerald-600">${f(x.bonus)}</td><td class="p-2 text-center text-amber-600">${f(x.advance)}</td><td class="p-2 text-center text-rose-600">${f(x.deduction)}</td><td class="p-2 text-center font-bold text-indigo-600">${f(x.net)}</td></tr>`).join('');
-            const tx = M.txns.filter(t => mgrMK(t.date) === mk).sort((a, b) => b.date.localeCompare(a.date));
-            const wOpts = M.workers.filter(w => w.active).map(w => `<option value="${escapeHTML(w.id)}">${escapeHTML(w.name)}</option>`).join('');
-            const cfg = 'w-14 p-1 text-center border border-slate-300 dark:border-slate-600 rounded-lg text-xs bg-white dark:bg-slate-800 dark:text-slate-100';
-            return `${(M.closed && M.closed[mk]) ? `<div class="rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-[11px] p-3"><i class="fa-solid fa-lock ml-1"></i> این ماه بسته شده و ارقام قفل است؛ حضور، اضافه‌کاری و مساعده‌ی آن تغییر نمی‌کند (ثبت تسویه آزاد است).</div>` : ''}
-                <p class="text-[11px] text-slate-500 dark:text-slate-400">حقوق ${mgrMonthLabel()} (ماه را از «دوره گزارش فعال» در تنظیمات ← پروفایل تغییر دهید). روزمزد = روزهای حضور × مبلغ؛ کارمزدی = تعداد هر نوع کار × نرخ ویژه‌ی همان نوع (بدون نرخ ویژه: مبلغ عمومی کارگر)؛ ماهانه = مبلغ ثابت.</p>
-                <div class="flex flex-wrap items-center gap-4 text-[11px] text-slate-600 dark:text-slate-300 bg-sky-50/60 dark:bg-sky-950/20 border border-sky-100 dark:border-sky-900/40 rounded-xl p-3">
-                    <label class="flex items-center gap-1">ضریب اضافه‌کاری <input data-mgr-change="ot-cfg" data-id="mul" inputmode="decimal" value="${M.otMultiplier}" class="${cfg}"></label>
-                    <label class="flex items-center gap-1">ساعت کار عادی روزانه <input data-mgr-change="ot-cfg" data-id="dh" inputmode="decimal" value="${M.dayHours}" class="${cfg}"></label>
-                    <label class="flex items-center gap-1"><input type="checkbox" data-mgr-change="abs-ded" data-id="x" ${M.absDeduct ? 'checked' : ''}> کسر حقوق برای غیبت (غایب ۱ روز، نیم‌روز ½ روز)</label>
-                    <label class="flex items-center gap-1">مبلغ کسر هر ساعت غیبت <input data-mgr-change="abs-rate" data-id="x" data-thousands="1" inputmode="numeric" value="${M.absHourRate || ''}" placeholder="خودکار" class="${cfg.replace('w-14', 'w-24')}"></label>
-                    <label class="flex items-center gap-1"><input type="checkbox" data-mgr-change="leave-ded" data-id="x" ${M.leaveDeduct ? 'checked' : ''}> کسر حقوق برای مرخصی</label>
-                    <label class="flex items-center gap-1">مبلغ کسر هر ساعت مرخصی <input data-mgr-change="leave-rate" data-id="x" data-thousands="1" inputmode="numeric" value="${M.leaveHourRate || ''}" placeholder="خودکار" class="${cfg.replace('w-14', 'w-24')}"></label>
-                    <span class="basis-full text-slate-500 dark:text-slate-400">مبلغ خالی = خودکار: فقط برای حقوق ماهانه، معادل ماهانه ÷ (۳۰ × ساعت روزانه) برای هر ساعت. اگر مبلغی وارد کنید، برای همه‌ی انواع پرداخت (روزمزد، ماهانه، کارمزدی) به‌ازای هر ساعت غیبت یا مرخصی کسر می‌شود. غیبت یا مرخصی بدون ساعت، یک روز کامل (ساعت کار روزانه) حساب می‌شود.</span>
-                    <label class="flex items-center gap-1"><input type="checkbox" data-mgr-change="carry-over" data-id="x" ${M.carryOver ? 'checked' : ''}> انتقال بدهی (مانده‌ی منفی) به ماه بعد</label>
-                    <label class="flex items-center gap-1"><input type="checkbox" data-mgr-change="friday-off" data-id="x" ${M.fridayOff ? 'checked' : ''}> جمعه‌ها تعطیل است (غیبت جمعه کسر نمی‌شود)</label>
-                    <label class="flex items-center gap-1"><input type="checkbox" data-mgr-change="holidays-on" data-id="x" ${M.holidaysOn !== false ? 'checked' : ''}> اعمال تعطیلی‌های ثبت‌شده (غیبت در روز تعطیل کسر نمی‌شود)</label>
-                    <label class="flex items-center gap-1"><input type="checkbox" data-mgr-change="piece-done" data-id="x" ${M.pieceDoneOnly ? 'checked' : ''}> مزد کارمزدی فقط برای کارهای تحویل‌شده (کارهای در انتظار حساب نشود)</label>
-                    <label class="flex items-center gap-1"><input type="checkbox" data-mgr-change="paid-off" data-id="x" ${M.paidOff ? 'checked' : ''}> پرداخت جمعه‌ها و تعطیلی‌ها به روزمزدها (یک روز کارکرد)</label>
-                    <label class="flex items-center gap-1">جریمه‌ی هر تحویل با تاخیر <input data-mgr-change="fine" data-id="x" inputmode="numeric" value="${M.lateFine || ''}" placeholder="۰" class="${cfg.replace('w-14', 'w-24')}"></label>
-                    <label class="flex items-center gap-1">پاداش هر تحویل به‌موقع <input data-mgr-change="ontime" data-id="x" inputmode="numeric" value="${M.onTimeBonus || ''}" placeholder="۰" class="${cfg.replace('w-14', 'w-24')}"></label>
-                    <span class="basis-full text-slate-500 dark:text-slate-400">نرخ ساعتی خودکار: روزمزد ÷ ساعت روزانه × ضریب؛ ماهانه ÷ (۳۰ × ساعت روزانه) × ضریب؛ کارمزدی فقط با نرخ دستیِ کارگر. ساعت اضافه‌کاری در تب «حضور و غیاب» ثبت می‌شود.</span>
-                </div>
-                <div class="overflow-x-auto rounded-xl border border-slate-300 dark:border-slate-600"><table class="w-full text-xs text-right"><thead class="bg-slate-100 dark:bg-slate-800"><tr><th class="p-2">کارگر</th><th class="p-2 text-center">روز کارکرد</th><th class="p-2 text-center">تعداد کار</th><th class="p-2 text-center">پایه (${cur})</th><th class="p-2 text-center">اضافه‌کاری (ساعت)</th><th class="p-2 text-center">مبلغ اضافه‌کاری</th><th class="p-2 text-center">پاداش</th><th class="p-2 text-center">مساعده</th><th class="p-2 text-center">کسورات</th><th class="p-2 text-center">خالص</th></tr></thead>
-                <tbody>${body || `<tr><td colspan="10">${mgrEmpty('داده‌ای برای این ماه نیست.')}</td></tr>`}</tbody>
-                <tfoot class="bg-slate-50 dark:bg-slate-800/60 font-bold"><tr class="border-t-2 border-slate-300"><td class="p-2">جمع</td><td class="p-2 text-center">${f(sum('days'))}</td><td class="p-2 text-center">${f(sum('qty'))}</td><td class="p-2 text-center">${f(sum('base'))}</td><td class="p-2 text-center">${f(sum('oh'))}</td><td class="p-2 text-center">${f(sum('otPay'))}</td><td class="p-2 text-center">${f(sum('bonus'))}</td><td class="p-2 text-center">${f(sum('advance'))}</td><td class="p-2 text-center">${f(sum('deduction'))}</td><td class="p-2 text-center text-indigo-600">${f(sum('net'))}</td></tr></tfoot></table></div>
-                <div class="flex flex-wrap items-center justify-between gap-2"><span class="text-[11px] text-slate-500 dark:text-slate-400">تسویه‌نشده: <b class="text-rose-600">${f(rows.filter(x => !((M.paid || {})[mk] || {})[x.w.id]).reduce((a, x) => a + Math.max(0, x.net), 0))}</b> ${cur} — با دکمه‌ی ✓ کنار نام، تسویه را ثبت کنید.</span><span class="flex gap-2"><button type="button" data-mgr="close" class="tactile-btn px-3 py-2 rounded-xl border border-amber-500 text-amber-700 dark:text-amber-300 text-xs"><i class="fa-solid ${(M.closed && M.closed[mk]) ? 'fa-lock-open' : 'fa-lock'} ml-1"></i> ${(M.closed && M.closed[mk]) ? 'بازکردن قفل ماه' : 'بستن ماه'}</button><button type="button" data-mgr="print" class="tactile-btn px-3 py-2 rounded-xl border border-indigo-500 text-indigo-600 text-xs"><i class="fa-solid fa-print ml-1"></i> چاپ / PDF</button><button type="button" data-mgr="csv" class="tactile-btn px-3 py-2 rounded-xl border border-emerald-500 text-emerald-600 text-xs"><i class="fa-solid fa-file-csv ml-1"></i> خروجی Excel (CSV)</button></span></div>
-                <div class="space-y-2 bg-slate-50 dark:bg-slate-800/40 rounded-xl p-3 border border-slate-300 dark:border-slate-600"><h4 class="text-xs font-bold text-slate-700 dark:text-slate-200">ثبت مساعده / پاداش / کسورات</h4>
-                <div class="grid grid-cols-1 sm:grid-cols-4 gap-2"><select id="mgrTxW" class="${MI}">${wOpts}</select>
-                <select id="mgrTxType" class="${MI}">${Object.entries(MGR_TX).map(([k, t]) => `<option value="${k}">${t}</option>`).join('')}</select>
-                <input id="mgrTxAmount" inputmode="numeric" data-thousands="1" placeholder="مبلغ" class="${MI}">
-                <input id="mgrTxDate" readonly value="${escapeHTML(mgrTxDate)}" onclick="openDatePicker('mgrTxDate', event)" class="${MI} cursor-pointer"></div>
-                <div class="flex gap-2"><input id="mgrTxNote" maxlength="200" placeholder="توضیحات" class="${MI}"><button type="button" data-mgr="tx-add" class="tactile-btn shrink-0 px-4 bg-purple-600 text-white rounded-xl text-xs font-medium">ثبت</button></div></div>
-                <div class="space-y-1">${tx.map(t => `<div class="flex items-center justify-between gap-2 text-[11px] rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2"><span>${escapeHTML((mgrWorker(t.workerId) || { name: '—' }).name)} • ${MGR_TX[t.type]} • <b>${formatNumber(t.amount)}</b> • ${escapeHTML(formatDateDigits(t.date))}${t.note ? ' • ' + escapeHTML(t.note) : ''}</span><button type="button" data-mgr="tx-del" data-id="${escapeHTML(t.id)}" class="text-rose-500"><i class="fa-solid fa-trash"></i></button></div>`).join('')}</div>`;
-        }
+
+
 
         function mgrAct(a, id, st) {
             const M = mgr(), val = i => (document.getElementById(i) || {}).value || '';
             if (a === 'tab') { mgrTab = id; return mgrRender(); }
             if (a === 'w-dl') return mgrDownloadWorker(id);
             if (a === 'w-dl-all') return mgrDownloadAll();
-            const gt = a === 'tx-del' ? M.txns.find(t => t.id === id) : null;
-            const gm = (a === 'att' || a === 'ot' || a === 'abh' || a === 'att-all' || a === 'hol-toggle') ? mgrMK(mgrDK(mgrAttDate)) : a === 'hol-del' ? mgrMK(mgrDK(id)) : a === 'tx-add' ? mgrMK(mgrDK(val('mgrTxDate'))) : gt ? mgrMK(gt.date) : '';
-            if (gm && M.closed && M.closed[gm]) { showFeedbackBanner('این ماه بسته شده است. برای تغییر، ابتدا در تب «حقوق و مزد» قفل ماه را باز کنید.', 'warn'); return mgrRender(); }
             if (a === 'w-save') {
                 const name = val('mgrWName').trim();
-                if (!name) return showFeedbackBanner('نام کارگر را وارد کنید.', 'warn');
-                if (M.workers.some(w => w.id !== mgrEditW && normalizeSearchText(w.name) === normalizeSearchText(name))) return showFeedbackBanner('کارگری با این نام قبلاً ثبت شده است.', 'warn');
+                if (!name) return showFeedbackBanner('نام پرسنل را وارد کنید.', 'warn');
+                if (M.workers.some(w => w.id !== mgrEditW && normalizeSearchText(w.name) === normalizeSearchText(name))) return showFeedbackBanner('پرسنلی با این نام قبلاً ثبت شده است.', 'warn');
                 const sd = mgrDK(val('mgrWStart')), ed = mgrDK(val('mgrWEnd'));
                 if ((val('mgrWStart').trim() && !sd) || (val('mgrWEnd').trim() && !ed)) return showFeedbackBanner('تاریخ شروع/پایان همکاری را به شکل ۱۴۰۵/۰۱/۱۵ وارد کنید.', 'warn');
                 if (sd && ed && sd > ed) return showFeedbackBanner('تاریخ پایان همکاری نباید قبل از شروع باشد.', 'warn');
-                const d = { name: name.slice(0, 100), phone: val('mgrWPhone').trim().slice(0, 40), sectionId: val('mgrWSection'), role: val('mgrWRole').trim().slice(0, 60), payType: val('mgrWPay'), rate: mgrCap(parsePersianInt(val('mgrWRate'))), otRate: mgrCap(parsePersianInt(val('mgrWOt'))), rates: mgrParseRates(val('mgrWRates')), startDate: mgrDK(val('mgrWStart')), endDate: mgrDK(val('mgrWEnd')), note: val('mgrWNote').trim().slice(0, 300) };
+                const d = { name: name.slice(0, 100), phone: val('mgrWPhone').trim().slice(0, 40), sectionId: val('mgrWSection'), role: val('mgrWRole').trim().slice(0, 60), startDate: mgrDK(val('mgrWStart')), endDate: mgrDK(val('mgrWEnd')), note: val('mgrWNote').trim().slice(0, 300) };
                 if (mgrEditW) {
                     const w = mgrWorker(mgrEditW); Object.assign(w, d);
                     let ch = false; allRecords.forEach(r => { if (r.workerId === w.id && r.workerName !== w.name) { r.workerName = w.name; r.updatedAt = Date.now(); ch = true; } });
                     if (ch) saveRecords();
                 } else M.workers.push({ id: mgrId('w'), active: true, ...d });
-                mgrEditW = ''; showFeedbackBanner('اطلاعات کارگر ذخیره شد.', 'success');
+                mgrEditW = ''; showFeedbackBanner('اطلاعات پرسنل ذخیره شد.', 'success');
             } else if (a === 'w-edit') { mgrEditW = id; return mgrRender(); }
             else if (a === 'w-cancel') { mgrEditW = ''; return mgrRender(); }
             else if (a === 'w-toggle') { const w = mgrWorker(id); if (w) w.active = !w.active; }
             else if (a === 'w-del') {
                 const w = mgrWorker(id); if (!w) return;
-                return showCustomConfirm(`کارگر «${w.name}» حذف شود؟ حضور و غیاب و مساعده‌های او هم پاک می‌شود (برای حفظ سوابق، به‌جای حذف «غیرفعال» کنید). کارکردهای ارجاع‌شده فقط نامش را نگه می‌دارند.`, ok => {
+                return showCustomConfirm(`پرسنل «${w.name}» حذف شود؟ (برای حفظ سوابق، به‌جای حذف «غیرفعال» کنید). کارکردهای ارجاع‌شده فقط نامش را نگه می‌دارند.`, ok => {
                     if (!ok) return;
                     let ch = false; allRecords.forEach(r => { if (r.workerId === id) { r.workerName = w.name; r.workerId = null; r.updatedAt = Date.now(); ch = true; } });
                     if (ch) saveRecords();
-                    M.workers = M.workers.filter(x => x.id !== id); M.txns = M.txns.filter(t => t.workerId !== id);
-                    Object.keys(M.attendance).forEach(k => { delete M.attendance[k][id]; });
-                    Object.keys(M.overtime).forEach(k => { delete M.overtime[k][id]; });
-                    Object.keys(M.absHours || {}).forEach(k => { delete M.absHours[k][id]; });
-                    Object.values(M.paid || {}).forEach(d => { delete d[id]; });
+                    M.workers = M.workers.filter(x => x.id !== id);
                     mgrSave(); applyManagerToUI(); mgrRender(); renderDashboard();
                 });
             }
@@ -9509,77 +9507,16 @@
             else if (a === 's-cancel') { mgrEditS = ''; return mgrRender(); }
             else if (a === 's-del') {
                 const x = mgrSection(id); if (!x) return;
-                return showCustomConfirm(`بخش «${x.name}» حذف شود؟ کارگران آن بدون بخش می‌شوند.`, ok => {
+                return showCustomConfirm(`بخش «${x.name}» حذف شود؟ پرسنل آن بدون بخش می‌شوند.`, ok => {
                     if (!ok) return;
                     M.sections = M.sections.filter(y => y.id !== id); M.workers.forEach(w => { if (w.sectionId === id) w.sectionId = ''; });
                     mgrSave(); applyManagerToUI(); mgrRender();
                 });
             }
-            else if (a === 'att') {
-                const dk = mgrDK(mgrAttDate); if (!dk) return;
-                const day = M.attendance[dk] = M.attendance[dk] || {};
-                if (day[id] === st) delete day[id]; else day[id] = st;
-                if (!Object.keys(day).length) delete M.attendance[dk];
-                if (day[id] !== 'a' && day[id] !== 'l' && M.absHours && M.absHours[dk]) { delete M.absHours[dk][id]; if (!Object.keys(M.absHours[dk]).length) delete M.absHours[dk]; }
-            } else if (a === 'abh') {
-                const dk = mgrDK(mgrAttDate); if (!dk || !['a', 'l'].includes((M.attendance[dk] || {})[id])) return;
-                const h = Math.round(parseFloat(toEnglishDigits(String(st || '')).replace(/[٫,،]/g, '.')) * 4) / 4;
-                M.absHours = M.absHours || {}; const d = M.absHours[dk] = M.absHours[dk] || {};
-                if (Number.isFinite(h) && h > 0 && h <= 24) d[id] = h; else delete d[id];
-                if (!Object.keys(d).length) delete M.absHours[dk];
-            } else if (a === 'ot') {
-                const dk = mgrDK(mgrAttDate); if (!dk) return;
-                const h = Math.round(parseFloat(toEnglishDigits(String(st || '')).replace(/[٫,،]/g, '.')) * 4) / 4;
-                const d = M.overtime[dk] = M.overtime[dk] || {};
-                if (Number.isFinite(h) && h > 0 && h <= 16) d[id] = h; else delete d[id];
-                if (!Object.keys(d).length) delete M.overtime[dk];
-            } else if (a === 'ot-cfg') {
-                const v = parseFloat(toEnglishDigits(String(st || '')).replace(/[٫,،]/g, '.'));
-                if (id === 'mul' && v >= 1 && v <= 5) M.otMultiplier = v;
-                else if (id === 'dh' && v >= 1 && v <= 24) M.dayHours = v;
-                else { showFeedbackBanner('مقدار نامعتبر است (ضریب ۱ تا ۵، ساعت روزانه ۱ تا ۲۴).', 'warn'); return mgrRender(); }
-            } else if (a === 'att-all') {
-                const dk = mgrDK(mgrAttDate); if (!dk) return;
-                const day = M.attendance[dk] = M.attendance[dk] || {};
-                M.workers.filter(w => w.active && mgrEmployed(w, dk)).forEach(w => { if (!day[w.id]) day[w.id] = 'p'; });
-            } else if (a === 'tx-add') {
-                const amount = mgrCap(parsePersianInt(val('mgrTxAmount'))), dk = mgrDK(val('mgrTxDate')), w = val('mgrTxW');
-                if (!w) return showFeedbackBanner('ابتدا کارگر فعال ثبت کنید.', 'warn');
-                if (!(amount > 0) || !dk) return showFeedbackBanner('مبلغ و تاریخ را درست وارد کنید.', 'warn');
-                M.txns.push({ id: mgrId('t'), workerId: w, date: dk, type: val('mgrTxType'), amount, note: val('mgrTxNote').trim().slice(0, 200) });
-            } else if (a === 'tx-del') { M.txns = M.txns.filter(t => t.id !== id); }
-            else if (a === 'paid') { const P = M.paid = M.paid || {}, mk = selectedMonthFilter, d = P[mk] = P[mk] || {}; if (d[id]) delete d[id]; else d[id] = mgrDK(mgrToday()) || true; if (!Object.keys(d).length) delete P[mk]; }
-            else if (a === 'abs-ded') { M.absDeduct = !!st; }
-            else if (a === 'leave-ded') { M.leaveDeduct = !!st; }
-            else if (a === 'abs-rate') { M.absHourRate = mgrCap(parsePersianInt(st)); }
-            else if (a === 'leave-rate') { M.leaveHourRate = mgrCap(parsePersianInt(st)); }
-            else if (a === 'carry-over') { M.carryOver = !!st; }
-            else if (a === 'friday-off') { M.fridayOff = !!st; }
-            else if (a === 'holidays-on') { M.holidaysOn = !!st; }
-            else if (a === 'paid-off') { M.paidOff = !!st; }
-            else if (a === 'piece-done') { M.pieceDoneOnly = !!st; }
-            else if (a === 'fine') { M.lateFine = mgrCap(parsePersianInt(st)); }
-            else if (a === 'ontime') { M.onTimeBonus = mgrCap(parsePersianInt(st)); }
             else if (a === 'asg') {
                 const r = allRecords.find(x => String(x.id) === String(id)), w = mgrWorker(st); if (!r || !w) return;
-                if (M.closed && M.closed[r.monthKey]) { showFeedbackBanner('ماه این کارکرد بسته شده است.', 'warn'); return mgrRender(); }
-                r.workerId = w.id; r.workerName = w.name; r.updatedAt = Date.now(); saveRecords();
+                r.workerId = w.id; r.workerName = w.name; r.updatedAt = Date.now(); recomputeAllLinks(); saveRecords();
             }
-            else if (a === 'print') return mgrPrintPayroll();
-            else if (a === 'hol-toggle') { const dk = mgrDK(mgrAttDate); if (!dk) return; M.holidays = M.holidays || {}; if (M.holidays[dk]) delete M.holidays[dk]; else M.holidays[dk] = val('mgrHolName').trim().slice(0, 60) || 'تعطیل'; }
-            else if (a === 'hol-del') { if (M.holidays) delete M.holidays[id]; }
-            else if (a === 'close') {
-                const mk = selectedMonthFilter, isClosed = !!(M.closed && M.closed[mk]);
-                return showCustomConfirm(isClosed ? `قفل ${mgrMonthLabel()} باز شود؟ حقوق دوباره از روی داده‌های فعلی محاسبه می‌شود.` : `${mgrMonthLabel()} بسته شود؟ حقوق همه‌ی کارگران ثبت و قفل می‌شود و حضور، اضافه‌کاری و مساعده‌ی این ماه دیگر تغییر نمی‌کند.`, ok => {
-                    if (!ok) return;
-                    M.closed = M.closed || {};
-                    if (isClosed) delete M.closed[mk];
-                    else M.closed[mk] = { at: new Date().toISOString(), rows: mgrPayroll(mk, true).map(x => ({ id: x.w.id, name: x.w.name, days: x.days, qty: x.qty, base: x.base, oh: x.oh, otPay: x.otPay, bonus: x.bonus, advance: x.advance, deduction: x.deduction, net: x.net })) };
-                    mgrSave(); mgrRender(); renderDashboard();
-                });
-            }
-            else if (a === 'csv') return mgrExportCsv();
-            else if (a === 'slip') return mgrShareSlip(id);
             else return;
             mgrSave(); applyManagerToUI(); mgrRender(); renderDashboard();
         }
@@ -9592,116 +9529,18 @@
             if (b) mgrAct(b.dataset.mgr, b.dataset.id || b.dataset.k, b.dataset.st);
         });
 
-        /* ---- جمعه‌ها، بار کاری، چاپ برگه‌ی حقوق و یادآور حضور ---- */
-        function mgrIsFriday(dk) {
-            const [y, m, d] = String(dk).split('/').map(Number); if (!(y && m && d)) return false;
-            const base = Date.UTC(y + 621, 2, 21 + (m <= 6 ? (m - 1) * 31 : 186 + (m - 7) * 30) + d - 1);
-            for (let k = -2; k <= 2; k++) {
-                const t = new Date(base + k * 864e5), j = gregorianToJalaali(t.getUTCFullYear(), t.getUTCMonth() + 1, t.getUTCDate());
-                if (j.jy === y && j.jm === m && j.jd === d) return t.getUTCDay() === 5;
-            }
-            return false;
-        }
-        // روز تعطیل = جمعه (اگر فعال باشد) یا تعطیلیِ ثبت‌شده‌ی دستی
-        function mgrOff(dk) { const M = mgr(); return !!(M.holidaysOn !== false && M.holidays && M.holidays[dk]) || !!(M.fridayOff && mgrIsFriday(dk)); }
-        // روزهای تعطیلِ یک ماه (جمعه‌ها و تعطیلی‌های ثبت‌شده، طبق گزینه‌های فعال)
-        function mgrOffDaysOfMonth(mk) {
-            const [y, m] = mk.split('-').map(Number), out = [];
-            for (let d = 1; d <= 31; d++) { const dk = `${y}/${String(m).padStart(2, '0')}/${String(d).padStart(2, '0')}`; if (mgrOff(dk) && (mgrIsFriday(dk) || (mgr().holidays || {})[dk])) out.push(dk); }
-            return out;
-        }
-        function mgrFilterW(v) { const q = normalizeSearchText(v); document.querySelectorAll('#mgrWList > div').forEach(d => d.classList.toggle('hidden', !!q && !normalizeSearchText(d.textContent).includes(q))); }
-        function mgrHtmlAlerts(recs, pr) {
-            const M = mgr(), td = mgrDK(mgrToday()), W = [], f = formatNumber, act = M.workers.filter(w => w.active);
-            act.forEach(w => {
-                if (!w.rate && !Object.keys(w.rates || {}).length) W.push(`مبلغ/نرخ «${escapeHTML(w.name)}» تعریف نشده است.`);
-                if (w.endDate && td > w.endDate) W.push(`همکاری «${escapeHTML(w.name)}» پایان یافته ولی هنوز فعال است.`);
-            });
-            pr.filter(x => x.net < 0).forEach(x => W.push(`خالص «${escapeHTML(x.w.name)}» منفی است (${f(x.net)}).`));
-            const un = recs.filter(r => !r.workerId);
-            const asg = un.slice(0, 8).map(r => `<div class="flex items-center justify-between gap-2 text-[11px]"><span class="truncate">${escapeHTML(r.itemTitle)} • ${f(r.quantity)} عدد</span><select data-mgr-change="asg" data-id="${Number(r.id)}" class="${MI} !w-40 !py-1 !text-[11px]"><option value="">ارجاع به…</option>${act.map(w => `<option value="${escapeHTML(w.id)}">${escapeHTML(w.name)}</option>`).join('')}</select></div>`).join('');
-            if (!W.length && !asg) return '';
-            return `<div class="rounded-xl border border-amber-300 dark:border-amber-800 bg-amber-50/60 dark:bg-amber-950/20 p-3 space-y-1.5 text-xs">${W.length ? `<p class="font-bold text-amber-700 dark:text-amber-300"><i class="fa-solid fa-triangle-exclamation ml-1"></i> هشدارها</p>` + W.slice(0, 8).map(t => `<p class="text-[11px]">• ${t}</p>`).join('') : ''}${asg ? `<p class="font-bold pt-1">ارجاع سریع کارکردهای بدون ارجاع (${f(un.length)})</p>${asg}` : ''}</div>`;
-        }
-        function mgrHtmlAttMonth(dk) {
-            const M = mgr(), mk = mgrMK(dk), c = {}, f = formatNumber, z = () => ({ p: 0, h: 0, l: 0, a: 0, o: 0 });
-            Object.keys(M.attendance).forEach(k => { if (mgrMK(k) === mk) Object.entries(M.attendance[k]).forEach(([w, st]) => { (c[w] = c[w] || z())[st]++; }); });
-            Object.keys(M.overtime).forEach(k => { if (mgrMK(k) === mk) Object.entries(M.overtime[k]).forEach(([w, h]) => { (c[w] = c[w] || z()).o += h; }); });
-            const rows = M.workers.filter(w => c[w.id]).map(w => { const x = c[w.id]; return `<tr class="border-t border-slate-200 dark:border-slate-700"><td class="p-2 font-semibold">${escapeHTML(w.name)}</td><td class="p-2 text-center text-emerald-600">${f(x.p)}</td><td class="p-2 text-center">${f(x.h)}</td><td class="p-2 text-center text-amber-600">${f(x.l)}</td><td class="p-2 text-center text-rose-600">${f(x.a)}</td><td class="p-2 text-center text-sky-600">${f(x.o)}</td></tr>`; }).join('');
-            return rows ? `<div class="overflow-x-auto rounded-xl border border-slate-300 dark:border-slate-600"><table class="w-full text-xs text-right"><thead class="bg-slate-100 dark:bg-slate-800"><tr><th class="p-2">خلاصه‌ی حضور همین ماه</th><th class="p-2 text-center">حاضر</th><th class="p-2 text-center">نیم‌روز</th><th class="p-2 text-center">مرخصی</th><th class="p-2 text-center">غایب</th><th class="p-2 text-center">اضافه‌کاری (ساعت)</th></tr></thead><tbody>${rows}</tbody></table></div>` : '';
-        }
-        function mgrHtmlLoad() {
-            const m = {}, f = formatNumber;
-            allRecords.forEach(r => { if (r.workerId && isRecordPending(r)) { const x = m[r.workerId] = m[r.workerId] || { n: 0, q: 0 }; x.n++; x.q += Number(r.quantity) || 0; } });
-            const rows = Object.entries(m).map(([id, x]) => ({ w: mgrWorker(id), ...x })).filter(x => x.w && x.w.active).sort((a, b) => b.n - a.n);
-            const idle = mgr().workers.filter(w => w.active && !m[w.id]).map(w => escapeHTML(w.name));
-            return `<div class="rounded-xl border border-slate-300 dark:border-slate-600 p-3 text-xs"><p class="font-bold mb-1">بار کاری فعلی (کارهای در جریان)</p>${rows.map(x => `<p class="flex justify-between py-1"><span>${escapeHTML(x.w.name)}</span><span>${f(x.n)} کار • ${f(x.q)} عدد</span></p>`).join('') || mgrEmpty('کاری در جریان نیست.')}${idle.length ? `<p class="text-[11px] text-emerald-600 mt-2">آماده‌ی ارجاع (بدون کار در جریان): ${idle.join('، ')}</p>` : ''}</div>`;
-        }
-        function mgrPrintPayroll() {
-            const mk = selectedMonthFilter, rows = mgrPayroll(mk), f = formatNumber, cur = appSettings.currency || 'تومان', sum = k => rows.reduce((a, x) => a + x[k], 0);
-            const th = ['کارگر', 'روز کارکرد', 'تعداد کار', 'پایه', 'اضافه‌کاری', 'پاداش', 'مساعده', 'کسورات', 'خالص (' + cur + ')', 'امضا'].map(t => `<th>${escapeHTML(t)}</th>`).join('');
-            const tr = rows.map(x => `<tr><td>${escapeHTML(x.w.name)}</td><td>${f(x.days)}</td><td>${f(x.qty)}</td><td>${f(x.base)}</td><td>${f(x.otPay)}</td><td>${f(x.bonus)}</td><td>${f(x.advance)}</td><td>${f(x.deduction)}</td><td><b>${f(x.net)}</b></td><td style="width:90px"></td></tr>`).join('');
-            const html = `<!DOCTYPE html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><title>حقوق ${escapeHTML(mgrMonthLabel())}</title><style>body{font-family:Vazirmatn,Tahoma,sans-serif;padding:16px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #444;padding:6px;text-align:center}th{background:#eee}h2{margin:0 0 10px}</style></head><body><h2>برگه‌ی حقوق ${escapeHTML(mgrMonthLabel())}</h2><table><thead><tr>${th}</tr></thead><tbody>${tr}<tr><th>جمع</th><th>${f(sum('days'))}</th><th>${f(sum('qty'))}</th><th>${f(sum('base'))}</th><th>${f(sum('otPay'))}</th><th>${f(sum('bonus'))}</th><th>${f(sum('advance'))}</th><th>${f(sum('deduction'))}</th><th>${f(sum('net'))}</th><th></th></tr></tbody></table></body></html>`;
-            const fr = document.createElement('iframe'); fr.style.cssText = 'position:fixed;width:0;height:0;border:0;visibility:hidden'; document.body.appendChild(fr);
-            fr.contentDocument.open(); fr.contentDocument.write(html); fr.contentDocument.close();
-            setTimeout(() => { try { fr.contentWindow.focus(); fr.contentWindow.print(); } catch (e) { showFeedbackBanner('چاپ در این مرورگر ممکن نشد.', 'warn'); } setTimeout(() => fr.remove(), 60000); }, 400);
-        }
-        // یادآور: بعد از شروع شیفت، اگر حضور امروز برای کارگران فعال ثبت نشده باشد، روزی یک‌بار هشدار می‌دهد
-        function mgrAttendanceReminder() {
-            if (!mgrOn()) return;
-            const lock = document.getElementById('pinLockScreen'); if (lock && !lock.classList.contains('hidden')) return;
-            const M = mgr(), now = new Date(), [h, mi] = String(appSettings.shiftStart || '08:00').split(':').map(Number), td = mgrDK(mgrToday());
-            if (now.getHours() * 60 + now.getMinutes() < (h || 0) * 60 + (mi || 0) || mgrOff(td)) return;
-            const day = M.attendance[td] || {}, n = M.workers.filter(w => w.active && !day[w.id]).length;
-            if (!n) return;
-            try { if (localStorage.getItem('mgr_att_reminder_day') === td) return; localStorage.setItem('mgr_att_reminder_day', td); } catch (e) { /* بی‌اهمیت */ }
-            showFeedbackBanner(`حضور و غیاب امروز برای ${formatNumber(n)} کارگر ثبت نشده است.`, 'warn');
-        }
-        setTimeout(mgrAttendanceReminder, 6000); setInterval(mgrAttendanceReminder, 10 * 60 * 1000);
+                function mgrFilterW(v) { const q = normalizeSearchText(v); document.querySelectorAll('#mgrWList > div').forEach(d => d.classList.toggle('hidden', !!q && !normalizeSearchText(d.textContent).includes(q))); }
 
-        /* ---- رتبه‌بندی عملکرد، خروجی CSV و فیش حقوق ---- */
-        function mgrHtmlRank(recs) {
-            const m = {};
-            recs.forEach(r => {
-                if (!r.workerId) return;
-                const x = m[r.workerId] = m[r.workerId] || { q: 0, v: 0, ok: 0, done: 0 };
-                x.q += Number(r.quantity) || 0; x.v += Number(r.totalPrice) || 0;
-                const st = getDisplayStatus(r); if (st !== 'در انتظار') { x.done++; if (st !== 'تاخیر') x.ok++; }
-            });
-            const rows = Object.entries(m).map(([id, x]) => ({ w: mgrWorker(id), ...x })).filter(x => x.w).sort((a, b) => b.q - a.q);
-            if (!rows.length) return '';
-            return `<div class="overflow-x-auto rounded-xl border border-slate-300 dark:border-slate-600"><table class="w-full text-xs text-right"><thead class="bg-slate-100 dark:bg-slate-800"><tr><th class="p-2">#</th><th class="p-2">رتبه‌بندی کارگران ماه</th><th class="p-2 text-center">تعداد</th><th class="p-2 text-center">ارزش (${escapeHTML(appSettings.currency || 'تومان')})</th><th class="p-2 text-center">تحویل به‌موقع</th></tr></thead><tbody>${rows.map((x, i) => `<tr class="border-t border-slate-200 dark:border-slate-700"><td class="p-2 ${i < 3 ? 'text-amber-500 font-bold' : ''}">${formatNumber(i + 1)}</td><td class="p-2 font-semibold">${escapeHTML(x.w.name)}</td><td class="p-2 text-center">${formatNumber(x.q)}</td><td class="p-2 text-center">${formatNumber(x.v)}</td><td class="p-2 text-center ${x.done && x.ok / x.done < 0.7 ? 'text-rose-600' : 'text-emerald-600'}">${x.done ? formatNumber(Math.round(x.ok / x.done * 100)) + '٪' : '—'}</td></tr>`).join('')}</tbody></table></div>`;
-        }
-        function mgrExportCsv() {
-            const mk = selectedMonthFilter, rows = mgrPayroll(mk), P = (mgr().paid || {})[mk] || {}, q = v => { let t = String(v); if (/^[=+@\t\r]/.test(t) || (/^-/.test(t) && isNaN(Number(t)))) t = "'" + t; return '"' + t.replace(/"/g, '""') + '"'; };
-            const head = ['کارگر', 'روز کارکرد', 'تعداد کار', 'پایه', 'ساعت اضافه‌کاری', 'مبلغ اضافه‌کاری', 'پاداش', 'مساعده', 'کسورات', 'خالص', 'تسویه', 'کسر غیبت', 'کسر مرخصی'];
-            const lines = [head.map(q).join(',')].concat(rows.map(x => [x.w.name, x.days, x.qty, x.base, x.oh, x.otPay, x.bonus, x.advance, x.deduction, x.net, P[x.w.id] ? 'تسویه‌شده' : 'تسویه‌نشده', x.absDed || 0, x.leaveDed || 0].map(q).join(',')));
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' }));
-            a.download = `حقوق_${mk}.csv`; document.body.appendChild(a); a.click(); a.remove();
-            setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-        }
-        async function mgrShareSlip(id) {
-            const x = mgrPayroll(selectedMonthFilter).find(r => r.w.id === id); if (!x) return;
-            const cur = appSettings.currency || 'تومان', f = formatNumber;
-            const t = `فیش حقوق ${mgrMonthLabel()}\nنام: ${x.w.name}\nروز کارکرد: ${f(x.days)} | تعداد کار: ${f(x.qty)}\nپایه: ${f(x.base)} ${cur}\nاضافه‌کاری (${f(x.oh)} ساعت): ${f(x.otPay)}\nپاداش: ${f(x.bonus)}${x.autoB ? ` (شامل پاداش تحویل به‌موقع ${f(x.autoB)})` : ''}\nمساعده: ${f(x.advance)}\nکسورات: ${f(x.deduction)}${x.absDed ? ` (شامل کسر غیبت ${f(x.absDed)})` : ''}${x.leaveDed ? ` (شامل کسر مرخصی ${f(x.leaveDed)})` : ''}${x.carryDed ? ` (شامل بدهی ماه قبل ${f(x.carryDed)})` : ''}${x.fine ? ` (شامل جریمه‌ی تاخیر تحویل ${f(x.fine)})` : ''}\nخالص پرداختی: ${f(x.net)} ${cur}`;
-            try { if (navigator.share) { await navigator.share({ text: t }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
-            try { await navigator.clipboard.writeText(t); showFeedbackBanner('متن فیش حقوق کپی شد.', 'success'); } catch (e) { showFeedbackBanner('اشتراک‌گذاری در این مرورگر ممکن نیست.', 'warn'); }
-        }
 
-        /* ---- ذخیره‌ی فایل جداگانه برای هر کارگر (پوشه‌ی «کارگران» کنار فایل‌های ماه) ---- */
+        /* ---- ذخیره‌ی فایل جداگانه برای هر پرسنل (پوشه‌ی «پرسنل» کنار فایل‌های ماه) ---- */
         const MGR_DIR = 'کارگران';
         var mgrWrittenSig = new Map(), mgrKnown = new Map(), mgrPending = [], mgrFolderOk = false;
         function mgrWorkerFileName(w) { return `کارگر_${String(w.name).replace(/[\\/:*?"<>|\s\u200c]+/g, '_').slice(0, 40)}_${w.id}.json`; }
         function mgrWorkerFileData(w) {
-            const M = mgr(), att = {}, ot = {}, abh = {}, sc = mgrSection(w.sectionId);
-            Object.keys(M.attendance).forEach(k => { if (M.attendance[k][w.id]) att[k] = M.attendance[k][w.id]; });
-            Object.keys(M.overtime).forEach(k => { if (M.overtime[k][w.id]) ot[k] = M.overtime[k][w.id]; });
-            Object.keys(M.absHours || {}).forEach(k => { if (M.absHours[k][w.id]) abh[k] = M.absHours[k][w.id]; });
+            const sc = mgrSection(w.sectionId);
             return {
                 app: 'sewing_statistics', kind: 'worker', version: 1, fileName: mgrWorkerFileName(w),
-                worker: w, sectionName: sc ? sc.name : '', attendance: att, overtime: ot, absHours: abh,
-                txns: M.txns.filter(t => t.workerId === w.id),
+                worker: w, sectionName: sc ? sc.name : '',
                 assignedRecords: allRecords.filter(r => r.workerId === w.id).map(r => ({ id: r.id, date: r.date, code: r.itemCode, title: r.itemTitle, quantity: r.quantity }))
             };
         }
@@ -9725,17 +9564,17 @@
                 }
                 for (const [name, id] of [...mgrKnown]) {
                     if (curNames.has(name)) continue;
-                    if (curIds.has(id)) await del(name); // تغییر نام کارگر: فایل قدیمی حذف می‌شود
+                    if (curIds.has(id)) await del(name); // تغییر نام پرسنل: فایل قدیمی حذف می‌شود
                     else await put(name, JSON.stringify({ app: 'sewing_statistics', kind: 'worker', deleted: true, workerId: id, fileName: name, updatedAt: new Date().toISOString() }));
                     mgrKnown.delete(name); mgrWrittenSig.delete(name);
                 }
                 return true;
-            } catch (e) { console.error('خطا در ذخیره‌ی فایل کارگران:', e); return false; }
+            } catch (e) { console.error('خطا در ذخیره‌ی فایل پرسنل:', e); return false; }
         }
-        // در فایل تنظیمات پوشه، اطلاعات کارگران تکرار نمی‌شود (فقط اگر فایل‌های کارگران با موفقیت نوشته شده باشند)
+        // در فایل تنظیمات پوشه، اطلاعات پرسنل تکرار نمی‌شود (فقط اگر فایل‌های پرسنل با موفقیت نوشته شده باشند)
         function mgrSettingsForFolder() {
             if (!mgrFolderOk || !appSettings.manager) return appSettings;
-            return { ...appSettings, manager: { ...appSettings.manager, workers: [], attendance: {}, overtime: {}, absHours: {}, txns: [], splitToWorkerFiles: true } };
+            return { ...appSettings, manager: { ...appSettings.manager, workers: [], splitToWorkerFiles: true } };
         }
         function mgrCollectWorkerFile(p) { mgrPending.push(p); if (p.fileName && !p.deleted && p.worker) mgrKnown.set(p.fileName, p.worker.id); }
         function mgrFinishLoad(settings) {
@@ -9743,23 +9582,11 @@
             if (!files.length || !settings) return settings;
             const base = (settings.manager && typeof settings.manager === 'object') ? settings.manager : {};
             const workers = new Map((Array.isArray(base.workers) ? base.workers : []).filter(w => w && w.id).map(w => [w.id, w]));
-            const att = JSON.parse(JSON.stringify(base.attendance || {})), ot = JSON.parse(JSON.stringify(base.overtime || {})), abh = JSON.parse(JSON.stringify(base.absHours || {}));
-            const tx = new Map((Array.isArray(base.txns) ? base.txns : []).filter(t => t && t.id).map(t => [t.id, t]));
             files.forEach(f => {
-                if (f.deleted) {
-                    const id = f.workerId; workers.delete(id);
-                    Object.values(att).forEach(d => { delete d[id]; }); Object.values(ot).forEach(d => { delete d[id]; }); Object.values(abh).forEach(d => { delete d[id]; });
-                    tx.forEach((t, k) => { if (t.workerId === id) tx.delete(k); });
-                    return;
-                }
-                if (!f.worker || !f.worker.id) return;
-                const id = f.worker.id; workers.set(id, f.worker);
-                Object.entries(f.attendance || {}).forEach(([k, v]) => { (att[k] = att[k] || {})[id] = v; });
-                Object.entries(f.overtime || {}).forEach(([k, v]) => { (ot[k] = ot[k] || {})[id] = v; });
-                Object.entries(f.absHours || {}).forEach(([k, v]) => { (abh[k] = abh[k] || {})[id] = v; });
-                (f.txns || []).forEach(t => { if (t && t.id) tx.set(t.id, t); });
+                if (f.deleted) { workers.delete(f.workerId); return; }
+                if (f.worker && f.worker.id) workers.set(f.worker.id, f.worker);
             });
-            return { ...settings, manager: { ...base, workers: [...workers.values()], attendance: att, overtime: ot, absHours: abh, txns: [...tx.values()] } };
+            return { ...settings, manager: { ...base, workers: [...workers.values()] } };
         }
         function mgrDownloadBlob(name, obj) {
             const a = document.createElement('a');
@@ -9770,7 +9597,7 @@
         function mgrDownloadWorker(id) { const w = mgrWorker(id); if (w) mgrDownloadBlob(mgrWorkerFileName(w), { ...mgrWorkerFileData(w), updatedAt: new Date().toISOString() }); }
         function mgrDownloadAll() {
             const ws = mgr().workers;
-            if (!ws.length) return showFeedbackBanner('کارگری برای دانلود وجود ندارد.', 'warn');
+            if (!ws.length) return showFeedbackBanner('پرسنلی برای دانلود وجود ندارد.', 'warn');
             ws.forEach((w, i) => setTimeout(() => mgrDownloadWorker(w.id), i * 350));
         }
         async function mgrImportFiles(e) {
@@ -9779,11 +9606,11 @@
                 try { const p = JSON.parse(await f.text()); if (p && p.app === 'sewing_statistics' && p.kind === 'worker' && !p.deleted && p.worker) { mgrPending.push(p); n++; } } catch (err) { /* فایل نامعتبر */ }
             }
             e.target.value = '';
-            if (!n) { mgrPending = []; return showFeedbackBanner('فایل معتبر کارگر پیدا نشد.', 'warn'); }
+            if (!n) { mgrPending = []; return showFeedbackBanner('فایل معتبر پرسنل پیدا نشد.', 'warn'); }
             appSettings.manager = sanitizeSettings({ manager: mgrFinishLoad({ manager: appSettings.manager }).manager }).manager;
             { const seen = new Set(); appSettings.manager.workers.forEach(w => { let nm = w.name, k = 2; while (seen.has(normalizeSearchText(nm))) nm = `${w.name} (${formatNumber(k++)})`; if (nm !== w.name) { w.name = nm; } seen.add(normalizeSearchText(nm)); }); }
             mgrSave(); applyManagerToUI(); mgrRender(); renderDashboard();
-            showFeedbackBanner(`${formatNumber(n)} فایل کارگر بازیابی شد.`, 'success');
+            showFeedbackBanner(`${formatNumber(n)} فایل پرسنل بازیابی شد.`, 'success');
         }
         /* ==================== پایان قابلیت کارفرما ==================== */
 
@@ -9853,7 +9680,7 @@
                         }
                     </td>
                     ${mgrOn() ? `<td class="p-3.5 text-xs text-slate-700 dark:text-slate-200 whitespace-nowrap">${mgrRecWorker(r) ? `<i class="fa-solid fa-user-gear text-indigo-400 text-[10px] ml-1"></i>${escapeHTML(mgrRecWorker(r))}` : '<span class="text-slate-300 dark:text-slate-600">-</span>'}</td>` : ''}
-                    ${mgrOn() ? `<td class="p-3.5 text-xs text-slate-600 dark:text-slate-300 whitespace-nowrap">${escapeHTML(mgrRecSection(r) || '-')}</td><td class="p-3.5 text-xs font-bold tabular-nums text-indigo-600 dark:text-indigo-300 whitespace-nowrap">${mgrRecWage(r) === null ? '<span class="text-slate-300 dark:text-slate-600" title="روزمزد/ماهانه: در جدول حقوق کارگران محاسبه می‌شود">-</span>' : formatNumber(mgrRecWage(r))}</td>` : ''}
+                    ${mgrOn() ? `<td class="p-3.5 text-xs text-slate-600 dark:text-slate-300 whitespace-nowrap">${escapeHTML(mgrRecSection(r) || '-')}</td>` : ''}
                     <td class="p-3.5">
                         <span class="font-mono text-[11px] text-slate-600 dark:text-slate-300 font-semibold bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 whitespace-nowrap">${escapeHTML(r.itemCode) || '-'}</span>
                     </td>
@@ -9892,7 +9719,8 @@
         }
 
         function openOverviewModal() {
-            const records = getFilteredRecords();
+            const employerMode = mgrOn();
+            const records = getFilteredRecords().filter(r => employerMode || !(r.workerId || r.workerName));
             const modal = document.getElementById('overviewModal');
             const modalTableBody = document.getElementById('overviewModalTableBody');
             const currency = appSettings.currency || 'تومان';
@@ -9905,7 +9733,7 @@
                     const monthName = PERSIAN_MONTHS[parseInt(monthNum, 10) - 1] || '';
                     return `ماه ${monthName} ${formatYearDigits(year)}`;
                 })();
-            document.getElementById('modalPeriodSub').innerText = `خلاصه گزارش ${periodLabel}${getOwnerInfoLineText() ? '  |  ' + getOwnerInfoLineText() : ''}`;
+            document.getElementById('modalPeriodSub').innerText = `خلاصه گزارش ${employerMode ? 'کارفرما' : 'پرسنل'} — ${periodLabel}${getOwnerInfoLineText() ? '  |  ' + getOwnerInfoLineText() : ''}`;
 
             const totalCount = records.length;
             const pendingCount = records.filter(r => isRecordPending(r)).length;
@@ -9929,9 +9757,16 @@
             document.getElementById('overviewTotalItemsCount').innerText = `${formatNumber(totalQtySum)} عدد`;
             document.getElementById('overviewTotalAmount').innerText = `${formatNumber(totalAmountSum)} ${currency}${unknownPriceCount > 0 ? ' (+' + formatNumber(unknownPriceCount) + ' نامعلوم)' : ''}`;
 
-            modalTableBody.innerHTML = records.length === 0 
-                ? `<tr><td colspan="9" class="text-center p-4 text-slate-400">اطلاعاتی موجود نیست.</td></tr>`
-                : records.map((r, i) => `
+            const empBox = document.getElementById('overviewEmployerBox');
+            if (empBox) {
+                if (employerMode) {
+                    const M = mgr(), recsM = allRecords.filter(r => r.monthKey === selectedMonthFilter);
+                    empBox.innerHTML = `<div class="space-y-3"><h4 class="text-xs font-bold text-slate-700 dark:text-slate-200">داده‌های کارفرما — ${mgrMonthLabel()}</h4><div class="grid grid-cols-2 sm:grid-cols-4 gap-2">${mgrStat('پرسنل فعال', formatNumber(M.workers.filter(w => w.active).length))}${mgrStat('کارکرد ارجاع‌شده', formatNumber(recsM.filter(r => r.workerId).length), 'text-indigo-600')}${mgrStat('بدون ارجاع', formatNumber(recsM.filter(r => !r.workerId).length), 'text-amber-600')}</div></div>`;
+                    empBox.classList.remove('hidden');
+                } else { empBox.innerHTML = ''; empBox.classList.add('hidden'); }
+            }
+
+            const ovRow = (r, i) => `
                     <tr>
                         <td class="p-3 text-slate-400">${formatNumber(i + 1)}</td>
                         <td class="p-3 font-mono text-slate-600 dark:text-slate-300">${escapeHTML(r.itemCode) || '-'}</td>
@@ -9943,7 +9778,24 @@
                         <td class="p-3"><span class="text-[11px] px-2.5 py-1 rounded-lg border inline-block ${getStatusBadgeClass(getDisplayStatus(r))}">${formatStatusWithDuration(getDisplayStatus(r), r.durationTime)}</span></td>
                         <td class="p-3 text-slate-500 dark:text-slate-400">${escapeHTML(r.date)}</td>
                     </tr>
-                `).join('');
+                `;
+            const ovGroups = [];
+            if (employerMode) {
+                const gm = new Map();
+                mgr().workers.forEach(w => gm.set('w' + w.id, { name: w.name + (w.active ? '' : ' (غیرفعال)'), sec: (mgrSection(w.sectionId) || {}).name || '', recs: [] }));
+                records.forEach(r => {
+                    const k = r.workerId ? 'w' + r.workerId : (r.workerName ? 'n' + r.workerName : 'none');
+                    if (!gm.has(k)) gm.set(k, { name: k === 'none' ? 'بدون ارجاع' : (r.workerName || 'پرسنل') + ' (حذف‌شده)', sec: '', recs: [] });
+                    gm.get(k).recs.push(r);
+                });
+                const none = gm.get('none'); gm.delete('none'); if (none) gm.set('none', none);
+                gm.forEach(g => { if (g.recs.length) ovGroups.push(g); });
+            }
+            modalTableBody.innerHTML = records.length === 0
+                ? `<tr><td colspan="9" class="text-center p-4 text-slate-400">اطلاعاتی موجود نیست.</td></tr>`
+                : (employerMode
+                    ? ovGroups.map(g => `<tr class="bg-indigo-50/70 dark:bg-indigo-950/30"><td colspan="9" class="p-3 text-xs font-bold text-indigo-700 dark:text-indigo-300"><i class="fa-solid fa-user-gear ml-1"></i>${escapeHTML(g.name)}${g.sec ? ' • ' + escapeHTML(g.sec) : ''} <span class="font-normal text-slate-600 dark:text-slate-300">— ${formatNumber(g.recs.length)} کارکرد • ${formatNumber(g.recs.reduce((a, r) => a + (Number(r.quantity) || 0), 0))} عدد • ${formatNumber(sumTotalPrice(g.recs))} ${escapeHTML(currency)}</span></td></tr>` + g.recs.map(ovRow).join('')).join('')
+                    : records.map(ovRow).join(''));
 
             modal.classList.remove('hidden');
         }
@@ -9991,7 +9843,7 @@
     </style>
 </head>
 <body>
-    <h1>${escapeHTML(appSettings.shopName || 'سامانه ی کارگاه هوشمند')} - گزارش عملکرد ${periodLabel}</h1>
+    <h1>${escapeHTML(appSettings.shopName || 'سامانه‌ی کارگاه هوشمند')} - گزارش عملکرد ${periodLabel}</h1>
     <p>${getOwnerInfoLineText() ? escapeHTML(getOwnerInfoLineText()) + ' &nbsp;|&nbsp; ' : ''}تاریخ تهیه گزارش: ${formatDateDigits(currentJalali.fullDateStr)}</p>
     <table>
         <tr>
@@ -10108,7 +9960,7 @@
         applySettingsSectionCollapsedState('formLabelsSectionBody', 'formLabelsSectionIcon', 'sewing_settings_formlabels_collapsed');
 
         // اگر صفحه‌ی قفل ورود در حال نمایش است، یادآوری پشتیبان‌گیری روزانه نمایش داده نمی‌شود
-        // (چون پشت آن مخفی می‌ماند)؛ در این حالت خودِ attemptUnlock بعد از باز شدن قفل صدايش می‌زند.
+        // (چون پشت آن مخفی می‌ماند)؛ در این حالت خودِ attemptUnlock بعد از باز شدن قفل صدایش می‌زند.
         const pinScreenEl = document.getElementById('pinLockScreen');
         initBackupFolderConnection().finally(() => {
             if (!pinScreenEl || pinScreenEl.classList.contains('hidden')) checkDailyAutoBackup();
