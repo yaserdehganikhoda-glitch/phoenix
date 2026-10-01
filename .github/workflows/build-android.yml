@@ -26,6 +26,9 @@ jobs:
             npx cap add android
           fi
 
+      - name: Install home-screen widget into android project
+        run: python3 widget/apply_widget.py
+
       - name: Add JitPack repository (required to resolve Poolakey)
         run: |
           python3 - <<'PYEOF'
