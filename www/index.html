@@ -18,13 +18,15 @@
     <!-- Tailwind CSS -->
     <!-- اول نسخه‌ی محلی (vendor/)، در صورت نبودنِ آن CDN؛ تا برنامه از همان اولین اجرا هم آفلاین کار کند -->
     <script src="vendor/tailwind.js"></script>
-    <script>if (!window.tailwind) document.write('<script src="https://cdn.tailwindcss.com"><\/script>');</script>
     <script>
-        if (window.tailwind) {
-            tailwind.config = {
-                darkMode: 'class',
-            };
-        }
+        (function () {
+            function applyCfg() { if (window.tailwind) window.tailwind.config = { darkMode: 'class' }; }
+            if (window.tailwind) return applyCfg();
+            // پشتیبان: اگر نسخه‌ی محلی لود نشد، CDN به‌صورت غیرمسدودکننده (async) بارگذاری می‌شود
+            var sc = document.createElement('script');
+            sc.src = 'https://cdn.tailwindcss.com'; sc.async = true; sc.onload = applyCfg;
+            document.head.appendChild(sc);
+        })();
     </script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="vendor/fontawesome/css/all.min.css" onerror="this.onerror=null;this.href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'">
@@ -606,6 +608,7 @@
         }
         @keyframes fxFlowBar { to { background-position: -300% 0; } }
 
+        #mgrBody .space-y-2 > .rounded-xl { content-visibility: auto; contain-intrinsic-size: auto 96px; }
         /* ---- انواع جلوه‌ی کادرها ---- */
         body[data-cardfx="on"][data-fxstyle]:not([data-fxstyle="classic"]) :is(#kpiCardWrap > div, #recordFormCard, #dailyNotesSection, #recordsTableCard)::before,
         body[data-cardfx="on"][data-fxstyle]:not([data-fxstyle="classic"]) :is(#kpiCardWrap > div, #recordFormCard, #dailyNotesSection, #recordsTableCard)::after { content: none; }
@@ -796,11 +799,13 @@
             </div>
             <h2 class="text-lg font-bold text-slate-800 dark:text-white mb-1">ورود به سامانه‌ی کارگاه هوشمند</h2>
             <p class="text-xs text-slate-500 dark:text-slate-400 mb-5">برای مشاهده اطلاعات، رمز عبور را وارد کنید.</p>
-            <form onsubmit="attemptUnlock(event)" class="space-y-3">
+            <form id="pinLockForm" onsubmit="attemptUnlock(event)" class="space-y-3">
                 <input type="password" id="pinLockInput" inputmode="numeric" required autocomplete="off" class="w-full p-3 border border-slate-400 dark:border-slate-500 rounded-xl text-center text-lg tracking-[0.3em] bg-slate-50 dark:bg-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none" placeholder="رمز عبور">
                 <p id="pinLockError" class="hidden text-xs text-rose-600 dark:text-rose-400 font-medium">رمز عبور اشتباه است، دوباره تلاش کنید.</p>
                 <button type="submit" class="tactile-btn w-full bg-indigo-600 text-white py-3 rounded-xl font-medium text-sm hover:bg-indigo-700 transition-all">ورود</button>
             </form>
+            <button type="button" id="pinForgotBtn" onclick="openPinRecovery()" class="mt-4 text-xs text-indigo-600 dark:text-indigo-400 underline">رمز را فراموش کرده‌ام</button>
+            <div id="pinRecoveryPanel" class="hidden mt-2 text-right"><h3 class="text-sm font-bold text-slate-800 dark:text-white mb-2 text-center">بازیابی رمز عبور</h3><div id="pinRecoveryBody"></div></div>
         </div>
     </div>
 
@@ -888,10 +893,6 @@
                             </div>
                             <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1.5 px-0.5">کار روزانه</p>
                             <div class="grid grid-cols-2 gap-1.5 mb-2.5">
-                                <button  onclick="bottomNavGoAddRecord(); closeToolsDropdown();" class="tactile-btn flex items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
-                                    <span class="w-9 h-9 shrink-0 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center"><i class="fa-solid fa-plus text-xs"></i></span>
-                                    <span class="min-w-0"><span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">ثبت کار جدید</span><span class="block text-[9px] text-slate-400">رفتن به فرم ثبت</span></span>
-                                </button>
                                 <button  onclick="openTodayReport(); closeToolsDropdown();" class="tactile-btn flex items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
                                     <span class="w-9 h-9 shrink-0 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center"><i class="fa-solid fa-sun text-xs"></i></span>
                                     <span class="min-w-0"><span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">گزارش امروز</span><span class="block text-[9px] text-slate-400">خلاصه و ارسال</span></span>
@@ -899,10 +900,6 @@
                                 <button  onclick="openAdvancedSearchModal(); closeToolsDropdown();" class="tactile-btn flex items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
                                     <span class="w-9 h-9 shrink-0 rounded-full bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 flex items-center justify-center"><i class="fa-solid fa-magnifying-glass text-xs"></i></span>
                                     <span class="min-w-0"><span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">جستجوی پیشرفته</span><span class="block text-[9px] text-slate-400">کد، عنوان، مشخصات</span></span>
-                                </button>
-                                <button  onclick="bottomNavGoNotes(); closeToolsDropdown();" class="tactile-btn flex items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
-                                    <span class="w-9 h-9 shrink-0 rounded-full bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 flex items-center justify-center"><i class="fa-solid fa-note-sticky text-xs"></i></span>
-                                    <span class="min-w-0"><span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">یادداشت‌های روز</span><span class="block text-[9px] text-slate-400">تعطیلی، سفارش خاص</span></span>
                                 </button>
                                 </div>
                             <div class="grid grid-cols-1 gap-1.5">
@@ -2402,6 +2399,30 @@
                         <i class="fa-solid fa-key"></i> ذخیره تنظیمات قفل
                     </button>
                 </div>
+
+                <div class="space-y-3 pt-4 border-t border-slate-300 dark:border-slate-600">
+                    <h3 class="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider flex items-center gap-1.5"><i class="fa-solid fa-life-ring"></i> فراموشی و بازیابی رمز</h3>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">اگر رمز را فراموش کردید، در صفحه‌ی قفل روی «رمز را فراموش کرده‌ام» بزنید و با کد بازیابی یا پاسخ سوال امنیتی، رمز جدید بگذارید. برای ساخت یا تغییر این موارد، رمز فعلی لازم است.</p>
+                    <p id="pinRecoveryStatusText" class="text-xs font-semibold"></p>
+                    <input type="password" id="settingRecCurrentPin" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="رمز فعلی (برای تأیید)" class="w-full p-2.5 border border-slate-400 dark:border-slate-500 rounded-xl text-sm bg-white dark:bg-slate-800 field-box-bg dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-center tracking-[0.3em]">
+                    <button type="button" onclick="createRecoveryCodeFromSettings()" class="w-full py-2.5 bg-emerald-600 text-white rounded-xl text-sm hover:bg-emerald-700 font-medium transition-colors flex items-center justify-center gap-2"><i class="fa-solid fa-key"></i> ساخت کد بازیابی جدید</button>
+                    <div id="pinRecoveryCodeBox" class="hidden rounded-xl border border-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 p-3 space-y-2 text-center">
+                        <p class="text-[11px] text-slate-600 dark:text-slate-300">کد بازیابی شما (فقط همین یک‌بار نمایش داده می‌شود؛ آن را جای امن یادداشت کنید):</p>
+                        <p id="pinRecoveryCodeValue" dir="ltr" class="font-mono text-lg tracking-widest select-all text-slate-800 dark:text-slate-100"></p>
+                        <div class="flex gap-2 justify-center">
+                            <button type="button" onclick="copyRecoveryCode()" class="px-4 py-1.5 rounded-lg border border-emerald-500 text-emerald-700 dark:text-emerald-300 text-xs">کپی کد</button>
+                            <button type="button" onclick="emailRecoveryCode()" class="px-4 py-1.5 rounded-lg border border-indigo-500 text-indigo-700 dark:text-indigo-300 text-xs"><i class="fa-solid fa-envelope ml-1"></i>ارسال به ایمیل خودم</button>
+                        </div>
+                    </div>
+                    <div class="space-y-2 pt-2">
+                        <input id="settingPinQuestion" maxlength="100" placeholder="سوال امنیتی (مثلاً نام اولین مدرسه‌ام)" class="w-full p-2.5 border border-slate-400 dark:border-slate-500 rounded-xl text-sm bg-white dark:bg-slate-800 field-box-bg dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all">
+                        <input id="settingPinAnswer" maxlength="100" autocomplete="off" placeholder="پاسخ" class="w-full p-2.5 border border-slate-400 dark:border-slate-500 rounded-xl text-sm bg-white dark:bg-slate-800 field-box-bg dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all">
+                        <div class="flex gap-2">
+                            <button type="button" onclick="saveSecurityQuestion()" class="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl text-sm hover:bg-indigo-700 font-medium">ذخیره سوال امنیتی</button>
+                            <button type="button" id="pinQuestionRemoveBtn" onclick="removeSecurityQuestion()" class="hidden px-4 py-2.5 border border-rose-400 text-rose-600 dark:text-rose-400 rounded-xl text-sm">حذف</button>
+                        </div>
+                    </div>
+                </div>
                 </div>
 
                 <div id="settingsTab-storage" class="settings-tab-panel hidden space-y-4">
@@ -2417,7 +2438,7 @@
                         </div>
                     </div>
                     <div class="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-300 dark:border-slate-600 space-y-2.5">
-                        <span class="text-[11px] font-bold text-slate-600 dark:text-slate-300 block">پوشه ذخیره داده (پوشه‌ی جدا برای هر ماه)</span>
+                        <span class="text-[11px] font-bold text-slate-600 dark:text-slate-300 block">پوشه ذخیره داده (زیرپوشه‌ی جدا برای «کارفرما» و «پرسنل»؛ در هرکدام پوشه‌ی جدا برای هر ماه)</span>
                         <p id="dataFolderStatusText" class="text-xs font-semibold leading-relaxed">در حال بررسی...</p>
                         <div class="flex flex-wrap gap-2">
                             <button type="button" id="dataFolderChooseBtn" onclick="chooseStorageFolder()" class="px-3 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-medium transition-colors">انتخاب پوشه ذخیره داده</button>
@@ -2703,6 +2724,7 @@
 
 
         // اگر صفحه در اولین نصبِ Service Worker باز شده (کنترلر قبلی نبوده)، claim اولیه نباید reload اجباری ایجاد کند
+        let newWorkerWaiting = null;
         const swHadControllerAtStart = !!(navigator.serviceWorker && navigator.serviceWorker.controller);
 
         if ('serviceWorker' in navigator) {
@@ -2804,15 +2826,75 @@
         }
 
         // کارت وضعیت بالای تب «دستگاه»: حالت اجرا (نصب‌شده/داخل مرورگر) و وضعیت اتصال اینترنت
-        function renderDeviceStatusCard() {
+        /* وضعیت اتصال: navigator.onLine فقط می‌گوید دستگاه به «یک شبکه» وصل است (وای‌فای/دیتا/VPN)، نه اینکه
+           اینترنت واقعاً در دسترس است؛ برای همین با VPN روشن یا وای‌فای بدون اینترنت هم «true» می‌ماند.
+           پس اگر مرورگر خودش آنلاین گفت، یک درخواست سبک واقعی (بدون ذخیره، با مهلت ۴ ثانیه) هم زده می‌شود. */
+        const NET_PROBE_URLS = ['https://www.gstatic.com/generate_204', 'https://www.cloudflare.com/cdn-cgi/trace'];
+        let _netProbe = { at: 0, ok: null, nav: null, busy: null };
+        function _netPing(url) {
+            return new Promise(resolve => {
+                const ctl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+                const t = setTimeout(() => { if (ctl) ctl.abort(); resolve(false); }, 4000);
+                fetch(url + (url.indexOf('?') > -1 ? '&' : '?') + '_netprobe=1&_=' + Date.now(), { mode: 'no-cors', cache: 'no-store', signal: ctl ? ctl.signal : undefined })
+                    .then(() => { clearTimeout(t); resolve(true); }, () => { clearTimeout(t); resolve(false); });
+            });
+        }
+        // سرویس‌ورکر قدیمی هر درخواست را کش می‌کرد؛ بررسی دقیق فقط وقتی انجام می‌شود که SW فعلی بتواند آن را دست‌نخورده رد کند
+        let _swProbeOk = null;
+        function swAllowsProbe() {
+            if (!('serviceWorker' in navigator) || !navigator.serviceWorker.controller) return Promise.resolve(true);
+            if (_swProbeOk === true) return Promise.resolve(true);
+            return new Promise(resolve => {
+                let t = 0;
+                try {
+                    const ch = new MessageChannel();
+                    t = setTimeout(() => resolve(false), 700);
+                    ch.port1.onmessage = e => { clearTimeout(t); resolve(!!(e.data && e.data.netProbeBypass)); };
+                    navigator.serviceWorker.controller.postMessage({ type: 'GET_SW_FEATURES' }, [ch.port2]);
+                } catch (e) { clearTimeout(t); resolve(false); }
+            }).then(v => { if (v) _swProbeOk = true; return v; });
+        }
+        if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('controllerchange', () => { _swProbeOk = null; _netProbe.at = 0; });
+        // نتیجه: true = اینترنت هست، false = نیست، null = قابل بررسی دقیق نیست (SW قدیمی)
+        async function probeRealInternet() {
+            const nav = !!navigator.onLine;
+            if (!nav) { _netProbe = { at: Date.now(), ok: false, nav: false, busy: null }; return false; }
+            if (!(await swAllowsProbe())) return null;
+            return probeRealInternetNow(nav);
+        }
+        function probeRealInternetNow(nav) {
+            if (_netProbe.busy) return _netProbe.busy;
+            if (_netProbe.ok !== null && _netProbe.nav === nav && Date.now() - _netProbe.at < 8000) return Promise.resolve(_netProbe.ok);
+            _netProbe.busy = new Promise(resolve => {
+                let left = NET_PROBE_URLS.length, done = false;
+                NET_PROBE_URLS.forEach(u => _netPing(u).then(ok => {
+                    if (done) return;
+                    if (ok) { done = true; resolve(true); } else if (--left === 0) { done = true; resolve(false); }
+                }));
+            }).then(ok => { _netProbe = { at: Date.now(), ok, nav, busy: null }; return ok; });
+            return _netProbe.busy;
+        }
+        let _netRenderSeq = 0;
+        async function renderDeviceStatusCard() {
             const modeEl = document.getElementById('deviceRunModeText');
             if (modeEl) modeEl.innerText = isStandalonePWA() ? 'نصب‌شده روی دستگاه' : 'در حال اجرا داخل مرورگر';
             const netEl = document.getElementById('deviceNetStatusText');
-            if (netEl) {
-                netEl.innerText = navigator.onLine ? 'آنلاین' : 'آفلاین';
-                netEl.className = 'font-bold ' + (navigator.onLine ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400');
-            }
+            if (!netEl) return;
+            const seq = ++_netRenderSeq;
+            const show = (txt, cls) => { if (seq !== _netRenderSeq) return; netEl.innerText = txt; netEl.className = 'font-bold ' + cls; };
+            const RED = 'text-rose-600 dark:text-rose-400', GREEN = 'text-emerald-600 dark:text-emerald-400';
+            if (!navigator.onLine) { show('آفلاین', RED); probeRealInternet(); return; }
+            if (_netProbe.ok === null || _netProbe.nav !== true) show('در حال بررسی...', 'text-slate-400');
+            let ok = false;
+            try { ok = await probeRealInternet(); } catch (e) { ok = false; }
+            if (ok === null) { show('آنلاین (تأییدنشده)', 'text-amber-600 dark:text-amber-400'); return; }
+            show(ok ? 'آنلاین' : 'آفلاین (بدون دسترسی به اینترنت)', ok ? GREEN : RED);
         }
+        // وقتی تب «دستگاه» جلوی چشم است، وضعیت هر ۱۵ ثانیه دوباره بررسی می‌شود
+        setInterval(() => {
+            const el = document.getElementById('deviceNetStatusText');
+            if (el && el.offsetParent !== null && !document.hidden) renderDeviceStatusCard();
+        }, 15000);
 
         function toggleIosInstallGuide() {
             const el = document.getElementById('iosInstallGuideText');
@@ -3449,6 +3531,10 @@
             s.ownerPhoto = isSafeImageDataUrl(s.ownerPhoto) ? s.ownerPhoto : null;
             s.pinHash = (typeof s.pinHash === 'string' && s.pinHash) ? s.pinHash : null;
             s.pinEnabled = !!s.pinEnabled && !!s.pinHash;
+            s.pinRecoveryHash = (s.pinHash && typeof s.pinRecoveryHash === 'string' && s.pinRecoveryHash) ? s.pinRecoveryHash : null;
+            s.pinQuestion = (s.pinHash && typeof s.pinQuestion === 'string') ? s.pinQuestion.trim().slice(0, 100) : '';
+            s.pinAnswerHash = (s.pinHash && s.pinQuestion && typeof s.pinAnswerHash === 'string' && s.pinAnswerHash) ? s.pinAnswerHash : null;
+            if (!s.pinAnswerHash) s.pinQuestion = '';
             delete s.deleteCodeHash; // ویژگی «پاک کردن کلی داده‌ها» حذف شده است
             s.onTimeStreak = Math.max(0, Number(s.onTimeStreak) || 0);
             // ساعات کاری و استراحت‌ها
@@ -3536,6 +3622,7 @@
                 // بکاپ قدیمی بدون salt: هش قابل تطبیق نیست و کاربر برای همیشه قفل می‌شد
                 s.pinEnabled = false;
                 delete s.pinHash;
+                delete s.pinRecoveryHash; delete s.pinAnswerHash; s.pinQuestion = '';
                 delete s.deleteCodeHash;
                 setTimeout(() => {
                     if (typeof showFeedbackBanner === 'function') {
@@ -3690,6 +3777,7 @@
         const NOTES_STORE = 'notes';
         const TRASH_RECORDS_STORE = 'trash_records';
         const TRASH_NOTES_STORE = 'trash_notes';
+        const SETTINGS_STORE = 'settings'; // نسخه‌ی پشتیبان اطلاعات کارفرما (پرسنل، بخش‌ها، حضور و غیاب) خارج از سقف localStorage
         const TRASH_TTL_MS = 30 * 24 * 3600 * 1000; // ۳۰ روز نگه‌داری در سطل بازیافت
         let dataIdbOk = false;
         let dataDbPromise = null;
@@ -3700,15 +3788,21 @@
             if (!dataDbPromise) {
                 dataDbPromise = new Promise((resolve, reject) => {
                     if (!window.indexedDB) return reject(new Error('IndexedDB در دسترس نیست'));
-                    const req = indexedDB.open(DATA_DB_NAME, 1);
+                    const req = indexedDB.open(DATA_DB_NAME, 2);
                     req.onupgradeneeded = () => {
                         const db = req.result;
+                        if (!db.objectStoreNames.contains(SETTINGS_STORE)) db.createObjectStore(SETTINGS_STORE, { keyPath: 'key' });
                         if (!db.objectStoreNames.contains(RECORDS_STORE)) db.createObjectStore(RECORDS_STORE, { keyPath: 'id' });
                         if (!db.objectStoreNames.contains(NOTES_STORE)) db.createObjectStore(NOTES_STORE, { keyPath: 'id' });
                         if (!db.objectStoreNames.contains(TRASH_RECORDS_STORE)) db.createObjectStore(TRASH_RECORDS_STORE, { keyPath: 'id' });
                         if (!db.objectStoreNames.contains(TRASH_NOTES_STORE)) db.createObjectStore(TRASH_NOTES_STORE, { keyPath: 'id' });
                     };
-                    req.onsuccess = () => resolve(req.result);
+                    req.onsuccess = () => {
+                        const db = req.result;
+                        // اگر تبِ دیگری (نسخه‌ی جدیدتر) ساختار را ارتقا داد، اتصال قدیمی بسته شود تا قفل نشود
+                        db.onversionchange = () => { try { db.close(); } catch (e) { /* بی‌اهمیت */ } dataDbPromise = null; };
+                        resolve(db);
+                    };
                     req.onerror = () => reject(req.error);
                 });
             }
@@ -3970,6 +4064,7 @@
             try {
                 const [storedRecordsRaw, storedNotesRaw] = await Promise.all([idbReadAllStore(RECORDS_STORE), idbReadAllStore(NOTES_STORE)]);
                 dataIdbOk = true;
+                try { await mgrReconcileIdb(); } catch (mgrErr) { console.warn('همسان‌سازی اطلاعات کارفرما با IndexedDB ناموفق بود:', mgrErr); }
                 const storedRecords = storedRecordsRaw.map(sanitizeRecord).filter(Boolean);
                 const storedNotes = storedNotesRaw.map(sanitizeNote).filter(Boolean);
                 // ادغام با آنچه از localStorage بارگذاری شده (که ممکن است فقط شامل ماه‌های اخیر باشد)؛
@@ -4092,7 +4187,11 @@
         }
 
         if (crossTabChannel) {
-            crossTabChannel.onmessage = (e) => { if (e.data && e.data.type === 'data-changed') reloadFromLocalAndIndexedDB(); };
+            crossTabChannel.onmessage = (e) => {
+                if (!e.data) return;
+                if (e.data.type === 'data-changed') reloadFromLocalAndIndexedDB();
+                else if (e.data.type === 'settings-changed') mgrPullLatest();
+            };
         } else {
             // جایگزین برای مرورگرهای بدون پشتیبانی از BroadcastChannel
             window.addEventListener('storage', (e) => {
@@ -4331,6 +4430,9 @@
             numFormat: 'persian',
             pinEnabled: false,
             pinHash: null,
+            pinRecoveryHash: null,
+            pinQuestion: '',
+            pinAnswerHash: null,
             fontFamily: 'Vazirmatn',
             bgColor: 'default',
             cardColor: 'default',
@@ -4360,6 +4462,14 @@
             manager: null
         };
         let appSettings = sanitizeSettings(safeLoadJSON('sewing_app_settings_v13', null));
+        /* ---- همگام‌سازی اطلاعات کارفرما بین تب‌ها و نسخه‌ی پشتیبان در IndexedDB ----
+         * mgrStamp: زمانِ آخرین نسخه‌ای از اطلاعات کارفرما که این تب خوانده/نوشته است
+         * mgrSyncSig: امضای (JSON) همان نسخه؛ اگر با وضعیت فعلی فرق کند یعنی تغییرِ محلیِ ذخیره‌نشده داریم */
+        var mgrStamp = (appSettings && appSettings.updatedAt) || '';
+        var mgrSyncSig = ''; try { mgrSyncSig = JSON.stringify(appSettings.manager); } catch (e) { /* بی‌اهمیت */ }
+        var mgrIdbSig = '';
+        var mgrIdbLast = Promise.resolve(false);
+        var mgrPulling = false;
         let saveTimeout = null;
         let hasPendingSave = false;
 
@@ -4373,7 +4483,7 @@
             // if (fromVersion < 2) { /* تبدیل داده‌ی نسخه ۱ به ۲ */ }
             appSettings.schemaVersion = CURRENT_SCHEMA_VERSION;
             appSettings.updatedAt = new Date().toISOString();
-            localStorage.setItem('sewing_app_settings_v13', JSON.stringify(appSettings));
+            persistAppSettings();
             addLog(`داده‌ها از نسخه ${fromVersion} به نسخه ${CURRENT_SCHEMA_VERSION} به‌روزرسانی شدند.`, 'info');
         }
         runDataMigrations();
@@ -4393,6 +4503,143 @@
             localStorage.setItem('sewing_install_salt_v1', salt);
             return salt;
         }
+
+        let settingsQuotaWarned = false;
+        function persistAppSettings() {
+            try { mgrGuardBeforeWrite(); } catch (e) { console.warn('mgrGuardBeforeWrite', e); }
+            const ok = persistAppSettingsRaw();
+            try { mgrAfterWrite(ok); } catch (e) { console.warn('mgrAfterWrite', e); }
+            return ok;
+        }
+        function persistAppSettingsRaw() {
+            try { localStorage.setItem('sewing_app_settings_v13', JSON.stringify(appSettings)); settingsQuotaWarned = false; return true; }
+            catch (e) {
+                console.error('ذخیره‌ی تنظیمات ناموفق بود:', e);
+                if (!settingsQuotaWarned) { settingsQuotaWarned = true; try { showFeedbackBanner('حافظه‌ی مرورگر برای ذخیره‌ی تنظیمات پر است (معمولاً بخاطر عکس‌های زیاد). از اطلاعات پشتیبان بگیرید و عکس‌های حجیم را کم کنید.', 'warn'); } catch (_) {} }
+                return false;
+            }
+        }
+
+        /* ==================== همگام‌سازی اطلاعات کارفرما: بین تب‌ها + پشتیبان IndexedDB ==================== */
+        const MGR_LS_KEY = 'sewing_app_settings_v13';
+        function mgrSigNow() { try { return JSON.stringify(appSettings.manager); } catch (e) { return ''; } }
+
+        // ادغامِ تغییراتِ ذخیره‌نشده‌ی همین تب (حضور و غیاب/مالی که با تاخیر ذخیره می‌شوند) روی نسخه‌ی جدیدترِ تب دیگر؛
+        // برای کلیدهای مشترک، مقدار همین تب ارجح است. پرسنل/بخش‌ها از نسخه‌ی جدیدتر گرفته می‌شوند.
+        function mgrMergeLocalInto(theirs, ours) {
+            if (!ours) return theirs;
+            const out = theirs;
+            ['attendance', 'attMin'].forEach(k => {
+                const o = (ours[k] && typeof ours[k] === 'object') ? ours[k] : {};
+                out[k] = out[k] || {};
+                Object.keys(o).forEach(d => { out[k][d] = { ...(out[k][d] || {}), ...o[d] }; });
+            });
+            if (ours.finance) {
+                out.finance = out.finance || { txns: [], days: {} };
+                const ids = new Set((out.finance.txns || []).map(t => t.id));
+                (ours.finance.txns || []).forEach(t => { if (!ids.has(t.id)) out.finance.txns.push(t); });
+                out.finance.days = { ...(out.finance.days || {}), ...(ours.finance.days || {}) };
+            }
+            return out;
+        }
+        function mgrAdopt(st, opts) {
+            opts = opts || {};
+            const incoming = sanitizeSettings({ manager: st.manager }).manager;
+            const sigIncoming = JSON.stringify(incoming);
+            appSettings.manager = opts.merge ? mgrMergeLocalInto(incoming, appSettings.manager) : incoming;
+            if (st.updatedAt && st.updatedAt > (appSettings.updatedAt || '')) appSettings.updatedAt = st.updatedAt;
+            mgrStamp = st.updatedAt || mgrStamp;
+            mgrSyncSig = sigIncoming; // اگر ادغام شده باشد، تغییر محلی «ذخیره‌نشده» باقی می‌ماند و با ذخیره‌ی بعدی نوشته می‌شود
+            if (!opts.silent) mgrRefreshUI();
+        }
+        // اگر تبِ دیگری نسخه‌ی جدیدتری از اطلاعات کارفرما در localStorage نوشته باشد، همین تب هم آن را برمی‌دارد
+        function mgrPullIfStale(silent, forceMerge) {
+            if (mgrPulling) return false;
+            let st;
+            try { const raw = localStorage.getItem(MGR_LS_KEY); if (!raw) return false; st = JSON.parse(raw); } catch (e) { return false; }
+            if (!st || !st.updatedAt || !(st.updatedAt > mgrStamp)) return false;
+            mgrPulling = true;
+            try { mgrAdopt(st, { merge: !!(forceMerge || (typeof mgrSaveTimer !== 'undefined' && mgrSaveTimer)), silent: !!silent }); }
+            finally { mgrPulling = false; }
+            return true;
+        }
+        // پیش از هر نوشتنِ تنظیمات: اگر اطلاعات کارفرمای این تب تغییر محلی ندارد ولی کهنه است، اول نسخه‌ی جدیدتر برداشته می‌شود
+        // (تا مثلاً ذخیره‌ی «تم» در یک تب قدیمی، پرسنلِ تازه‌ی تب دیگر را بازنویسی نکند)
+        function mgrGuardBeforeWrite() {
+            if (mgrSigNow() !== mgrSyncSig) return; // تغییر محلی داریم؛ نسخه‌ی همین تب برنده است
+            mgrPullIfStale(false);
+        }
+        function mgrAfterWrite(ok) {
+            const sig = mgrSigNow();
+            if (ok) { mgrStamp = appSettings.updatedAt || mgrStamp; mgrSyncSig = sig; }
+            if (sig !== mgrIdbSig) {
+                mgrIdbSig = sig;
+                mgrIdbLast = idbPutManagerSnapshot().then(() => true, () => { mgrIdbSig = ''; return false; });
+                try { if (crossTabChannel) crossTabChannel.postMessage({ type: 'settings-changed', at: Date.now() }); } catch (e) { /* بی‌اهمیت */ }
+            }
+        }
+        async function idbPutManagerSnapshot() {
+            const db = await getDataDB();
+            const snap = { key: 'manager', updatedAt: appSettings.updatedAt || '', manager: appSettings.manager };
+            await new Promise((resolve, reject) => {
+                const tx = db.transaction(SETTINGS_STORE, 'readwrite');
+                tx.objectStore(SETTINGS_STORE).put(snap);
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => reject(tx.error);
+                tx.onabort = () => reject(tx.error);
+            });
+        }
+        async function idbGetManagerSnapshot() {
+            const db = await getDataDB();
+            return new Promise((resolve, reject) => {
+                const req = db.transaction(SETTINGS_STORE, 'readonly').objectStore(SETTINGS_STORE).get('manager');
+                req.onsuccess = () => resolve(req.result || null);
+                req.onerror = () => reject(req.error);
+            });
+        }
+        function mgrRefreshUI() {
+            try { applyManagerToUI(); } catch (e) { /* بی‌اهمیت */ }
+            try { mgrRenderSettings(); } catch (e) { /* بی‌اهمیت */ }
+            const md = document.getElementById('managerModal');
+            if (md && !md.classList.contains('hidden')) {
+                const ae = document.activeElement;
+                const typing = ae && md.contains(ae) && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName);
+                if (!typing) { try { mgrRender(); } catch (e) { /* بی‌اهمیت */ } } // وسط تایپ، فرم کاربر پاک نمی‌شود
+            }
+            try { renderDashboard(); } catch (e) { /* بی‌اهمیت */ }
+        }
+        // localStorage + IndexedDB را بررسی می‌کند و جدیدترین نسخه را برمی‌دارد
+        async function mgrPullLatest() {
+            try {
+                mgrPullIfStale(false);
+                const rec = await idbGetManagerSnapshot();
+                if (rec && rec.manager && rec.updatedAt && rec.updatedAt > mgrStamp) {
+                    mgrPulling = true;
+                    try { mgrAdopt({ manager: rec.manager, updatedAt: rec.updatedAt }, { merge: !!mgrSaveTimer }); } finally { mgrPulling = false; }
+                }
+            } catch (e) { /* IndexedDB در دسترس نیست */ }
+        }
+        // هنگام بالا آمدن: اگر نسخه‌ی IndexedDB جدیدتر از localStorage بود (مثلاً حافظه پر شده یا پاک شده)، آن برداشته می‌شود؛
+        // اگر IndexedDB هنوز نسخه‌ای ندارد (اولین اجرا بعد از به‌روزرسانی) نسخه‌ی فعلی در آن ذخیره می‌شود.
+        async function mgrReconcileIdb() {
+            const rec = await idbGetManagerSnapshot();
+            const localUp = appSettings.updatedAt || '';
+            if (rec && rec.manager && (rec.updatedAt || '') > localUp) {
+                mgrPulling = true;
+                try { mgrAdopt({ manager: rec.manager, updatedAt: rec.updatedAt }, { merge: false }); } finally { mgrPulling = false; }
+                persistAppSettings(); // نسخه‌ی localStorage هم به‌روز شود (اگر جا نداشت، نسخه‌ی IndexedDB می‌ماند)
+                addLog('اطلاعات کارفرما از ذخیره‌گاه تکمیلی (IndexedDB) بازیابی شد.', 'info');
+            } else if (!rec || (rec.updatedAt || '') < localUp) {
+                if (mgrHasData() || (appSettings.manager && appSettings.manager.enabled)) {
+                    mgrIdbSig = mgrSigNow();
+                    mgrIdbLast = idbPutManagerSnapshot().then(() => true, () => { mgrIdbSig = ''; return false; });
+                }
+            } else {
+                mgrIdbSig = mgrSigNow();
+            }
+        }
+        window.addEventListener('storage', e => { if (e.key === MGR_LS_KEY) mgrPullIfStale(false); });
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) mgrPullLatest(); });
 
         /* ============ مدیریت قفل ورود به برنامه (رمز عبور) ============ */
         checkPinLockOnLoad();
@@ -4428,8 +4675,14 @@
             }
         }
 
+        const PIN_LOCK_KEY = 'sewing_pin_lock_v1';
         let pinFailCount = 0;
         let pinLockedUntil = 0;
+        try { const st = JSON.parse(localStorage.getItem(PIN_LOCK_KEY) || 'null'); if (st && Number.isFinite(st.fails) && Number.isFinite(st.until)) { pinFailCount = Math.max(0, st.fails | 0); pinLockedUntil = st.until > Date.now() ? st.until : 0; } } catch (e) { /* بی‌اهمیت */ }
+        function pinLockStateSave() { try { if (pinFailCount || pinLockedUntil) localStorage.setItem(PIN_LOCK_KEY, JSON.stringify({ fails: pinFailCount, until: pinLockedUntil })); else localStorage.removeItem(PIN_LOCK_KEY); } catch (e) { /* بی‌اهمیت */ } }
+        function pinRegisterFail() { pinFailCount++; if (pinFailCount >= 5) pinLockedUntil = Date.now() + Math.min(300000, 30000 * Math.pow(2, pinFailCount - 5)); pinLockStateSave(); }
+        function pinRegisterOk() { pinFailCount = 0; pinLockedUntil = 0; pinLockStateSave(); }
+        function pinWaitMessage() { return `تلاش‌های ناموفق زیاد بود؛ ${formatNumber(Math.ceil((pinLockedUntil - Date.now()) / 1000))} ثانیه دیگر دوباره تلاش کنید.`; }
         async function attemptUnlock(event) {
             event.preventDefault();
             const input = document.getElementById('pinLockInput');
@@ -4446,7 +4699,7 @@
                 document.getElementById('pinLockScreen').classList.add('hidden');
                 input.value = '';
                 errorEl.classList.add('hidden');
-                pinFailCount = 0;
+                pinRegisterOk();
                 // یادآوری پشتیبان‌گیری روزانه (در صورت لزوم) فقط بعد از باز شدن قفل نمایش داده شود،
                 // تا پشت صفحه‌ی قفل مخفی نماند و بلافاصله بعد از باز شدن قفل ناگهان ظاهر نشود.
                 checkDailyAutoBackup();
@@ -4458,6 +4711,7 @@
                 } else {
                     errorEl.innerText = 'رمز عبور اشتباه است، دوباره تلاش کنید.';
                 }
+                pinLockStateSave();
                 errorEl.classList.remove('hidden');
                 input.value = '';
                 input.focus();
@@ -4508,6 +4762,7 @@
                 statusEl.innerText = 'وضعیت: هنوز رمز عبوری تعیین نشده است.';
                 statusEl.className = 'text-xs font-semibold text-rose-600 dark:text-rose-400';
             }
+            updatePinRecoveryUI();
         }
 
         async function savePinLock() {
@@ -4518,7 +4773,7 @@
             if (!enabled) {
                 appSettings.pinEnabled = false;
                 appSettings.updatedAt = new Date().toISOString();
-                localStorage.setItem('sewing_app_settings_v13', JSON.stringify(appSettings));
+                persistAppSettings();
                 if (storageFolderIsActive()) saveAllMonthFilesToDirectory();
                 updatePinLockStatusUI();
                 addLog('قفل ورود به برنامه غیرفعال شد.', 'warn');
@@ -4533,7 +4788,7 @@
                 }
                 appSettings.pinEnabled = true;
                 appSettings.updatedAt = new Date().toISOString();
-                localStorage.setItem('sewing_app_settings_v13', JSON.stringify(appSettings));
+                persistAppSettings();
                 if (storageFolderIsActive()) saveAllMonthFilesToDirectory();
                 updatePinLockStatusUI();
                 addLog('قفل ورود به برنامه فعال شد.', 'success');
@@ -4550,22 +4805,209 @@
                 return;
             }
 
+            const firstPin = !appSettings.pinHash;
             appSettings.pinHash = await hashAppPin(newPin);
             appSettings.pinEnabled = true;
             appSettings.updatedAt = new Date().toISOString();
-            localStorage.setItem('sewing_app_settings_v13', JSON.stringify(appSettings));
+            persistAppSettings();
             if (storageFolderIsActive()) saveAllMonthFilesToDirectory();
             document.getElementById('settingNewPin').value = '';
             document.getElementById('settingConfirmPin').value = '';
             updatePinLockStatusUI();
             addLog('رمز عبور ورود به برنامه تنظیم/به‌روزرسانی شد.', 'success');
             showFeedbackBanner('رمز عبور با موفقیت ذخیره شد.', 'success');
+            if (firstPin && !appSettings.pinRecoveryHash) await issueRecoveryCode(true);
         }
+
+        /* ============ فراموشی و بازیابی رمز ============ */
+        async function hashAppSecret(kind, value) {
+            const input = kind + ':' + getOrCreateInstallSalt() + ':' + value;
+            if (window.crypto && window.crypto.subtle) {
+                try {
+                    const buf = await window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(input));
+                    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+                } catch (err) { console.error(err); }
+            }
+            let h = 0;
+            for (let i = 0; i < input.length; i++) h = ((h << 5) - h + input.charCodeAt(i)) | 0;
+            return 'fb_' + Math.abs(h).toString(16);
+        }
+        function makeRecoveryCode() {
+            const ALPHA = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ', a = new Uint8Array(12);
+            (window.crypto || window.msCrypto).getRandomValues(a);
+            const c = Array.from(a).map(x => ALPHA[x % 32]).join('');
+            return c.slice(0, 4) + '-' + c.slice(4, 8) + '-' + c.slice(8);
+        }
+        const normRecCode = v => toEnglishDigits(String(v || '')).toUpperCase().replace(/[^A-Z0-9]/g, '');
+        const normRecAnswer = v => toEnglishDigits(String(v || '')).toLowerCase().replace(/[\u200c\u200e\u200f]/g, '').replace(/ي/g, 'ی').replace(/ك/g, 'ک').replace(/\s+/g, ' ').trim();
+        async function issueRecoveryCode(auto) {
+            const code = makeRecoveryCode();
+            appSettings.pinRecoveryHash = await hashAppSecret('rec', normRecCode(code));
+            appSettings.updatedAt = new Date().toISOString();
+            persistAppSettings();
+            if (storageFolderIsActive()) saveAllMonthFilesToDirectory();
+            const box = document.getElementById('pinRecoveryCodeBox');
+            if (box) {
+                document.getElementById('pinRecoveryCodeValue').innerText = code;
+                box.classList.remove('hidden');
+                box.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            }
+            updatePinLockStatusUI();
+            addLog('کد بازیابی رمز ساخته شد.', 'success');
+            showFeedbackBanner(auto ? 'کد بازیابی رمز ساخته شد؛ آن را همین حالا یادداشت کنید.' : 'کد بازیابی جدید ساخته شد؛ آن را یادداشت کنید (کد قبلی باطل شد).', 'success');
+            return code;
+        }
+        async function verifyCurrentPinForRecovery() {
+            if (!appSettings.pinHash) { showFeedbackBanner('ابتدا یک رمز عبور تعیین و ذخیره کنید.', 'warn'); return false; }
+            if (Date.now() < pinLockedUntil) { showFeedbackBanner(pinWaitMessage(), 'warn'); return false; }
+            const el = document.getElementById('settingRecCurrentPin');
+            const entered = normalizeDigits(el.value);
+            if (!entered || await hashAppPin(entered) !== appSettings.pinHash) {
+                pinRegisterFail();
+                showFeedbackBanner('رمز فعلی نادرست است.', 'warn');
+                return false;
+            }
+            pinRegisterOk(); el.value = '';
+            return true;
+        }
+        async function createRecoveryCodeFromSettings() {
+            if (!(await verifyCurrentPinForRecovery())) return;
+            await issueRecoveryCode(false);
+        }
+        async function saveSecurityQuestion() {
+            const q = document.getElementById('settingPinQuestion').value.trim().slice(0, 100);
+            const a = normRecAnswer(document.getElementById('settingPinAnswer').value);
+            if (q.length < 3 || a.length < 2) { showFeedbackBanner('سوال و پاسخ را کامل وارد کنید.', 'warn'); return; }
+            if (!(await verifyCurrentPinForRecovery())) return;
+            appSettings.pinQuestion = q;
+            appSettings.pinAnswerHash = await hashAppSecret('ans', a);
+            appSettings.updatedAt = new Date().toISOString();
+            persistAppSettings();
+            if (storageFolderIsActive()) saveAllMonthFilesToDirectory();
+            document.getElementById('settingPinAnswer').value = '';
+            updatePinLockStatusUI();
+            showFeedbackBanner('سوال امنیتی ذخیره شد.', 'success');
+        }
+        async function removeSecurityQuestion() {
+            if (!(await verifyCurrentPinForRecovery())) return;
+            appSettings.pinQuestion = ''; appSettings.pinAnswerHash = null;
+            appSettings.updatedAt = new Date().toISOString();
+            persistAppSettings();
+            if (storageFolderIsActive()) saveAllMonthFilesToDirectory();
+            document.getElementById('settingPinQuestion').value = '';
+            updatePinLockStatusUI();
+            showFeedbackBanner('سوال امنیتی حذف شد.', 'info');
+        }
+        function emailRecoveryCode(code) {
+            code = code || (document.getElementById('pinRecoveryCodeValue') || {}).innerText || '';
+            if (!/^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(code)) { showFeedbackBanner('کدی برای ارسال وجود ندارد.', 'warn'); return; }
+            const shop = appSettings.shopName || 'سامانه‌ی کارگاه هوشمند';
+            const subject = 'کد بازیابی رمز - ' + shop;
+            const body = 'کد بازیابی رمز برنامه:\n\n' + code + '\n\nاین کد را فقط در صفحه‌ی قفل، بخش «رمز را فراموش کرده‌ام» وارد کنید. آن را با کسی به اشتراک نگذارید و پس از استفاده، کد جدید جایگزین می‌شود.';
+            const a = document.createElement('a');
+            a.href = 'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+            a.rel = 'noopener'; document.body.appendChild(a); a.click(); a.remove();
+            showFeedbackBanner('برنامه‌ی ایمیل باز شد؛ گیرنده را ایمیل خودتان بگذارید و ارسال کنید.', 'info');
+        }
+        function copyRecoveryCode() {
+            const t = document.getElementById('pinRecoveryCodeValue').innerText;
+            const ok = () => showFeedbackBanner('کد کپی شد.', 'success');
+            if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(ok, () => showFeedbackBanner('کپی ممکن نشد؛ کد را دستی یادداشت کنید.', 'warn'));
+            else showFeedbackBanner('کپی ممکن نشد؛ کد را دستی یادداشت کنید.', 'warn');
+        }
+        function updatePinRecoveryUI() {
+            const st = document.getElementById('pinRecoveryStatusText');
+            if (!st) return;
+            const hasCode = !!appSettings.pinRecoveryHash, hasQ = !!(appSettings.pinQuestion && appSettings.pinAnswerHash);
+            if (!appSettings.pinHash) { st.innerText = 'ابتدا رمز عبور تعیین کنید؛ سپس کد بازیابی ساخته می‌شود.'; st.className = 'text-xs font-semibold text-slate-500 dark:text-slate-400'; }
+            else if (hasCode || hasQ) { st.innerText = 'روش‌های فعال: ' + [hasCode && 'کد بازیابی', hasQ && 'سوال امنیتی'].filter(Boolean).join(' و '); st.className = 'text-xs font-semibold text-emerald-600 dark:text-emerald-400'; }
+            else { st.innerText = 'هیچ روش بازیابی تعریف نشده است؛ با فراموشی رمز، ورود به برنامه ممکن نیست.'; st.className = 'text-xs font-semibold text-rose-600 dark:text-rose-400'; }
+            const q = document.getElementById('settingPinQuestion');
+            if (q && document.activeElement !== q) q.value = appSettings.pinQuestion || '';
+            const rm = document.getElementById('pinQuestionRemoveBtn');
+            if (rm) rm.classList.toggle('hidden', !hasQ);
+        }
+
+        // صفحه‌ی قفل: «رمز را فراموش کرده‌ام»
+        function openPinRecovery() {
+            const hasCode = !!appSettings.pinRecoveryHash, hasQ = !!(appSettings.pinQuestion && appSettings.pinAnswerHash);
+            const body = document.getElementById('pinRecoveryBody'), IN = 'w-full p-2.5 border border-slate-400 dark:border-slate-500 rounded-xl text-sm bg-slate-50 dark:bg-slate-800 dark:text-slate-100 outline-none focus:border-indigo-500';
+            if (!hasCode && !hasQ) {
+                body.innerHTML = '<p class="text-xs text-rose-600 dark:text-rose-400 leading-relaxed">برای این برنامه کد بازیابی یا سوال امنیتی تعریف نشده است؛ بنابراین بازیابی رمز ممکن نیست. (این محدودیت برای امنیت اطلاعات شماست.)</p><button type="button" onclick="closePinRecovery()" class="text-xs text-indigo-600 dark:text-indigo-400 underline">بازگشت</button>';
+            } else {
+                body.innerHTML = `<form onsubmit="submitPinRecovery(event)" class="space-y-2.5">
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">${hasCode && hasQ ? 'یکی از دو مورد زیر را وارد کنید:' : 'برای تعیین رمز جدید، اطلاعات زیر را وارد کنید:'}</p>
+                    ${hasCode ? `<input id="pinRecCode" dir="ltr" autocomplete="off" maxlength="20" placeholder="کد بازیابی (XXXX-XXXX-XXXX)" class="${IN} text-center tracking-widest font-mono">` : ''}
+                    ${hasQ ? `<label class="block text-[11px] font-medium text-slate-600 dark:text-slate-300 text-right">سوال: ${escapeHTML(appSettings.pinQuestion)}</label><input id="pinRecAnswer" autocomplete="off" maxlength="100" placeholder="پاسخ" class="${IN}">` : ''}
+                    <input id="pinRecNew" type="password" inputmode="numeric" maxlength="8" autocomplete="new-password" placeholder="رمز جدید (حداقل ۴ رقم)" class="${IN} text-center tracking-[0.3em]">
+                    <input id="pinRecConfirm" type="password" inputmode="numeric" maxlength="8" autocomplete="new-password" placeholder="تکرار رمز جدید" class="${IN} text-center tracking-[0.3em]">
+                    <p id="pinRecError" class="hidden text-xs text-rose-600 dark:text-rose-400 font-medium"></p>
+                    <button type="submit" class="tactile-btn w-full bg-emerald-600 text-white py-2.5 rounded-xl text-sm font-medium">تعیین رمز جدید و ورود</button>
+                    <button type="button" onclick="closePinRecovery()" class="text-xs text-slate-500 dark:text-slate-400 underline">بازگشت</button></form>`;
+            }
+            document.getElementById('pinLockForm').classList.add('hidden');
+            document.getElementById('pinForgotBtn').classList.add('hidden');
+            document.getElementById('pinRecoveryPanel').classList.remove('hidden');
+        }
+        function closePinRecovery() {
+            document.getElementById('pinRecoveryPanel').classList.add('hidden');
+            document.getElementById('pinRecoveryBody').innerHTML = '';
+            document.getElementById('pinLockForm').classList.remove('hidden');
+            document.getElementById('pinForgotBtn').classList.remove('hidden');
+            setTimeout(() => { const i = document.getElementById('pinLockInput'); if (i) i.focus(); }, 50);
+        }
+        function finishPinRecoveryUnlock() {
+            document.getElementById('pinLockScreen').classList.add('hidden');
+            closePinRecovery();
+            const i = document.getElementById('pinLockInput'); if (i) i.value = '';
+            document.getElementById('pinLockError').classList.add('hidden');
+            checkDailyAutoBackup();
+        }
+        async function submitPinRecovery(ev) {
+            ev.preventDefault();
+            const errEl = document.getElementById('pinRecError'), fail = m => { errEl.innerText = m; errEl.classList.remove('hidden'); };
+            if (Date.now() < pinLockedUntil) return fail(pinWaitMessage());
+            const codeEl = document.getElementById('pinRecCode'), ansEl = document.getElementById('pinRecAnswer');
+            const code = normRecCode(codeEl && codeEl.value), ans = normRecAnswer(ansEl && ansEl.value);
+            const np = normalizeDigits(document.getElementById('pinRecNew').value), cp = normalizeDigits(document.getElementById('pinRecConfirm').value);
+            if (!code && !ans) return fail('کد بازیابی یا پاسخ سوال امنیتی را وارد کنید.');
+            if (np.length < 4) return fail('رمز جدید باید حداقل ۴ رقم باشد.');
+            if (np !== cp) return fail('رمز جدید و تکرار آن یکسان نیستند.');
+            let via = '';
+            if (code && appSettings.pinRecoveryHash && await hashAppSecret('rec', code) === appSettings.pinRecoveryHash) via = 'code';
+            else if (ans && appSettings.pinAnswerHash && await hashAppSecret('ans', ans) === appSettings.pinAnswerHash) via = 'answer';
+            if (!via) {
+                pinRegisterFail();
+                return fail(Date.now() < pinLockedUntil ? 'اطلاعات نادرست است. ' + pinWaitMessage() : 'کد بازیابی یا پاسخ نادرست است.');
+            }
+            pinRegisterOk();
+            appSettings.pinHash = await hashAppPin(np);
+            appSettings.pinEnabled = true;
+            let newCode = '';
+            if (via === 'code') { newCode = makeRecoveryCode(); appSettings.pinRecoveryHash = await hashAppSecret('rec', normRecCode(newCode)); }
+            appSettings.updatedAt = new Date().toISOString();
+            persistAppSettings();
+            if (storageFolderIsActive()) saveAllMonthFilesToDirectory();
+            updatePinLockStatusUI();
+            addLog('رمز عبور از طریق بازیابی تغییر کرد.', 'warn');
+            showFeedbackBanner('رمز جدید تعیین شد.', 'success');
+            if (newCode) {
+                document.getElementById('pinRecoveryBody').innerHTML = `<div class="space-y-3"><p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">کد بازیابی قبلی باطل شد. کد جدید را یادداشت کنید:</p><p dir="ltr" class="font-mono text-lg tracking-widest select-all p-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100">${newCode}</p><button type="button" onclick="emailRecoveryCode('${newCode}')" class="w-full py-2 rounded-xl border border-indigo-500 text-indigo-700 dark:text-indigo-300 text-xs">ارسال کد به ایمیل خودم</button><button type="button" onclick="finishPinRecoveryUnlock()" class="tactile-btn w-full bg-indigo-600 text-white py-2.5 rounded-xl text-sm font-medium">کد را یادداشت کردم، ورود</button></div>`;
+            } else finishPinRecoveryUnlock();
+        }
+        /* ============ پایان فراموشی و بازیابی رمز ============ */
         /* ============ پایان مدیریت قفل ورود به برنامه ============ */
 
         /* ============ مدیریت ذخیره‌سازی خودکار در پوشه‌ی دستگاه (پوشه‌ی جدا برای هر ماه) ============ */
         let appDirHandle = null;
         let dirHandlePermissionState = 'unknown'; // 'granted' | 'prompt' | 'denied' | 'unknown'
+        /* ---- پوشه‌ی جدا برای هر حالت ----
+         * داخل پوشه‌ی ریشه (پوشه‌ی انتخاب‌شده / Documents/<پوشه ذخیره داده>) دو پوشه ساخته می‌شود:
+         *   «کارفرما» ← فایل‌های حالت کارفرما،   «پرسنل» ← فایل‌های حالت پرسنل
+         * فایل‌های هر حالت (پوشه‌ی ماه‌ها، تنظیمات، backups، فایل‌های پرسنل) فقط داخل پوشه‌ی همان حالت نوشته می‌شود. */
+        const MODE_FOLDER_EMPLOYER = 'کارفرما';
+        const MODE_FOLDER_WORKER = 'پرسنل';
+        let folderModeName = null; // حالتی که آخرین بار فایل‌های پوشه برایش نوشته شده
         // در اپ نصب‌شده (Capacitor/WebView اندروید)، ورودی «showDirectoryPicker» و «navigator.share» با فایل
         // ممکن است در پنجره وجود داشته باشند اما هر بار با خطا مواجه شوند؛ چون این دو قابلیت فقط داخل
         // مرورگر واقعی (کروم/اج) کار می‌کنند، نه داخل پوسته‌ی WebView برنامه‌ی نصب‌شده. برای همین این دو
@@ -4586,6 +5028,17 @@
         const NATIVE_STORAGE_FOLDER_BASE = 'کارگاه_هوشمند_ذخیره_داده';
         function storageFolderIsActive() {
             return isRunningInInstalledApp() ? nativeStorageFolderActive : !!appDirHandle;
+        }
+        function currentModeFolderName() { return mgrOn() ? MODE_FOLDER_EMPLOYER : MODE_FOLDER_WORKER; }
+        function isModeFolderName(n) { return n === MODE_FOLDER_EMPLOYER || n === MODE_FOLDER_WORKER; }
+        function nativeModeBase() { return `${NATIVE_STORAGE_FOLDER_BASE}/${currentModeFolderName()}`; }
+        async function getModeDirHandle(create) { return appDirHandle.getDirectoryHandle(currentModeFolderName(), { create: create !== false }); }
+        function rotatingBackupDateKey() { return 'sewing_last_rotating_backup_date_' + (mgrOn() ? 'employer' : 'worker'); }
+        // با تغییر حالت (کارفرما ⇄ پرسنل) کش نوشتن پاک می‌شود تا همه‌ی فایل‌ها در پوشه‌ی حالت جدید نوشته شوند
+        function syncFolderModeCache() {
+            const m = currentModeFolderName();
+            if (folderModeName !== m) { if (folderModeName !== null) resetFolderWriteCache(); folderModeName = m; }
+            return m;
         }
 
         /*
@@ -4610,7 +5063,7 @@
                 if (FS) {
                     try {
                         const monthFolder = filename.replace(/\.json$/i, '');
-                        const path = `کارگاه_هوشمند_پشتیبان/${monthFolder}/${filename}`;
+                        const path = `کارگاه_هوشمند_پشتیبان/${currentModeFolderName()}/${monthFolder}/${filename}`;
                         await FS.writeFile({ path, data: jsonString, directory: 'DOCUMENTS', encoding: 'utf8', recursive: true });
                         updateBackupFolderStatusUI();
                         if (onSuccess) onSuccess('native-documents');
@@ -4632,7 +5085,8 @@
                     if (perm === 'granted') {
                         // از این پس فایل پشتیبان هر ماه داخل زیرپوشه‌ی مخصوص همان ماه نوشته می‌شود، نه در ریشه‌ی پوشه پشتیبان
                         const monthFolderName = filename.replace(/\.json$/i, '');
-                        const monthDirHandle = await backupDirHandle.getDirectoryHandle(monthFolderName, { create: true });
+                        const modeBackupDir = await backupDirHandle.getDirectoryHandle(currentModeFolderName(), { create: true });
+                        const monthDirHandle = await modeBackupDir.getDirectoryHandle(monthFolderName, { create: true });
                         const fileHandle = await monthDirHandle.getFileHandle(filename, { create: true });
                         const writable = await fileHandle.createWritable();
                         await writable.write(jsonString);
@@ -4768,10 +5222,10 @@
                 const perm = await appDirHandle.queryPermission({ mode: 'readwrite' });
                 if (perm !== 'granted') return false;
                 const todayStr = currentJalali.fullDateStr;
-                const lastRotatingDate = localStorage.getItem('sewing_last_rotating_backup_date');
+                const lastRotatingDate = localStorage.getItem(rotatingBackupDateKey());
                 if (!force && lastRotatingDate === todayStr) return false; // حداکثر یک بار در روز (به‌صورت خودکار)
 
-                const backupsDir = await appDirHandle.getDirectoryHandle('backups', { create: true });
+                const backupsDir = await (await getModeDirHandle(true)).getDirectoryHandle('backups', { create: true });
                 const monthTag = toEnglishDigits(currentJalali.yearEn) + '-' + String(currentJalali.monthNum).padStart(2, '0'); // یک فایل برای کل ماه؛ هر بار همان فایل به‌روزرسانی می‌شود
                 const fileHandle = await backupsDir.getFileHandle(`نسخه_${monthTag}.json`, { create: true });
                 const writable = await fileHandle.createWritable();
@@ -4793,7 +5247,7 @@
                     try { await backupsDir.removeEntry(name); } catch (e) { /* بی‌اهمیت */ }
                 }
 
-                localStorage.setItem('sewing_last_rotating_backup_date', todayStr);
+                localStorage.setItem(rotatingBackupDateKey(), todayStr);
                 addLog(`نسخه پشتیبان ماه جاری در پوشه «backups» به‌روزرسانی شد (نسخه‌ی ${ROTATING_BACKUP_KEEP_COUNT} ماه اخیر نگه‌داری می‌شود).`, 'success');
                 return true;
             } catch (e) {
@@ -4809,10 +5263,10 @@
             if (!FS) return false;
             try {
                 const todayStr = currentJalali.fullDateStr;
-                const lastRotatingDate = localStorage.getItem('sewing_last_rotating_backup_date');
+                const lastRotatingDate = localStorage.getItem(rotatingBackupDateKey());
                 if (!force && lastRotatingDate === todayStr) return false; // حداکثر یک بار در روز (به‌صورت خودکار)
 
-                const backupsPath = `${NATIVE_STORAGE_FOLDER_BASE}/backups`;
+                const backupsPath = `${nativeModeBase()}/backups`;
                 const monthTag = toEnglishDigits(currentJalali.yearEn) + '-' + String(currentJalali.monthNum).padStart(2, '0');
                 const fileName = `نسخه_${monthTag}.json`;
                 await FS.writeFile({
@@ -4837,7 +5291,7 @@
                     }
                 } catch (e) { /* بی‌اهمیت؛ پوشه‌ی backups تازه ساخته شده */ }
 
-                localStorage.setItem('sewing_last_rotating_backup_date', todayStr);
+                localStorage.setItem(rotatingBackupDateKey(), todayStr);
                 addLog(`نسخه پشتیبان ماه جاری در پوشه ذخیره داده (backups) به‌روزرسانی شد (نسخه‌ی ${ROTATING_BACKUP_KEEP_COUNT} ماه اخیر نگه‌داری می‌شود).`, 'success');
                 return true;
             } catch (e) {
@@ -4917,6 +5371,7 @@
             mgrWrittenSig.clear(); mgrKnown.clear(); mgrPending = []; mgrFolderOk = false;
             folderSettingsSig = null;
             folderStaleScanDone = false;
+            folderModeName = null;
         }
 
         function monthRecordsSignature(list) {
@@ -4952,6 +5407,8 @@
             const FS = getNativePlugin('Filesystem');
             if (!FS) { nativeStorageFolderActive = false; updateStorageFolderStatusUI(); return; }
             try {
+                syncFolderModeCache();
+                const modeBase = nativeModeBase();
                 const recordsSnapshot = allRecords.slice();
                 const notesSnapshot = dailyNotes.slice();
                 const monthKeys = new Set(recordsSnapshot.map(r => r.monthKey));
@@ -4964,7 +5421,7 @@
                     const [year, monthNumStr] = String(monthKey).split('-');
                     const monthNum = parseInt(monthNumStr, 10);
                     const monthName = PERSIAN_MONTHS[monthNum - 1] || 'نامشخص';
-                    const path = `${NATIVE_STORAGE_FOLDER_BASE}/${getMonthFolderName(monthKey)}/${getMonthFileName(monthKey)}`;
+                    const path = `${modeBase}/${getMonthFolderName(monthKey)}/${getMonthFileName(monthKey)}`;
                     await FS.writeFile({
                         path, directory: 'DOCUMENTS', encoding: 'utf8', recursive: true,
                         data: JSON.stringify({ app: 'sewing_statistics', monthKey, monthName, year, updatedAt: new Date().toISOString(), records: monthRecords }, null, 2)
@@ -4972,12 +5429,12 @@
                     folderWrittenSig.set(monthKey, sig);
                 }
 
-                mgrFolderOk = await mgrSyncWorkerFiles(FS);
+                mgrFolderOk = mgrOn() ? await mgrSyncWorkerFiles(FS) : false; // فایل‌های پرسنل فقط در پوشه‌ی «کارفرما»
                 const settingsPayload = { notes: notesSnapshot, settings: mgrSettingsForFolder(), installSalt: getOrCreateInstallSalt(), tombstones: tombstones };
                 const settingsSig = JSON.stringify(settingsPayload);
                 if (settingsSig !== folderSettingsSig) {
                     await FS.writeFile({
-                        path: `${NATIVE_STORAGE_FOLDER_BASE}/${SETTINGS_FILE_NAME}`, directory: 'DOCUMENTS', encoding: 'utf8', recursive: true,
+                        path: `${modeBase}/${SETTINGS_FILE_NAME}`, directory: 'DOCUMENTS', encoding: 'utf8', recursive: true,
                         data: JSON.stringify({ app: 'sewing_statistics', updatedAt: new Date().toISOString(), ...settingsPayload }, null, 2)
                     });
                     folderSettingsSig = settingsSig;
@@ -5018,28 +5475,36 @@
             }
 
             let topEntries = [];
+            let baseDir = nativeModeBase(); // پوشه‌ی حالت فعلی («کارفرما» یا «پرسنل»)
             try {
-                const res = await FS.readdir({ path: NATIVE_STORAGE_FOLDER_BASE, directory: 'DOCUMENTS' });
+                const res = await FS.readdir({ path: baseDir, directory: 'DOCUMENTS' });
                 topEntries = (res && res.files) ? res.files : [];
             } catch (e) {
-                return result; // پوشه هنوز ساخته نشده؛ یعنی هنوز چیزی ذخیره نشده است
+                // پوشه‌ی این حالت هنوز ساخته نشده: برای سازگاری با ساختار قبلی (فایل‌ها مستقیم در ریشه) از ریشه خوانده می‌شود
+                baseDir = NATIVE_STORAGE_FOLDER_BASE;
+                try {
+                    const res = await FS.readdir({ path: baseDir, directory: 'DOCUMENTS' });
+                    topEntries = (res && res.files) ? res.files : [];
+                } catch (e2) {
+                    return result; // پوشه هنوز ساخته نشده؛ یعنی هنوز چیزی ذخیره نشده است
+                }
             }
 
             for (const entry of topEntries) {
                 const name = typeof entry === 'string' ? entry : (entry && entry.name);
-                if (!name) continue;
+                if (!name || isModeFolderName(name)) continue;
                 if (name.toLowerCase().endsWith('.json')) {
-                    absorbParsedFile(await readJsonSafe(`${NATIVE_STORAGE_FOLDER_BASE}/${name}`));
+                    absorbParsedFile(await readJsonSafe(`${baseDir}/${name}`));
                     continue;
                 }
                 // احتمالاً پوشه‌ی مخصوص یک ماه است
                 try {
-                    const inner = await FS.readdir({ path: `${NATIVE_STORAGE_FOLDER_BASE}/${name}`, directory: 'DOCUMENTS' });
+                    const inner = await FS.readdir({ path: `${baseDir}/${name}`, directory: 'DOCUMENTS' });
                     const innerFiles = (inner && inner.files) ? inner.files : [];
                     for (const innerEntry of innerFiles) {
                         const innerName = typeof innerEntry === 'string' ? innerEntry : (innerEntry && innerEntry.name);
                         if (!innerName || !innerName.toLowerCase().endsWith('.json')) continue;
-                        absorbParsedFile(await readJsonSafe(`${NATIVE_STORAGE_FOLDER_BASE}/${name}/${innerName}`));
+                        absorbParsedFile(await readJsonSafe(`${baseDir}/${name}/${innerName}`));
                     }
                 } catch (e) { /* فایل بود نه پوشه، یا قابل خواندن نبود؛ نادیده گرفته می‌شود */ }
             }
@@ -5062,6 +5527,8 @@
                     return;
                 }
 
+                syncFolderModeCache();
+                const root = await getModeDirHandle(true); // پوشه‌ی حالت فعلی داخل ریشه: «کارفرما» یا «پرسنل»
                 const recordsSnapshot = allRecords.slice();
                 const notesSnapshot = dailyNotes.slice();
                 const monthKeys = new Set(recordsSnapshot.map(r => r.monthKey));
@@ -5075,7 +5542,7 @@
                 // فقط یک‌بار بعد از هر اتصال، کل پوشه برای یافتن فایل‌های قدیمیِ ماه‌های بدون رکورد اسکن می‌شود
                 // (قبلاً با هر ذخیره‌سازی همه‌ی فایل‌ها خوانده و parse می‌شدند).
                 if (!folderStaleScanDone) {
-                    for await (const [name, handle] of appDirHandle.entries()) {
+                    for await (const [name, handle] of root.entries()) {
                         if (handle.kind === 'directory') {
                             if (name === 'backups') continue;
                             try {
@@ -5121,7 +5588,7 @@
                     const [year, monthNumStr] = String(monthKey).split('-');
                     const monthNum = parseInt(monthNumStr, 10);
                     const monthName = PERSIAN_MONTHS[monthNum - 1] || 'نامشخص';
-                    const monthDirHandle = await appDirHandle.getDirectoryHandle(getMonthFolderName(monthKey), { create: true });
+                    const monthDirHandle = await root.getDirectoryHandle(getMonthFolderName(monthKey), { create: true });
                     const fileHandle = await monthDirHandle.getFileHandle(getMonthFileName(monthKey), { create: true });
                     const writable = await fileHandle.createWritable();
                     await writable.write(JSON.stringify({
@@ -5134,10 +5601,10 @@
                     folderWrittenSig.set(monthKey, sig);
                     // مهاجرت: اگر از نسخه‌ی قبل از این به‌روزرسانی فایل همین ماه در ریشه‌ی پوشه باقی مانده،
                     // بعد از نوشتن موفق در پوشه‌ی مخصوص خودش حذف می‌شود تا داده فقط در یک جا (پوشه‌ی ماه) بماند.
-                    try { await appDirHandle.removeEntry(getMonthFileName(monthKey)); } catch (e) { /* از قبل وجود نداشت؛ بی‌اهمیت */ }
+                    try { await root.removeEntry(getMonthFileName(monthKey)); } catch (e) { /* از قبل وجود نداشت؛ بی‌اهمیت */ }
                 }
 
-                mgrFolderOk = await mgrSyncWorkerFiles(null);
+                mgrFolderOk = mgrOn() ? await mgrSyncWorkerFiles(null) : false; // فایل‌های پرسنل فقط در پوشه‌ی «کارفرما»
                 const settingsPayload = {
                     notes: notesSnapshot,
                     settings: mgrSettingsForFolder(),
@@ -5146,7 +5613,7 @@
                 };
                 const settingsSig = JSON.stringify(settingsPayload);
                 if (settingsSig !== folderSettingsSig) {
-                    const settingsHandle = await appDirHandle.getFileHandle(SETTINGS_FILE_NAME, { create: true });
+                    const settingsHandle = await root.getFileHandle(SETTINGS_FILE_NAME, { create: true });
                     const settingsWritable = await settingsHandle.createWritable();
                     await settingsWritable.write(JSON.stringify({
                         app: 'sewing_statistics',
@@ -5190,9 +5657,14 @@
                 }
             }
 
+            // پوشه‌ی حالت فعلی («کارفرما» یا «پرسنل»)؛ اگر هنوز ساخته نشده، برای سازگاری با ساختار قبلی از خود ریشه خوانده می‌شود
+            let src;
+            try { src = await appDirHandle.getDirectoryHandle(currentModeFolderName(), { create: false }); }
+            catch (e) { src = appDirHandle; }
+
             // منبع اصلی: هر ماه فقط از پوشه‌ی مخصوص خودش خوانده می‌شود
-            for await (const [name, handle] of appDirHandle.entries()) {
-                if (handle.kind !== 'directory' || name === 'backups') continue;
+            for await (const [name, handle] of src.entries()) {
+                if (handle.kind !== 'directory' || name === 'backups' || isModeFolderName(name)) continue;
                 try {
                     for await (const [innerName, innerHandle] of handle.entries()) {
                         if (innerHandle.kind !== 'file' || !innerName.toLowerCase().endsWith('.json')) continue;
@@ -5211,7 +5683,7 @@
             // سازگاری با نسخه‌ی قبلی: اگر فایل ماهی هنوز مستقیم در ریشه‌ی پوشه مانده (از قبل از این
             // به‌روزرسانی که هر ماه را به پوشه‌ی مخصوص خودش منتقل می‌کند)، همچنان خوانده می‌شود تا داده‌ای
             // گم نشود؛ در ذخیره‌ی بعدی به‌طور خودکار به پوشه‌ی همان ماه منتقل و از ریشه حذف خواهد شد.
-            for await (const [name, handle] of appDirHandle.entries()) {
+            for await (const [name, handle] of src.entries()) {
                 if (handle.kind !== 'file' || !name.toLowerCase().endsWith('.json') || name.startsWith('کارگاه_هوشمند_پشتیبان_') || name.startsWith('آمار_کار_پشتیبان_') || name.startsWith('آمار_دوخت_پشتیبان_')) continue;
                 try {
                     const file = await handle.getFile();
@@ -5247,7 +5719,7 @@
                     if (folderUpdatedAt > localUpdatedAt) {
                         // تنظیمات فایل پوشه جدیدتر است (مثلاً از دستگاه دیگری) → جایگزین تنظیمات محلی می‌شود
                         appSettings = sanitizeSettings(adoptExternalSettings(loaded.settings, loaded.salt));
-                        localStorage.setItem('sewing_app_settings_v13', JSON.stringify(appSettings));
+                        persistAppSettings();
                         applyAppSettingsToUI();
                     }
                     // در غیر این صورت تنظیمات محلی (جدیدتر یا هم‌زمان) حفظ می‌شود؛
@@ -5262,7 +5734,7 @@
 
             if (isFreshSelection) {
                 addLog(`پوشه ذخیره‌سازی «${handle.name}» با موفقیت متصل شد.`, 'success');
-                showFeedbackBanner(`از این پس داده‌ها به‌طور خودکار در پوشه «${handle.name}» نیز ذخیره می‌شوند (یک پوشه‌ی جدا برای هر ماه).`, 'success');
+                showFeedbackBanner(`از این پس داده‌ها به‌طور خودکار در پوشه «${handle.name}» نیز ذخیره می‌شوند (زیرپوشه‌ی جدا برای حالت «کارفرما» و «پرسنل»، و در هرکدام یک پوشه‌ی جدا برای هر ماه).`, 'success');
             }
         }
 
@@ -5320,7 +5792,7 @@
                 resetFolderWriteCache(); // تا حتی بدون تغییرِ تازه هم، همه‌ی فایل‌ها همین الان بازنویسی و تضمین شوند
                 await saveAllMonthFilesToDirectory();
                 addLog('ذخیره دستی در پوشه ذخیره داده (حافظه دستگاه) انجام شد.', 'success');
-                showFeedbackBanner(`داده‌ها همین الان در پوشه «Documents/${NATIVE_STORAGE_FOLDER_BASE}» ذخیره شد.`, 'success');
+                showFeedbackBanner(`داده‌ها همین الان در پوشه «Documents/${NATIVE_STORAGE_FOLDER_BASE}/${currentModeFolderName()}» ذخیره شد.`, 'success');
                 return;
             }
             if (!supportsFileSystemAccess) {
@@ -5350,7 +5822,7 @@
                 await saveAllMonthFilesToDirectory();
                 updateStorageFolderStatusUI();
                 addLog('ذخیره دستی در پوشه دستگاه انجام شد.', 'success');
-                showFeedbackBanner(`داده‌ها همین الان در پوشه «${appDirHandle.name}» ذخیره شد.`, 'success');
+                showFeedbackBanner(`داده‌ها همین الان در پوشه «${appDirHandle.name}/${currentModeFolderName()}» ذخیره شد.`, 'success');
             } catch (err) {
                 console.error('خطا در ذخیره دستی در پوشه:', err);
                 showFeedbackBanner('ذخیره دستی در پوشه ناموفق بود.', 'warn');
@@ -5379,7 +5851,7 @@
                         const folderUpdatedAt = loaded.settings.updatedAt ? new Date(loaded.settings.updatedAt).getTime() : 0;
                         if (folderUpdatedAt > localUpdatedAt) {
                             appSettings = sanitizeSettings(adoptExternalSettings(loaded.settings, loaded.salt));
-                            localStorage.setItem('sewing_app_settings_v13', JSON.stringify(appSettings));
+                            persistAppSettings();
                             applyAppSettingsToUI();
                         }
                     }
@@ -5432,7 +5904,7 @@
                     const folderUpdatedAt = loaded.settings.updatedAt ? new Date(loaded.settings.updatedAt).getTime() : 0;
                     if (folderUpdatedAt > localUpdatedAt) {
                         appSettings = sanitizeSettings(adoptExternalSettings(loaded.settings, loaded.salt));
-                        localStorage.setItem('sewing_app_settings_v13', JSON.stringify(appSettings));
+                        persistAppSettings();
                         applyAppSettingsToUI();
                     }
                 }
@@ -5485,7 +5957,7 @@
             if (!statusEl) return;
             if (isRunningInInstalledApp()) {
                 statusEl.innerText = nativeStorageFolderActive
-                    ? `وضعیت: فعال — ذخیره خودکار در حافظه دستگاه (Documents/${NATIVE_STORAGE_FOLDER_BASE})`
+                    ? `وضعیت: فعال — ذخیره خودکار در حافظه دستگاه (Documents/${NATIVE_STORAGE_FOLDER_BASE}/${currentModeFolderName()})`
                     : 'پلاگین ذخیره‌سازی (Filesystem) در این نسخه از اپ فعال نیست؛ داده فقط داخل برنامه ذخیره می‌شود.';
                 statusEl.className = nativeStorageFolderActive ? 'text-xs font-semibold text-emerald-600 dark:text-emerald-400' : 'text-xs font-semibold text-rose-600 dark:text-rose-400';
                 if (chooseBtn) chooseBtn.classList.add('hidden');
@@ -5505,7 +5977,7 @@
                 statusEl.innerText = 'وضعیت: پوشه‌ای متصل نیست؛ داده‌ها فقط در حافظه مرورگر ذخیره می‌شوند.';
                 statusEl.className = 'text-xs font-semibold text-amber-600 dark:text-amber-400';
             } else if (dirHandlePermissionState === 'granted') {
-                statusEl.innerText = `وضعیت: فعال — پوشه «${appDirHandle.name}» (یک پوشه‌ی جدا برای هر ماه، به‌روزرسانی در همان پوشه)`;
+                statusEl.innerText = `وضعیت: فعال — پوشه «${appDirHandle.name}» ← زیرپوشه‌ی حالت فعلی «${currentModeFolderName()}» (یک پوشه‌ی جدا برای هر ماه، به‌روزرسانی در همان پوشه)`;
                 statusEl.className = 'text-xs font-semibold text-emerald-600 dark:text-emerald-400';
             } else {
                 statusEl.innerHTML = `پوشه «${escapeHTML(appDirHandle.name)}» متصل است ولی دسترسی آن غیرفعال است. <button type="button" onclick="reconnectStorageFolder()" class="underline font-bold">فعال‌سازی دسترسی</button>`;
@@ -5609,7 +6081,7 @@
                         const folderUpdatedAt = loaded.settings.updatedAt ? new Date(loaded.settings.updatedAt).getTime() : 0;
                         if (folderUpdatedAt > localUpdatedAt) {
                             appSettings = sanitizeSettings(adoptExternalSettings(loaded.settings, loaded.salt));
-                            localStorage.setItem('sewing_app_settings_v13', JSON.stringify(appSettings));
+                            persistAppSettings();
                             applyAppSettingsToUI();
                         }
                     }
@@ -6640,7 +7112,7 @@
             applyShiftSettings();
 
             appSettings.updatedAt = new Date().toISOString();
-            localStorage.setItem('sewing_app_settings_v13', JSON.stringify(appSettings));
+            persistAppSettings();
             if (storageFolderIsActive()) saveAllMonthFilesToDirectory(); // تا فایل تنظیمات در پوشه‌ی متصل هم بلافاصله به‌روز شود
             applyAppSettingsToUI();
             runAutoDeliveryCalculation(true);
@@ -6665,7 +7137,7 @@
             if (btn) { btn.classList.toggle('bg-amber-100', isOpen); btn.classList.toggle('dark:bg-amber-950/40', isOpen); }
             appSettings.delaySummaryVisible = isOpen;
             appSettings.updatedAt = new Date().toISOString();
-            localStorage.setItem('sewing_app_settings_v13', JSON.stringify(appSettings));
+            persistAppSettings();
             if (storageFolderIsActive()) saveAllMonthFilesToDirectory();
             if (isOpen) body.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
@@ -6689,7 +7161,7 @@
             if (btn) { btn.classList.toggle('bg-indigo-100', isOpen); btn.classList.toggle('dark:bg-indigo-950/40', isOpen); }
             appSettings.duplicateCodesVisible = isOpen;
             appSettings.updatedAt = new Date().toISOString();
-            localStorage.setItem('sewing_app_settings_v13', JSON.stringify(appSettings));
+            persistAppSettings();
             if (storageFolderIsActive()) saveAllMonthFilesToDirectory();
             if (isOpen) body.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
@@ -6808,9 +7280,14 @@
             logPanel.classList.toggle('hidden');
         }
 
+        const clockFmt = new Intl.DateTimeFormat('fa-IR', { hour: 'numeric', minute: 'numeric', second: 'numeric' });
+        let clockEl = null, clockLast = '';
         function updateSystemClock() {
-            const clockEl = document.getElementById('systemClock');
-            if (clockEl) clockEl.innerText = new Date().toLocaleTimeString('fa-IR');
+            if (document.hidden) return;
+            clockEl = clockEl && clockEl.isConnected ? clockEl : document.getElementById('systemClock');
+            if (!clockEl) return;
+            const t = clockFmt.format(new Date());
+            if (t !== clockLast) { clockLast = t; clockEl.textContent = t; }
         }
         setInterval(updateSystemClock, 1000);
 
@@ -6889,7 +7366,7 @@
         }
 
         async function checkDailyAutoBackup() {
-            if (allRecords.length === 0 && dailyNotes.length === 0) return;
+            if (allRecords.length === 0 && dailyNotes.length === 0 && !mgrHasData()) return;
             const todayStr = currentJalali.fullDateStr;
             if (localStorage.getItem('sewing_last_auto_backup_date') === todayStr) return;
 
@@ -7031,7 +7508,7 @@
         window.addEventListener('beforeunload', flushPendingSaveNow);
 
         async function exportSmartBackup() {
-            if (allRecords.length === 0 && dailyNotes.length === 0) {
+            if (allRecords.length === 0 && dailyNotes.length === 0 && !mgrHasData()) {
                 showFeedbackBanner('داده‌ای برای گرفتن پشتیبان وجود ندارد.', 'warn');
                 return;
             }
@@ -7068,7 +7545,7 @@
          * این قابلیت اصولاً روی گوشی‌های اندروید و آیفون (و برخی مرورگرهای دسکتاپ) در دسترس است.
          */
         async function shareBackupFileToCloud() {
-            if (allRecords.length === 0 && dailyNotes.length === 0) {
+            if (allRecords.length === 0 && dailyNotes.length === 0 && !mgrHasData()) {
                 showFeedbackBanner('داده‌ای برای ارسال پشتیبان وجود ندارد.', 'warn');
                 return;
             }
@@ -7199,65 +7676,81 @@
         }
 
         function importSmartBackup(event) {
-            const file = event.target.files[0];
+            const input = event.target, file = input.files && input.files[0];
             if (!file) return;
-
+            const reset = () => { try { input.value = ''; } catch (e) { /* بی‌اهمیت */ } };
+            if (file.size > 150 * 1024 * 1024) { showFeedbackBanner('حجم فایل بیش از حد است و بارگذاری نمی‌شود.', 'warn'); reset(); return; }
             const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const parsed = JSON.parse(e.target.result);
-                    if (!parsed.app || parsed.app !== "sewing_statistics" || !Array.isArray(parsed.records)) {
-                        throw new Error('ساختار فایل پشتیبان نامعتبر است.');
-                    }
-
-                    showCustomConfirm('آیا از جایگزینی داده‌ها با فایل پشتیبان اطمینان دارید؟ (داده‌های فعلیِ جایگزین‌شده تا ۳۰ روز در «سطل بازیافت» می‌مانند)', (confirmed) => {
-                        if (confirmed) {
-                            const importedRecords = parsed.records.map(sanitizeRecord).filter(Boolean);
-                            const importedIds = new Set(importedRecords.map(r => r.id));
-                            // هر رکوردِ فعلی که با این بازیابی حذف یا جایگزین می‌شود، ۳۰ روز در سطل بازیافت می‌ماند
-                            const importedById = new Map(importedRecords.map(r => [r.id, r]));
-                            allRecords.forEach(r => { const imp = importedById.get(r.id); if (!imp || imp.updatedAt !== r.updatedAt) moveToTrash(TRASH_RECORDS_STORE, r); });
-                            const nowTs = Date.now();
-                            allRecords.forEach(r => { if (!importedIds.has(r.id)) tombstones.records[String(r.id)] = nowTs; });
-                            if (parsed.tombstones) tombstones = mergeTombstones(tombstones, normalizeTombstones(parsed.tombstones));
-                            importedIds.forEach(id => { delete tombstones.records[String(id)]; });
-                            allRecords = importedRecords;
-                            if (Array.isArray(parsed.notes)) {
-                                const importedNotes = parsed.notes.map(sanitizeNote).filter(Boolean);
-                                const noteIds = new Set(importedNotes.map(n => n.id));
-                                const importedNoteById = new Map(importedNotes.map(n => [n.id, n]));
-                                dailyNotes.forEach(n => { const imp = importedNoteById.get(n.id); if (!imp || imp.updatedAt !== n.updatedAt) moveToTrash(TRASH_NOTES_STORE, n); });
-                                dailyNotes.forEach(n => { if (!noteIds.has(n.id)) tombstones.notes[String(n.id)] = nowTs; });
-                                noteIds.forEach(id => { delete tombstones.notes[String(id)]; });
-                                dailyNotes = importedNotes;
-                            }
-                            if (parsed.settings) {
-                                appSettings = sanitizeSettings(adoptExternalSettings(parsed.settings, parsed.installSalt));
-                                appSettings.updatedAt = new Date().toISOString();
-                                localStorage.setItem('sewing_app_settings_v13', JSON.stringify(appSettings));
-                                applyAppSettingsToUI();
-                            }
-                            saveRecords();
-                            if (allRecords.length) {
-                                const latestKey = allRecords.reduce((best, r) => {
-                                    const [by, bm] = best.split('-').map(Number);
-                                    const [ry, rm] = String(r.monthKey).split('-').map(Number);
-                                    return (ry * 100 + rm) > (by * 100 + bm) ? r.monthKey : best;
-                                }, allRecords[0].monthKey);
-                                selectedMonthFilter = latestKey;
-                            }
-                            renderDashboard();
-                            addLog('بازیابی اطلاعات از فایل محلی با موفقیت انجام شد.', 'success');
-                            showFeedbackBanner('اطلاعات با موفقیت از فایل پشتیبان بازیابی شد.', 'success');
-                        }
-                    });
-                } catch (err) {
-                    console.error(err);
-                    showFeedbackBanner('خطا: فایل انتخابی معتبر نیست.', 'warn');
-                }
-                event.target.value = '';
+            const readFail = () => { showFeedbackBanner('خواندن فایل ممکن نشد. فایل را از حافظه‌ی دستگاه (نه فضای ابری) انتخاب کنید و دوباره تلاش کنید.', 'warn'); reset(); };
+            reader.onerror = readFail; reader.onabort = readFail;
+            reader.onload = function (e) {
+                let parsed;
+                try { parsed = JSON.parse(String(e.target.result).replace(/^\uFEFF/, '')); }
+                catch (err) { showFeedbackBanner('فایل خراب یا ناقص است (ساختار JSON نامعتبر). دوباره از فایل کامل پشتیبان استفاده کنید.', 'warn'); reset(); return; }
+                if (!parsed || typeof parsed !== 'object' || parsed.app !== 'sewing_statistics') { showFeedbackBanner('این فایل، پشتیبان همین برنامه نیست.', 'warn'); reset(); return; }
+                if (parsed.kind === 'worker') { showFeedbackBanner('این فایل مربوط به یک پرسنل است؛ از «پنل کارفرما ← پرسنل» وارد کنید.', 'warn'); reset(); return; }
+                if (!Array.isArray(parsed.records)) { showFeedbackBanner('در این فایل بخش رکوردها پیدا نشد؛ فایل پشتیبانِ کامل نیست.', 'warn'); reset(); return; }
+                showCustomConfirm('آیا از جایگزینی داده‌ها با فایل پشتیبان اطمینان دارید؟ (داده‌های فعلیِ جایگزین‌شده تا ۳۰ روز در «سطل بازیافت» می‌مانند)', (confirmed) => { if (confirmed) applyBackupImport(parsed); });
+                reset();
             };
             reader.readAsText(file);
+        }
+
+        function applyBackupImport(parsed) {
+            const snap = {
+                records: allRecords, notes: dailyNotes, settings: appSettings, month: selectedMonthFilter,
+                tomb: (typeof structuredClone === 'function') ? structuredClone(tombstones) : JSON.parse(JSON.stringify(tombstones))
+            };
+            try {
+                const importedRecords = parsed.records.map(sanitizeRecord).filter(Boolean);
+                const dropped = parsed.records.length - importedRecords.length;
+                if (parsed.records.length && !importedRecords.length) throw new Error('هیچ رکورد معتبری در فایل نبود.');
+                const importedIds = new Set(importedRecords.map(r => r.id));
+                // هر رکوردِ فعلی که با این بازیابی حذف یا جایگزین می‌شود، ۳۰ روز در سطل بازیافت می‌ماند
+                const importedById = new Map(importedRecords.map(r => [r.id, r]));
+                allRecords.forEach(r => { const imp = importedById.get(r.id); if (!imp || imp.updatedAt !== r.updatedAt) moveToTrash(TRASH_RECORDS_STORE, r); });
+                const nowTs = Date.now();
+                allRecords.forEach(r => { if (!importedIds.has(r.id)) tombstones.records[String(r.id)] = nowTs; });
+                if (parsed.tombstones) tombstones = mergeTombstones(tombstones, normalizeTombstones(parsed.tombstones));
+                importedIds.forEach(id => { delete tombstones.records[String(id)]; });
+                allRecords = importedRecords;
+                if (Array.isArray(parsed.notes)) {
+                    const importedNotes = parsed.notes.map(sanitizeNote).filter(Boolean);
+                    const noteIds = new Set(importedNotes.map(n => n.id));
+                    const importedNoteById = new Map(importedNotes.map(n => [n.id, n]));
+                    dailyNotes.forEach(n => { const imp = importedNoteById.get(n.id); if (!imp || imp.updatedAt !== n.updatedAt) moveToTrash(TRASH_NOTES_STORE, n); });
+                    dailyNotes.forEach(n => { if (!noteIds.has(n.id)) tombstones.notes[String(n.id)] = nowTs; });
+                    noteIds.forEach(id => { delete tombstones.notes[String(id)]; });
+                    dailyNotes = importedNotes;
+                }
+                if (parsed.settings) {
+                    // پشتیبان‌های قدیمی (قبل از قابلیت کارفرما) بخش manager ندارند؛ در این حالت اطلاعات فعلیِ کارفرما حفظ می‌شود
+                    const keepManager = (parsed.settings.manager === undefined || parsed.settings.manager === null) ? snap.settings.manager : null;
+                    appSettings = sanitizeSettings(adoptExternalSettings(parsed.settings, parsed.installSalt));
+                    if (keepManager) appSettings.manager = keepManager;
+                    appSettings.updatedAt = new Date().toISOString();
+                    persistAppSettings();
+                    applyAppSettingsToUI();
+                }
+                saveRecords();
+                if (allRecords.length) {
+                    const latestKey = allRecords.reduce((best, r) => {
+                        const [by, bm] = best.split('-').map(Number);
+                        const [ry, rm] = String(r.monthKey).split('-').map(Number);
+                        return (ry * 100 + rm) > (by * 100 + bm) ? r.monthKey : best;
+                    }, allRecords[0].monthKey);
+                    selectedMonthFilter = latestKey;
+                }
+                renderDashboard();
+                addLog('بازیابی اطلاعات از فایل محلی با موفقیت انجام شد.', 'success');
+                showFeedbackBanner('اطلاعات با موفقیت از فایل پشتیبان بازیابی شد.', 'success');
+                if (dropped > 0) showFeedbackBanner(`${formatNumber(dropped)} رکورد نامعتبر در فایل نادیده گرفته شد.`, 'warn');
+            } catch (err) {
+                console.error('بازیابی پشتیبان ناموفق بود:', err);
+                allRecords = snap.records; dailyNotes = snap.notes; appSettings = snap.settings; tombstones = snap.tomb; selectedMonthFilter = snap.month;
+                try { persistAppSettings(); applyAppSettingsToUI(); renderDashboard(); } catch (e2) { console.error(e2); }
+                showFeedbackBanner('بازیابی انجام نشد و اطلاعات قبلی حفظ شد: ' + ((err && err.message) || 'خطای نامشخص'), 'warn');
+            }
         }
 
         function normalizeDigits(str) {
@@ -8071,7 +8564,7 @@
         function setIncomeGoalMode(mode) {
             appSettings.incomeGoalMode = mode === 'monthly' ? 'monthly' : 'weekly';
             appSettings.updatedAt = new Date().toISOString();
-            localStorage.setItem('sewing_app_settings_v13', JSON.stringify(appSettings));
+            persistAppSettings();
             renderIncomeGoal();
         }
 
@@ -8103,7 +8596,7 @@
             });
             if (changed) {
                 appSettings.updatedAt = new Date().toISOString();
-                localStorage.setItem('sewing_app_settings_v13', JSON.stringify(appSettings));
+                persistAppSettings();
                 if (storageFolderIsActive()) saveAllMonthFilesToDirectory();
             }
 
@@ -9249,7 +9742,7 @@
                 appSettings.onTimeStreak = run;
                 appSettings.bestStreak = best;
                 appSettings.updatedAt = new Date().toISOString();
-                localStorage.setItem('sewing_app_settings_v13', JSON.stringify(appSettings));
+                persistAppSettings();
                 if (storageFolderIsActive()) saveAllMonthFilesToDirectory();
             }
         }
@@ -9712,11 +10205,41 @@
         function mgrSection(id) { return id ? (mgr().sections.find(x => x.id === String(id)) || null) : null; }
         function mgrRecWorker(r) { const w = mgrWorker(r && r.workerId); return w ? w.name : ((r && r.workerName) || ''); }
         function mgrDK(d) { const p = toEnglishDigits(String(d || '')).split('/').map(Number); return (p.length === 3 && p.every(Number.isFinite) && p[0] > 1200 && p[1] >= 1 && p[1] <= 12 && p[2] >= 1 && p[2] <= 31) ? `${p[0]}/${String(p[1]).padStart(2, '0')}/${String(p[2]).padStart(2, '0')}` : ''; }
+        let mgrSaveTimer = 0;
+        function mgrSaveSoon() {
+            clearTimeout(mgrSaveTimer);
+            mgrSaveTimer = setTimeout(() => { mgrSaveTimer = 0; mgrSave(); }, 400);
+        }
+        function mgrFlushSave() { if (mgrSaveTimer) { clearTimeout(mgrSaveTimer); mgrSaveTimer = 0; mgrSave(); } }
+        window.addEventListener('pagehide', mgrFlushSave);
+        document.addEventListener('visibilitychange', () => { if (document.hidden) mgrFlushSave(); });
         function mgrSave() {
+            if (mgrSaveTimer) mgrPullIfStale(true, true); // ذخیره‌ی با تاخیر: تغییر هم‌زمانِ تب دیگر ادغام شود، نه بازنویسی
+            clearTimeout(mgrSaveTimer); mgrSaveTimer = 0;
             mgrVer++; appSettings.updatedAt = new Date().toISOString();
-            try { localStorage.setItem('sewing_app_settings_v13', JSON.stringify(appSettings)); }
-            catch (e) { showFeedbackBanner('حافظه‌ی مرورگر پر است؛ ذخیره انجام نشد.', 'warn'); }
+            const saved = persistAppSettings();
             if (storageFolderIsActive()) saveAllMonthFilesToDirectory();
+            return saved;
+        }
+        // ذخیره + اعلام نتیجه‌ی واقعی: اگر نوشتن در حافظه ناموفق بود، به‌جای پیام موفقیت، هشدار نشان داده می‌شود
+        function mgrSaveReport(okMsg) {
+            const saved = mgrSave();
+            if (saved) { if (okMsg) showFeedbackBanner(okMsg, 'success'); }
+            else mgrReportLocalFailure();
+            return saved;
+        }
+        // localStorage پر بود: اگر نسخه‌ی IndexedDB نوشته شد، داده امن است (هشدار ملایم)؛ وگرنه هشدار جدی
+        function mgrReportLocalFailure() {
+            mgrIdbLast.then(inIdb => showFeedbackBanner(inIdb
+                ? 'حافظه‌ی اصلی مرورگر پر است؛ تغییرات در ذخیره‌گاه تکمیلی (IndexedDB) ذخیره شد. بهتر است پشتیبان بگیرید.'
+                : 'ذخیره‌سازی انجام نشد (حافظه‌ی مرورگر پر است). تغییرات فقط تا بستن برنامه می‌مانند؛ همین حالا پشتیبان بگیرید.', 'warn'));
+        }
+        // آیا اطلاعاتی در بخش کارفرما (پرسنل، بخش‌ها، حضور و غیاب، مالی) وجود دارد؟
+        function mgrHasData() {
+            const M = appSettings && appSettings.manager;
+            if (!M) return false;
+            const n = o => (o && typeof o === 'object') ? Object.keys(o).length : 0;
+            return !!((M.workers && M.workers.length) || (M.sections && M.sections.length) || n(M.attendance) || n(M.attMin) || (M.finance && M.finance.txns && M.finance.txns.length));
         }
 
         /* ---------- نمای صفحه‌ی اصلی در حالت کارفرما ---------- */
@@ -9935,7 +10458,7 @@
             if (document.getElementById('editingRecordId').value) resetFormState(); else mgrSetFormWorker(null);
             renderDashboard(); window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-        setInterval(() => { try { mgrRenderWorkerCards(); } catch (e) {} }, 30 * 1000);
+        setInterval(() => { if (document.hidden) return; try { mgrRenderWorkerCards(); } catch (e) {} }, 30 * 1000);
         function renderDashboard() {
             if (mgrListFilter && (!mgrOn() || (mgrListFilter !== '__none' && !mgrWorker(mgrListFilter)))) mgrListFilter = '';
             renderDashboardBase(); mgrApplyMainView();
@@ -9986,10 +10509,12 @@
                 : 'غیرفعال است؛ اطلاعات ثبت‌شده حفظ می‌شود.';
         }
         function mgrToggle(on) {
-            mgr().enabled = !!on; mgrSave();
+            mgrPullIfStale(true);
+            mgr().enabled = !!on; const saved = mgrSave();
             applyManagerToUI(); mgrRenderSettings(); renderDashboard();
             addLog(on ? 'قابلیت کارفرما فعال شد.' : 'قابلیت کارفرما غیرفعال شد.', 'info');
-            showFeedbackBanner(on ? 'حالت کارفرما فعال شد.' : 'حالت پرسنل فعال شد؛ اطلاعات کارفرما حفظ شده است.', 'success');
+            if (saved) showFeedbackBanner(on ? 'حالت کارفرما فعال شد.' : 'حالت پرسنل فعال شد؛ اطلاعات کارفرما حفظ شده است.', 'success');
+            else mgrReportLocalFailure();
         }
         function openManagerPanel() {
             if (!mgrOn()) return;
@@ -10150,20 +10675,32 @@
         /* ---------- بخش مالی پنل کارفرما ---------- */
         const MGR_FIN_TYPES = { advance: ['مساعده', 'text-rose-600 dark:text-rose-400'], bonus: ['پاداش', 'text-emerald-600 dark:text-emerald-400'], deduction: ['کسری / جریمه', 'text-amber-600 dark:text-amber-400'], payment: ['پرداخت حقوق', 'text-indigo-600 dark:text-indigo-400'] };
         function mgrFin() { const M = mgr(); if (!M.finance) M.finance = { txns: [], days: {} }; return M.finance; }
+        var mgrPieceCache = null;
+        function mgrPieceTotals(mk) {
+            if (mgrPieceCache && mgrPieceCache.mk === mk) return mgrPieceCache.map;
+            const map = new Map();
+            for (const r of allRecords) { if (r.monthKey === mk && r.workerId && typeof r.totalPrice === 'number') { const k = String(r.workerId); map.set(k, (map.get(k) || 0) + r.totalPrice); } }
+            return map;
+        }
+        function mgrYm(str) { const p = String(str || '').split('/').map(Number); return p.length === 3 && p[0] > 1200 ? p[0] * 12 + p[1] : 0; }
         function mgrFinCalc(w, mk) {
-            const F = mgrFin(), sum = t => F.txns.filter(x => x.workerId === w.id && x.monthKey === mk && x.type === t).reduce((a, x) => a + x.amount, 0);
+            const F = mgrFin(), sum = { advance: 0, bonus: 0, deduction: 0, payment: 0 };
+            for (const x of F.txns) if (x.workerId === w.id && x.monthKey === mk) sum[x.type] += x.amount;
             const at = mgrAttCount(w.id, mk), daysAuto = (at.p + at.t + at.l + at.a) > 0, days = daysAuto ? at.p + at.t : (F.days[w.id + '|' + mk] || 0);
+            const [my, mm] = mk.split('-').map(Number), cur = my * 12 + mm, st = mgrYm(w.startDate), en = mgrYm(w.endDate), outOfRange = (st && st > cur) || (en && en < cur);
             let earn = 0;
             if (w.wageType === 'daily') earn = (w.rate || 0) * days;
-            else if (w.wageType === 'monthly') earn = w.rate || 0;
-            else earn = allRecords.filter(r => String(r.workerId || '') === w.id && r.monthKey === mk).reduce((a, r) => a + (typeof r.totalPrice === 'number' ? r.totalPrice : 0), 0);
-            const bonus = sum('bonus'), deduction = sum('deduction'), advance = sum('advance'), payment = sum('payment');
+            else if (w.wageType === 'monthly') earn = outOfRange ? 0 : (w.rate || 0);
+            else earn = mgrPieceTotals(mk).get(w.id) || 0;
+            const bonus = sum.bonus, deduction = sum.deduction, advance = sum.advance, payment = sum.payment;
             return { earn, days, daysAuto, bonus, deduction, advance, payment, remain: earn + bonus - deduction - advance - payment };
         }
         function mgrHtmlFinance() {
             const M = mgr(), F = mgrFin(), mk = selectedMonthFilter, cur = escapeHTML(appSettings.currency || 'تومان'), f = formatNumber;
             const ws = M.workers.filter(w => w.active || F.txns.some(x => x.workerId === w.id && x.monthKey === mk));
+            mgrPieceCache = { mk, map: mgrPieceTotals(mk) };
             const rows = ws.map(w => ({ w, c: mgrFinCalc(w, mk) }));
+            mgrPieceCache = null;
             const tot = rows.reduce((a, r) => ({ earn: a.earn + r.c.earn + r.c.bonus - r.c.deduction, adv: a.adv + r.c.advance, pay: a.pay + r.c.payment, remain: a.remain + r.c.remain }), { earn: 0, adv: 0, pay: 0, remain: 0 });
             const wOpts = ws.map(w => `<option value="${escapeHTML(w.id)}">${escapeHTML(w.name)}</option>`).join('');
             const tOpts = Object.keys(MGR_FIN_TYPES).map(k => `<option value="${k}">${MGR_FIN_TYPES[k][0]}</option>`).join('');
@@ -10214,6 +10751,10 @@
 
 
         function mgrAct(a, id, st) {
+            let okMsg = '';
+            mgrPullIfStale(true); // اگر تب دیگر چیزی تغییر داده، پیش از اعمال این عمل همان نسخه برداشته می‌شود (بدون بازسازی فرم)
+            if (mgrEditW && !mgrWorker(mgrEditW)) mgrEditW = ''; // پرسنلِ در حال ویرایش در تب دیگر حذف شده باشد
+            if (mgrEditS && !mgrSection(mgrEditS)) mgrEditS = '';
             const M = mgr(), val = i => (document.getElementById(i) || {}).value || '';
             if (a === 'tab') { mgrTab = id; return mgrRender(); }
             if (a === 'w-dl') return mgrDownloadWorker(id);
@@ -10232,7 +10773,7 @@
                     let ch = false; allRecords.forEach(r => { if (r.workerId === w.id && r.workerName !== w.name) { r.workerName = w.name; r.updatedAt = Date.now(); ch = true; } });
                     if (ch) saveRecords();
                 } else M.workers.push({ id: mgrId('w'), active: true, ...d });
-                mgrEditW = ''; mgrFormPhoto = undefined; showFeedbackBanner('اطلاعات پرسنل ذخیره شد.', 'success');
+                mgrEditW = ''; mgrFormPhoto = undefined; okMsg = 'اطلاعات پرسنل ذخیره شد.';
             } else if (a === 'w-edit') { mgrEditW = id; mgrFormPhoto = undefined; return mgrRender(); }
             else if (a === 'w-cancel') { mgrEditW = ''; mgrFormPhoto = undefined; return mgrRender(); }
             else if (a === 'w-toggle') { const w = mgrWorker(id); if (w) w.active = !w.active; }
@@ -10243,7 +10784,7 @@
                     let ch = false; allRecords.forEach(r => { if (r.workerId === id) { r.workerName = w.name; r.workerId = null; r.updatedAt = Date.now(); ch = true; } });
                     if (ch) saveRecords();
                     M.workers = M.workers.filter(x => x.id !== id);
-                    mgrSave(); applyManagerToUI(); mgrRender(); renderDashboard();
+                    mgrSaveReport(); applyManagerToUI(); mgrRender(); renderDashboard();
                 });
             }
             else if (a === 's-save') {
@@ -10259,7 +10800,7 @@
                 return showCustomConfirm(`بخش «${x.name}» حذف شود؟ پرسنل آن بدون بخش می‌شوند.`, ok => {
                     if (!ok) return;
                     M.sections = M.sections.filter(y => y.id !== id); M.workers.forEach(w => { if (w.sectionId === id) w.sectionId = ''; });
-                    mgrSave(); applyManagerToUI(); mgrRender();
+                    mgrSaveReport(); applyManagerToUI(); mgrRender();
                 });
             }
             else if (a === 'a-set') {
@@ -10310,7 +10851,8 @@
                 r.workerId = w.id; r.workerName = w.name; r.updatedAt = Date.now(); recomputeAllLinks(); saveRecords();
             }
             else return;
-            mgrSave(); applyManagerToUI(); mgrRender(); renderDashboard();
+            if (a[0] === 'a' && a !== 'asg' || a[0] === 'f') { mgrSaveSoon(); mgrRender(); return; }
+            mgrSaveReport(okMsg); applyManagerToUI(); mgrRender(); renderDashboard();
         }
         document.addEventListener('change', function (e) {
             const el = e.target.closest('#managerModal [data-mgr-change]');
@@ -10340,8 +10882,8 @@
             try {
                 const M = mgr(), cur = M.workers.map(w => ({ w, name: mgrWorkerFileName(w) }));
                 const curNames = new Set(cur.map(c => c.name)), curIds = new Set(cur.map(c => c.w.id));
-                const dir = FS ? null : await appDirHandle.getDirectoryHandle(MGR_DIR, { create: true });
-                const path = n => `${NATIVE_STORAGE_FOLDER_BASE}/${MGR_DIR}/${n}`;
+                const dir = FS ? null : await (await getModeDirHandle(true)).getDirectoryHandle(MGR_DIR, { create: true });
+                const path = n => `${nativeModeBase()}/${MGR_DIR}/${n}`;
                 const put = async (n, text) => {
                     if (FS) await FS.writeFile({ path: path(n), directory: 'DOCUMENTS', encoding: 'utf8', recursive: true, data: text });
                     else { const fh = await dir.getFileHandle(n, { create: true }); const wr = await fh.createWritable(); await wr.write(text); await wr.close(); }
@@ -10399,6 +10941,7 @@
             }
             e.target.value = '';
             if (!n) { mgrPending = []; return showFeedbackBanner('فایل معتبر پرسنل پیدا نشد.', 'warn'); }
+            mgrPullIfStale(true);
             appSettings.manager = sanitizeSettings({ manager: mgrFinishLoad({ manager: appSettings.manager }).manager }).manager;
             { const seen = new Set(); appSettings.manager.workers.forEach(w => { let nm = w.name, k = 2; while (seen.has(normalizeSearchText(nm))) nm = `${w.name} (${formatNumber(k++)})`; if (nm !== w.name) { w.name = nm; } seen.add(normalizeSearchText(nm)); }); }
             mgrSave(); applyManagerToUI(); mgrRender(); renderDashboard();
@@ -10722,7 +11265,7 @@
 
         document.getElementById('recordTime').addEventListener('input', () => { recordTimeTouched = true; });
         document.getElementById('recordFormCard').addEventListener('focusin', refreshFormDateTimeIfUntouched);
-        setInterval(refreshFormDateTimeIfUntouched, 30 * 1000);
+        setInterval(() => { if (!document.hidden) refreshFormDateTimeIfUntouched(); }, 30 * 1000);
         document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshFormDateTimeIfUntouched(); });
 
         document.getElementById('recordDate').value = currentJalali.fullDateStr;
@@ -10833,11 +11376,12 @@
         renderStreakBadge();
         checkDeliveryProgressNotifications();
         setInterval(checkDeliveryProgressNotifications, 60 * 1000);
-        setInterval(renderActiveProgressWidget, 20 * 1000);
+        setInterval(() => { if (!document.hidden) renderActiveProgressWidget(); }, 20 * 1000);
         // [رفع درخواست] رندرِ دوره‌ای کادر انگیزشی تا چرخشِ پیام‌ها (حداقل ۱۰ پیامِ متفاوت در روز، بدون
         // تکرار) حتی وقتی کاربر کاری انجام نمی‌دهد هم پیش برود؛ خودِ pickFromPool تضمین می‌کند که پیام
         // فقط بعد از گذشتِ MOTIVATION_ROTATE_INTERVAL_MS واقعاً عوض شود.
-        setInterval(renderStreakBadge, 60 * 1000);
+        setInterval(() => { if (!document.hidden) renderStreakBadge(); }, 60 * 1000);
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) { try { updateSystemClock(); renderActiveProgressWidget(); renderStreakBadge(); } catch (e) {} } });
 
         // ذخیره‌سازی دوره‌ای خودکار: هر ۵ دقیقه، صرف‌نظر از اینکه تغییری ثبت شده یا نه،
         // لیست کارکرد، یادداشت‌ها و تنظیمات را ذخیره می‌کند (در حافظه مرورگر/IndexedDB و
