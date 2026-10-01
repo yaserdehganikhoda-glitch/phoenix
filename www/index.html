@@ -755,6 +755,8 @@
         body[data-cardfx="on"] #recordsTableCard::after { display: none !important; }
         }
     </style>
+<style>html.no-anim *,html.no-anim *::before,html.no-anim *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}</style>
+<script>try{if(localStorage.getItem("sewing_no_anim")==="1")document.documentElement.classList.add("no-anim")}catch(e){}</script>
 </head>
 <body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 antialiased min-h-screen pb-28 font-normal-size" id="appBody">
 
@@ -1099,6 +1101,8 @@
                                     <span class="w-9 h-9 shrink-0 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center"><i class="fa-solid fa-shield-halved text-xs"></i></span>
                                     <span class="min-w-0"><span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">محافظت از داده‌ها</span><span class="block text-[9px] text-slate-400">جلوگیری از پاک‌شدن خودکار</span></span>
                                 </button>
+<button id="deviceAnimBtn" onclick="toggleReduceMotion()" class="tactile-btn flex items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right"><span class="w-9 h-9 shrink-0 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center"><i class="fa-solid fa-bolt text-xs"></i></span><span class="min-w-0"><span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">انیمیشن‌ها: <span id="deviceAnimState">فعال</span></span><span class="block text-[9px] text-slate-400">خاموش‌کردن برای روانی بیشتر</span></span></button>
+<button id="deviceWidgetBtn" onclick="requestHomeWidget()" class="tactile-btn flex items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right"><span class="w-9 h-9 shrink-0 rounded-full bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 flex items-center justify-center"><i class="fa-solid fa-table-cells-large text-xs"></i></span><span class="min-w-0"><span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">ویجت صفحه اصلی</span><span class="block text-[9px] text-slate-400">نمایش پیشرفت کار روی گوشی</span></span></button>
                                 <button  onclick="openTodayReport(); closeToolsDropdown();" class="tactile-btn col-span-2 flex items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
                                     <span class="w-9 h-9 shrink-0 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center"><i class="fa-solid fa-file-lines text-xs"></i></span>
                                     <span class="min-w-0"><span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">گزارش امروز</span><span class="block text-[9px] text-slate-400">ارسال در پیام‌رسان</span></span>
@@ -1185,6 +1189,7 @@
                             <div class="inline-flex rounded-lg border border-slate-300 dark:border-slate-600 overflow-hidden text-[11px]">
                                 <button type="button" id="incomeGoalBtnWeekly" onclick="setIncomeGoalMode('weekly')" class="px-3 py-1 transition-colors">هفتگی</button>
                                 <button type="button" id="incomeGoalBtnMonthly" onclick="setIncomeGoalMode('monthly')" class="px-3 py-1 transition-colors">ماهانه</button>
+<button type="button" id="incomeGoalBtnCustom" onclick="setIncomeGoalMode('custom')" class="px-3 py-1 transition-colors">بازه</button>
                             </div>
                             <button type="button" onclick="openIncomeGoalSettings()" title="تنظیم هدف" class="text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 p-1 rounded-lg"><i class="fa-solid fa-pen text-[11px]"></i></button>
                         </div>
@@ -1975,6 +1980,8 @@
                             <input type="text" inputmode="numeric" id="settingIncomeGoalMonthly" data-thousands="1" placeholder="مثلاً ۲۰۰۰۰۰۰۰" class="w-full p-2.5 border border-slate-400 dark:border-slate-500 rounded-xl text-sm bg-white dark:bg-slate-800 field-box-bg dark:text-slate-100 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all">
                         </div>
                     </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2"><div><label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">هدف بازه‌ی دلخواه</label><input type="text" inputmode="numeric" id="settingIncomeGoalCustom" data-thousands="1" placeholder="مبلغ هدف در بازه" class="w-full p-2.5 border border-slate-400 dark:border-slate-500 rounded-xl text-sm bg-white dark:bg-slate-800 field-box-bg dark:text-slate-100 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all"></div><div><label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">از تاریخ</label><input type="text" id="settingIncomeGoalFrom" readonly onclick="openDatePicker('settingIncomeGoalFrom', event)" placeholder="انتخاب تاریخ" class="w-full p-2.5 border border-slate-400 dark:border-slate-500 rounded-xl text-sm bg-white dark:bg-slate-800 field-box-bg dark:text-slate-100 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all cursor-pointer"></div><div><label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">تا تاریخ</label><input type="text" id="settingIncomeGoalTo" readonly onclick="openDatePicker('settingIncomeGoalTo', event)" placeholder="انتخاب تاریخ" class="w-full p-2.5 border border-slate-400 dark:border-slate-500 rounded-xl text-sm bg-white dark:bg-slate-800 field-box-bg dark:text-slate-100 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all cursor-pointer"></div></div>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400">در حالت «بازه»، درآمد فقط از رکوردهای بین دو تاریخ (شامل هر دو روز) جمع می‌شود.</p>
                 </div>
                 <div class="space-y-3">
                     <button type="button" onclick="toggleSettingsSection('formLabelsSectionBody', 'formLabelsSectionIcon', 'sewing_settings_formlabels_collapsed')" class="w-full flex items-center justify-between gap-2 text-right">
@@ -3505,9 +3512,11 @@
             s.onTimeToleranceMinutes = Number.isFinite(tolRaw) ? Math.max(0, Math.min(120, Math.floor(tolRaw))) : 5;
             s.deliveryStatusMode = pick(s.deliveryStatusMode, ['auto', 'manual'], 'auto');
             ['incomeGoalWeekly', 'incomeGoalMonthly'].forEach(k => { const n = Math.floor(Number(s[k])); s[k] = (Number.isFinite(n) && n > 0) ? Math.min(n, 1e13) : 0; });
-            s.incomeGoalMode = pick(s.incomeGoalMode, ['weekly', 'monthly'], 'weekly');
+            s.incomeGoalMode = pick(s.incomeGoalMode, ['weekly', 'monthly', 'custom'], 'weekly');
+            { const n = Math.floor(Number(s.incomeGoalCustom)); s.incomeGoalCustom = (Number.isFinite(n) && n > 0) ? Math.min(n, 1e13) : 0; }
+            ['incomeGoalFrom', 'incomeGoalTo'].forEach(k => { const v = toEnglishDigits(String(s[k] || '')).trim(); s[k] = /^\d{4}\/\d{1,2}\/\d{1,2}$/.test(v) ? v : ''; });
             const gc = (s.goalCelebrated && typeof s.goalCelebrated === 'object' && !Array.isArray(s.goalCelebrated)) ? s.goalCelebrated : {};
-            s.goalCelebrated = { weekly: String(gc.weekly || '').slice(0, 60), monthly: String(gc.monthly || '').slice(0, 60) };
+            s.goalCelebrated = { weekly: String(gc.weekly || '').slice(0, 60), monthly: String(gc.monthly || '').slice(0, 60), custom: String(gc.custom || '').slice(0, 80) };
             s.fontFamily = pick(s.fontFamily, ['Vazirmatn', 'Vazir', 'Sahel', 'Samim', 'Shabnam'], 'Vazirmatn');
             const colorOk = c => c === 'default' || (typeof c === 'string' && /^#[0-9a-fA-F]{6}$/.test(c));
             ['bgColor', 'cardColor', 'fieldColor'].forEach(k => { if (!colorOk(s[k])) s[k] = 'default'; });
@@ -4423,6 +4432,7 @@
             deliveryStatusMode: 'auto',
             incomeGoalWeekly: 0,
             incomeGoalMonthly: 0,
+            incomeGoalCustom: 0, incomeGoalFrom: '', incomeGoalTo: '',
             incomeGoalMode: 'weekly',
             goalCelebrated: {},
             theme: 'light',
@@ -6931,6 +6941,9 @@
             document.getElementById(isManualDeliveryMode() ? 'settingDeliveryModeManual' : 'settingDeliveryModeAuto').checked = true;
             document.getElementById('settingIncomeGoalWeekly').value = appSettings.incomeGoalWeekly ? String(appSettings.incomeGoalWeekly) : '';
             document.getElementById('settingIncomeGoalMonthly').value = appSettings.incomeGoalMonthly ? String(appSettings.incomeGoalMonthly) : '';
+            document.getElementById('settingIncomeGoalCustom').value = appSettings.incomeGoalCustom ? String(appSettings.incomeGoalCustom) : '';
+            document.getElementById('settingIncomeGoalFrom').value = appSettings.incomeGoalFrom ? toPersianDigits(appSettings.incomeGoalFrom) : '';
+            document.getElementById('settingIncomeGoalTo').value = appSettings.incomeGoalTo ? toPersianDigits(appSettings.incomeGoalTo) : '';
             document.getElementById('settingTheme').value = appSettings.theme || 'light';
             document.getElementById('settingFontSize').value = appSettings.fontSize || 'normal';
             document.getElementById('settingNumFormat').value = appSettings.numFormat || 'persian';
@@ -7095,6 +7108,11 @@
             const parseGoal = v => { const n = Number(toEnglishDigits(String(v || '')).replace(/[^\d]/g, '')); return (Number.isFinite(n) && n > 0) ? Math.min(n, 1e13) : 0; };
             appSettings.incomeGoalWeekly = parseGoal(document.getElementById('settingIncomeGoalWeekly').value);
             appSettings.incomeGoalMonthly = parseGoal(document.getElementById('settingIncomeGoalMonthly').value);
+            appSettings.incomeGoalCustom = parseGoal(document.getElementById('settingIncomeGoalCustom').value);
+            { let a = toEnglishDigits(document.getElementById('settingIncomeGoalFrom').value.trim()), b = toEnglishDigits(document.getElementById('settingIncomeGoalTo').value.trim());
+              const ja = parseJalaliDateToJdn(a), jb = parseJalaliDateToJdn(b);
+              if (ja && jb && ja > jb) { const t = a; a = b; b = t; }
+              appSettings.incomeGoalFrom = a; appSettings.incomeGoalTo = b; }
             appSettings.theme = themeVal;
             appSettings.fontSize = fontSizeVal;
             appSettings.numFormat = numFormatVal;
@@ -8547,22 +8565,25 @@
             const cur = getCurrentJalaliInfo();
             const todayJdn = parseJalaliDateToJdn(cur.fullDateStr);
             const ws = todayJdn - saturdayBasedDayIndex(todayJdn), we = ws + 6;
-            let weekly = 0, monthly = 0;
+            let weekly = 0, monthly = 0, custom = 0;
+            const cj1 = parseJalaliDateToJdn(appSettings.incomeGoalFrom), cj2 = parseJalaliDateToJdn(appSettings.incomeGoalTo), cOk = !!(cj1 && cj2);
             allRecords.forEach(r => {
                 const price = typeof r.totalPrice === 'number' ? r.totalPrice : 0;
                 if (!price) return;
                 if (r.monthKey === cur.monthKey) monthly += price;
                 const j = parseJalaliDateToJdn(r.date);
                 if (j && j >= ws && j <= we) weekly += price;
+                if (cOk && j && j >= cj1 && j <= cj2) custom += price;
             });
             return {
                 weekly: { income: weekly, goal: appSettings.incomeGoalWeekly || 0, key: `w${ws}`, label: 'هفتگی', period: 'این هفته (شنبه تا جمعه)' },
-                monthly: { income: monthly, goal: appSettings.incomeGoalMonthly || 0, key: `m${cur.monthKey}`, label: 'ماهانه', period: `${cur.monthName} ${cur.year}` }
+                monthly: { income: monthly, goal: appSettings.incomeGoalMonthly || 0, key: `m${cur.monthKey}`, label: 'ماهانه', period: `${cur.monthName} ${cur.year}` },
+                custom: { income: custom, goal: cOk ? (appSettings.incomeGoalCustom || 0) : 0, key: `c${appSettings.incomeGoalFrom}-${appSettings.incomeGoalTo}`, label: 'بازه‌ای', period: cOk ? `${toPersianDigits(appSettings.incomeGoalFrom)} تا ${toPersianDigits(appSettings.incomeGoalTo)}` : 'بازه تعیین نشده' }
             };
         }
 
         function setIncomeGoalMode(mode) {
-            appSettings.incomeGoalMode = mode === 'monthly' ? 'monthly' : 'weekly';
+            appSettings.incomeGoalMode = ['monthly', 'custom'].includes(mode) ? mode : 'weekly';
             appSettings.updatedAt = new Date().toISOString();
             persistAppSettings();
             renderIncomeGoal();
@@ -8571,7 +8592,7 @@
         function openIncomeGoalSettings() {
             openSettingsModal();
             switchSettingsTab('work');
-            const el = document.getElementById(appSettings.incomeGoalMode === 'monthly' ? 'settingIncomeGoalMonthly' : 'settingIncomeGoalWeekly');
+            const el = document.getElementById({ monthly: 'settingIncomeGoalMonthly', custom: 'settingIncomeGoalCustom' }[appSettings.incomeGoalMode] || 'settingIncomeGoalWeekly');
             if (el) setTimeout(() => el.focus(), 50);
         }
 
@@ -8583,7 +8604,7 @@
             // پیام تبریک (بنر) فقط یک‌بار برای هر بازه و هر مبلغ هدف
             const cel = appSettings.goalCelebrated || (appSettings.goalCelebrated = {});
             let changed = false;
-            ['weekly', 'monthly'].forEach(m => {
+            ['weekly', 'monthly', 'custom'].forEach(m => {
                 const d = data[m];
                 if (d.goal > 0 && d.income >= d.goal) {
                     const tag = `${d.key}|${d.goal}`;
@@ -8600,9 +8621,9 @@
                 if (storageFolderIsActive()) saveAllMonthFilesToDirectory();
             }
 
-            const mode = appSettings.incomeGoalMode === 'monthly' ? 'monthly' : 'weekly';
+            const mode = ['monthly', 'custom'].includes(appSettings.incomeGoalMode) ? appSettings.incomeGoalMode : 'weekly';
             const d = data[mode];
-            [['weekly', 'incomeGoalBtnWeekly'], ['monthly', 'incomeGoalBtnMonthly']].forEach(([m, id]) => {
+            [['weekly', 'incomeGoalBtnWeekly'], ['monthly', 'incomeGoalBtnMonthly'], ['custom', 'incomeGoalBtnCustom']].forEach(([m, id]) => {
                 const b = document.getElementById(id);
                 if (!b) return;
                 const active = m === mode;
@@ -11397,5 +11418,36 @@
     </script>
     <script src="native-notify.js"></script>
     <script src="premium.js"></script>
+<script>
+/* انیمیشن‌ها + ویجت صفحه اصلی (اندروید) */
+(function(){
+  const R=document.documentElement, orig=Element.prototype.scrollIntoView;
+  Element.prototype.scrollIntoView=function(o){ if(R.classList.contains('no-anim')&&o&&typeof o==='object')o=Object.assign({},o,{behavior:'auto'}); return orig.call(this,o); };
+  function sync(){ const t=document.getElementById('deviceAnimState'); if(t)t.textContent=R.classList.contains('no-anim')?'غیرفعال':'فعال'; }
+  window.toggleReduceMotion=function(){ const on=!R.classList.contains('no-anim'); R.classList.toggle('no-anim',on); try{localStorage.setItem('sewing_no_anim',on?'1':'0')}catch(e){} sync(); if(typeof showFeedbackBanner==='function')showFeedbackBanner(on?'انیمیشن‌ها غیرفعال شد؛ برنامه سبک‌تر و روان‌تر اجرا می‌شود.':'انیمیشن‌ها دوباره فعال شد.','success'); };
+  sync();
+  const plugin=()=>(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.KarWidget)||null;
+  const row=(name,rec,p,hex)=>({name:String(name||''),job:'کد '+(rec.itemCode||'-')+' — '+(rec.itemTitle||'-'),pct:Math.max(0,Math.min(999,p.percent)),color:hex});
+  window.getWidgetPayload=function(){ try{
+    const at=new Date().toISOString(), title=appSettings.shopName||'';
+    if(mgrOn()){ const ws=(mgr().workers||[]).map(w=>mgrWorkerState(w)), act=ws.filter(s=>s.rec&&s.p).sort((a,b)=>b.pct-a.pct);
+      return {mode:'employer',title,active:act.length,total:ws.length,late:act.filter(s=>s.key==='late').length,rows:act.slice(0,3).map(s=>row(s.w.name,s.rec,s.p,s.hex)),at}; }
+    const rec=getCurrentActiveRecord(), p=rec?computeRecordProgress(rec):null;
+    if(!p) return {mode:'worker',title,active:0,rows:[],at};
+    return {mode:'worker',title,active:1,rows:[row(appSettings.ownerName||'کار جاری',rec,p,personalProgressState(rec,p).hex)],at};
+  }catch(e){return null;} };
+  window.pushWidgetData=function(){ const P=plugin(); if(!P)return; const d=getWidgetPayload(); if(d)P.update({json:JSON.stringify(d)}).catch(()=>{}); };
+  window.requestHomeWidget=async function(){
+    if(typeof closeToolsDropdown==='function')closeToolsDropdown();
+    const P=plugin();
+    if(!P){ showFeedbackBanner('ویجت فقط در نسخه‌ی نصبی (APK) کار می‌کند: روی صفحه اصلی گوشی نگه دارید ← ویجت‌ها ← این برنامه.','warn'); return; }
+    pushWidgetData();
+    try{ const r=await P.pin(); showFeedbackBanner(r&&r.supported===false?'گوشی افزودن مستقیم را پشتیبانی نمی‌کند: روی صفحه اصلی نگه دارید ← ویجت‌ها ← این برنامه.':'درخواست افزودن ویجت به صفحه اصلی ارسال شد.','success'); }
+    catch(e){ showFeedbackBanner('افزودن مستقیم ممکن نشد؛ از منوی ویجت‌های گوشی اضافه کنید.','warn'); }
+  };
+  setTimeout(pushWidgetData,4000); setInterval(pushWidgetData,30000);
+  document.addEventListener('visibilitychange',()=>{ if(document.hidden)pushWidgetData(); }); window.addEventListener('pagehide',pushWidgetData);
+})();
+</script>
 </body>
 </html>
