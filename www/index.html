@@ -6196,9 +6196,20 @@
             }
             appHasExited = true;
             addLog('کاربر از برنامه خارج شد و نسخه پشتیبان به‌صورت خودکار ذخیره شد.', 'warn');
-            document.getElementById('exitAppScreen').classList.remove('hidden');
-            const nativeApp = nativeAppPlugin();
-            if (nativeApp && nativeApp.exitApp) setTimeout(() => { if (appHasExited) { try { nativeApp.exitApp(); } catch (e) {} } }, 900);
+            // اطمینان از کامل‌شدن نوشتن در IndexedDB پیش از بستن (حداکثر ۳ ثانیه انتظار)
+            try { await Promise.race([persistPhotos().then(() => persistDataToIndexedDB()), new Promise(r => setTimeout(r, 3000))]); } catch (e) {}
+            quitAppCompletely();
+        }
+
+        // بستن کامل برنامه بدون نمایش صفحه‌ی میانی؛ در اپ اندروید پروسه‌ی برنامه هم کاملاً بسته می‌شود
+        function quitAppCompletely() {
+            try {
+                const P = (window.Capacitor && window.Capacitor.Plugins) || {};
+                if (P.KarWidget && P.KarWidget.quit) { P.KarWidget.quit(); return; }
+                if (P.App && P.App.exitApp) { P.App.exitApp(); return; }
+            } catch (e) {}
+            try { window.close(); } catch (e) {}
+            setTimeout(() => { try { window.location.replace('about:blank'); } catch (e) {} }, 300);
         }
 
         function nativeAppPlugin() {
