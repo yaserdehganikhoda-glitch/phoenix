@@ -1034,75 +1034,60 @@
                                 <div id="deviceBatteryRow" class="hidden flex items-center justify-between"><span class="text-slate-500 dark:text-slate-400">باتری</span><span id="deviceBatteryText" class="font-bold text-slate-700 dark:text-slate-200">—</span></div>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-1.5">
-                                <button id="installAppBtn" onclick="promptInstallApp(); closeToolsDropdown();" class="tactile-btn hidden items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
-                                    <span class="w-9 h-9 shrink-0 rounded-full bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 flex items-center justify-center">
-                                        <i class="fa-solid fa-mobile-screen-button text-xs"></i>
-                                    </span>
-                                    <span class="min-w-0">
-                                        <span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">نصب برنامه</span>
-                                        <span class="block text-[9px] text-slate-400">روی دستگاه</span>
-                                    </span>
-                                </button>
-                                <button id="iosInstallGuideBtn" onclick="toggleIosInstallGuide()" class="tactile-btn hidden items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
-                                    <span class="w-9 h-9 shrink-0 rounded-full bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 flex items-center justify-center">
-                                        <i class="fa-solid fa-arrow-up-from-bracket text-xs"></i>
-                                    </span>
-                                    <span class="min-w-0">
-                                        <span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">نصب روی آیفون/آیپد</span>
-                                        <span class="block text-[9px] text-slate-400">راهنمای افزودن</span>
-                                    </span>
-                                </button>
-                                <button onclick="checkForAppUpdateManually()" class="tactile-btn flex items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
-                                    <span class="w-9 h-9 shrink-0 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-                                        <i class="fa-solid fa-arrows-rotate text-xs"></i>
-                                    </span>
-                                    <span class="min-w-0">
-                                        <span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">بررسی به‌روزرسانی</span>
-                                        <span class="block text-[9px] text-slate-400">آخرین نسخه برنامه</span>
-                                    </span>
-                                </button>
-                                <button onclick="shareAppLink(); closeToolsDropdown();" class="tactile-btn flex items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
-                                    <span class="w-9 h-9 shrink-0 rounded-full bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
-                                        <i class="fa-solid fa-share-nodes text-xs"></i>
-                                    </span>
-                                    <span class="min-w-0">
-                                        <span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">اشتراک‌گذاری برنامه</span>
-                                        <span class="block text-[9px] text-slate-400">معرفی به دیگران</span>
-                                    </span>
-                                </button>
-                                <button id="deviceNotifyBtn" onclick="requestDeviceNotifications()" class="tactile-btn col-span-2 flex items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
-                                    <span class="w-9 h-9 shrink-0 rounded-full bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 flex items-center justify-center">
-                                        <i class="fa-solid fa-bell text-xs"></i>
-                                    </span>
-                                    <span class="min-w-0">
-                                        <span id="deviceNotifyBtnLabel" class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">فعال‌سازی اعلان‌های دستگاه</span>
-                                        <span id="deviceNotifyBtnSub" class="block text-[9px] text-slate-400">هشدار موعد تحویل حتی در پس‌زمینه</span>
-                                    </span>
-                                </button>
-                                <button onclick="clearAppCacheAndReload()" class="tactile-btn col-span-2 flex items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
-                                    <span class="w-9 h-9 shrink-0 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center">
-                                        <i class="fa-solid fa-broom text-xs"></i>
-                                    </span>
-                                    <span class="min-w-0">
-                                        <span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">پاکسازی حافظه پنهان برنامه</span>
-                                        <span class="block text-[9px] text-slate-400">رفع مشکلات نمایشی؛ داده‌های شما دست‌نخورده می‌ماند</span>
-                                    </span>
-                                </button>
-                                <button id="deviceWakeBtn" onclick="toggleKeepAwake()" class="tactile-btn col-span-2 flex items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
-                                    <span class="w-9 h-9 shrink-0 rounded-full bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 flex items-center justify-center"><i class="fa-solid fa-display text-xs"></i></span>
-                                    <span class="min-w-0"><span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">روشن ماندن صفحه</span><span class="block text-[9px] text-slate-400">مناسب کار پشت میز</span></span>
-                                </button>
-                                <button id="devicePersistBtn" onclick="requestPersistentStorage()" class="tactile-btn col-span-2 flex items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
-                                    <span class="w-9 h-9 shrink-0 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center"><i class="fa-solid fa-shield-halved text-xs"></i></span>
-                                    <span class="min-w-0"><span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">محافظت از داده‌ها</span><span class="block text-[9px] text-slate-400">جلوگیری از پاک‌شدن خودکار</span></span>
-                                </button>
-<button id="deviceAnimBtn" onclick="toggleReduceMotion()" aria-pressed="false" class="tactile-btn flex items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right"><span id="deviceAnimIcoBox" class="w-9 h-9 shrink-0 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center"><i id="deviceAnimIco" class="fa-solid fa-bolt text-xs"></i></span><span class="min-w-0"><span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">توقف انیمیشن‌ها</span><span class="block text-[9px] text-slate-400"><b id="deviceAnimState">خاموش</b> <span id="deviceAnimHint">• برای توقف بزنید</span></span></span></button>
-<button id="deviceWidgetBtn" onclick="requestHomeWidget()" class="tactile-btn flex items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right"><span class="w-9 h-9 shrink-0 rounded-full bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 flex items-center justify-center"><i class="fa-solid fa-table-cells-large text-xs"></i></span><span class="min-w-0"><span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">ویجت صفحه اصلی</span><span class="block text-[9px] text-slate-400">نمایش پیشرفت کار روی گوشی</span></span></button>
-                                <button  onclick="openTodayReport(); closeToolsDropdown();" class="tactile-btn col-span-2 flex items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
-                                    <span class="w-9 h-9 shrink-0 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center"><i class="fa-solid fa-file-lines text-xs"></i></span>
-                                    <span class="min-w-0"><span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">گزارش امروز</span><span class="block text-[9px] text-slate-400">ارسال در پیام‌رسان</span></span>
-                                </button>
+                            <div>
+                    <div class="flex items-center gap-2 px-1 mt-0.5 mb-1.5"><i class="fa-solid fa-mobile-screen-button text-[10px] text-slate-400"></i><span class="text-[10px] font-bold text-slate-400">نصب و به‌روزرسانی</span><span class="flex-1 h-px bg-slate-100 dark:bg-slate-800"></span></div>
+                    <div class="grid grid-cols-2 gap-1.5">
+                        <button id="installAppBtn" onclick="promptInstallApp(); closeToolsDropdown();" class="tactile-btn flex items-center gap-2 p-2 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right col-span-2 hidden">
+                            <span class="w-9 h-9 shrink-0 rounded-full bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 flex items-center justify-center"><i class="fa-solid fa-mobile-screen-button text-xs"></i></span>
+                            <span class="min-w-0"><span class="block text-[11px] font-bold leading-snug text-slate-700 dark:text-slate-200">نصب برنامه</span><span class="block text-[9px] leading-snug text-slate-400">روی دستگاه</span></span>
+                        </button>
+                        <button id="iosInstallGuideBtn" onclick="toggleIosInstallGuide()" class="tactile-btn flex items-center gap-2 p-2 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right col-span-2 hidden">
+                            <span class="w-9 h-9 shrink-0 rounded-full bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 flex items-center justify-center"><i class="fa-solid fa-arrow-up-from-bracket text-xs"></i></span>
+                            <span class="min-w-0"><span class="block text-[11px] font-bold leading-snug text-slate-700 dark:text-slate-200">نصب روی آیفون/آیپد</span><span class="block text-[9px] leading-snug text-slate-400">راهنمای افزودن</span></span>
+                        </button>
+                        <button onclick="checkForAppUpdateManually()" class="tactile-btn flex items-center gap-2 p-2 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
+                            <span class="w-9 h-9 shrink-0 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center"><i class="fa-solid fa-arrows-rotate text-xs"></i></span>
+                            <span class="min-w-0"><span class="block text-[11px] font-bold leading-snug text-slate-700 dark:text-slate-200">بررسی به‌روزرسانی</span><span class="block text-[9px] leading-snug text-slate-400">آخرین نسخه برنامه</span></span>
+                        </button>
+                        <button onclick="shareAppLink(); closeToolsDropdown();" class="tactile-btn flex items-center gap-2 p-2 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
+                            <span class="w-9 h-9 shrink-0 rounded-full bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center"><i class="fa-solid fa-share-nodes text-xs"></i></span>
+                            <span class="min-w-0"><span class="block text-[11px] font-bold leading-snug text-slate-700 dark:text-slate-200">اشتراک‌گذاری برنامه</span><span class="block text-[9px] leading-snug text-slate-400">معرفی به دیگران</span></span>
+                        </button>
+                    </div>
+                    <div class="flex items-center gap-2 px-1 mt-3 mb-1.5"><i class="fa-solid fa-bell text-[10px] text-slate-400"></i><span class="text-[10px] font-bold text-slate-400">اعلان و ویجت</span><span class="flex-1 h-px bg-slate-100 dark:bg-slate-800"></span></div>
+                    <div class="grid grid-cols-2 gap-1.5">
+                        <button id="deviceNotifyBtn" onclick="requestDeviceNotifications()" class="tactile-btn flex items-center gap-2 p-2 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
+                            <span class="w-9 h-9 shrink-0 rounded-full bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 flex items-center justify-center"><i class="fa-solid fa-bell text-xs"></i></span>
+                            <span class="min-w-0"><span id="deviceNotifyBtnLabel" class="block text-[11px] font-bold leading-snug text-slate-700 dark:text-slate-200">فعال‌سازی اعلان‌های دستگاه</span><span id="deviceNotifyBtnSub" class="block text-[9px] leading-snug text-slate-400">هشدار موعد تحویل حتی در پس‌زمینه</span></span>
+                        </button>
+                        <button id="deviceWidgetBtn" onclick="requestHomeWidget()" class="tactile-btn flex items-center gap-2 p-2 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
+                            <span class="w-9 h-9 shrink-0 rounded-full bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 flex items-center justify-center"><i class="fa-solid fa-table-cells-large text-xs"></i></span>
+                            <span class="min-w-0"><span class="block text-[11px] font-bold leading-snug text-slate-700 dark:text-slate-200">ویجت صفحه اصلی</span><span class="block text-[9px] leading-snug text-slate-400">نمایش پیشرفت کار روی گوشی</span></span>
+                        </button>
+                    </div>
+                    <div class="flex items-center gap-2 px-1 mt-3 mb-1.5"><i class="fa-solid fa-display text-[10px] text-slate-400"></i><span class="text-[10px] font-bold text-slate-400">نمایش</span><span class="flex-1 h-px bg-slate-100 dark:bg-slate-800"></span></div>
+                    <div class="grid grid-cols-2 gap-1.5">
+                        <button id="deviceWakeBtn" onclick="toggleKeepAwake()" class="tactile-btn flex items-center gap-2 p-2 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
+                            <span class="w-9 h-9 shrink-0 rounded-full bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 flex items-center justify-center"><i class="fa-solid fa-display text-xs"></i></span>
+                            <span class="min-w-0"><span class="block text-[11px] font-bold leading-snug text-slate-700 dark:text-slate-200">روشن ماندن صفحه</span><span class="block text-[9px] leading-snug text-slate-400">مناسب کار پشت میز</span></span>
+                        </button>
+                        <button id="deviceAnimBtn" onclick="toggleReduceMotion()" aria-pressed="false" class="tactile-btn flex items-center gap-2 p-2 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right"><span id="deviceAnimIcoBox" class="w-9 h-9 shrink-0 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center"><i id="deviceAnimIco" class="fa-solid fa-bolt text-xs"></i></span><span class="min-w-0"><span class="block text-[11px] font-bold leading-snug text-slate-700 dark:text-slate-200">توقف انیمیشن‌ها</span><span class="block text-[9px] leading-snug text-slate-400"><b id="deviceAnimState">خاموش</b> <span id="deviceAnimHint">• برای توقف بزنید</span></span></span></button>
+                    </div>
+                    <div class="flex items-center gap-2 px-1 mt-3 mb-1.5"><i class="fa-solid fa-database text-[10px] text-slate-400"></i><span class="text-[10px] font-bold text-slate-400">داده و گزارش</span><span class="flex-1 h-px bg-slate-100 dark:bg-slate-800"></span></div>
+                    <div class="grid grid-cols-2 gap-1.5">
+                        <button id="devicePersistBtn" onclick="requestPersistentStorage()" class="tactile-btn flex items-center gap-2 p-2 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
+                            <span class="w-9 h-9 shrink-0 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center"><i class="fa-solid fa-shield-halved text-xs"></i></span>
+                            <span class="min-w-0"><span class="block text-[11px] font-bold leading-snug text-slate-700 dark:text-slate-200">محافظت از داده‌ها</span><span class="block text-[9px] leading-snug text-slate-400">جلوگیری از پاک‌شدن خودکار</span></span>
+                        </button>
+                        <button onclick="clearAppCacheAndReload()" class="tactile-btn flex items-center gap-2 p-2 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
+                            <span class="w-9 h-9 shrink-0 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center"><i class="fa-solid fa-broom text-xs"></i></span>
+                            <span class="min-w-0"><span class="block text-[11px] font-bold leading-snug text-slate-700 dark:text-slate-200">پاکسازی حافظه پنهان</span><span class="block text-[9px] leading-snug text-slate-400">رفع مشکل نمایش؛ داده‌ها می‌ماند</span></span>
+                        </button>
+                        <button onclick="openTodayReport(); closeToolsDropdown();" class="tactile-btn flex items-center gap-2 p-2 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right col-span-2">
+                            <span class="w-9 h-9 shrink-0 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center"><i class="fa-solid fa-file-lines text-xs"></i></span>
+                            <span class="min-w-0"><span class="block text-[11px] font-bold leading-snug text-slate-700 dark:text-slate-200">گزارش امروز</span><span class="block text-[9px] leading-snug text-slate-400">ارسال در پیام‌رسان</span></span>
+                        </button>
+                    </div>
                             </div>
 
                             <p id="iosInstallGuideText" class="hidden text-[11px] leading-relaxed text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/60 rounded-xl p-2.5 mt-2">
@@ -11427,6 +11412,23 @@
   sync();
   const plugin=()=>(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.KarWidget)||null;
   const row=(name,rec,p,hex)=>({name:String(name||''),job:'کد '+(rec.itemCode||'-')+' — '+(rec.itemTitle||'-'),pct:Math.max(0,Math.min(999,p.percent)),color:hex});
+  /* جزئیات رکوردِ مربوط به ویجت (جایگزین کادرهای آمار پایین) */
+  const details=(r)=>{ const f=formatNumber, cur=appSettings.currency||'تومان', out=[];
+    const add=(l,v)=>{ if(v!==null&&v!==undefined&&String(v).trim()!=='') out.push({l:String(l),v:String(v).trim()}); };
+    add(getFormLabel('itemColor'),r.itemColor);
+    if(r.quantity!==null&&r.quantity!==undefined) add(getFormLabel('receivedQuantity'),f(r.quantity));
+    if(r.unitPrice!==null&&r.unitPrice!==undefined) add(getFormLabel('unitPrice'),f(r.unitPrice)+' '+cur);
+    if(r.totalPrice!==null&&r.totalPrice!==undefined) add('مبلغ کل',f(r.totalPrice)+' '+cur);
+    if(r.endDateTime) add('موعد تحویل',formatDateDigits(String(r.endDateTime)));
+    return out.slice(0,5); };
+  /* زمان‌کاریِ سپری‌شده‌ی ۲۴ ساعت آینده (هر ۱۰ دقیقه) تا ویجت بدون باز بودن برنامه و بدون اینترنت درصد و تاخیر را خودش به‌روز کند */
+  const timeline=(rec,p)=>{ try{
+    const sj=parseJalaliDateToJdn(rec.date), sm=parseTimeToMinutes(rec.time); if(!sj) return {};
+    const t0=Date.now(), T=[], E=[];
+    for(let i=0;i<=144;i++){ const t=t0+i*600000, d=new Date(t), j=gregorianToJalaali(d.getFullYear(),d.getMonth()+1,d.getDate());
+      T.push(t); E.push(calculateActualWorkingMinutesElapsed(sj,sm,parseJalaliDateToJdn(j.jy+'/'+j.jm+'/'+j.jd),d.getHours()*60+d.getMinutes())); }
+    return {tlT:T,tlE:E,target:p.targetMinutes,staleMin:getStaleOverdueMinutes()};
+  }catch(e){ return {}; } };
   /* کارتِ کامل (دقیقاً هم‌شکل ویجت پیشرفت کار جاریِ داخل برنامه) برای ویجت صفحه اصلی گوشی */
   const card=(st,name,shopLine)=>{ const r=st.rec,p=st.p, f=formatNumber;
     const head=mgrMonthLabel()+' \u2022 '+f(st.cnt)+' \u06a9\u0627\u0631\u06a9\u0631\u062f \u062b\u0628\u062a\u200c\u0634\u062f\u0647';
@@ -11435,10 +11437,10 @@
     const shop=(shopLine!==undefined&&shopLine!==null)?String(shopLine):String(appSettings.shopName||'');
     if(!r||!p) return { headTitle:'ویجت پیشرفت کار جاری', headSub:head, badgeText:'\u2014', name:nm, shop:shop,
       status:'idle', statusText:'بدون کار جاری', jobTitle:'کار جاری ندارد', remainText:'', over:false, meta:'',
-      ringText:'\u2014', pct:0, color:'#94a3b8', note:'', stale:'', finishText:'', idle:true, stats:stats };
+      ringText:'\u2014', pct:0, color:'#94a3b8', note:'', stale:'', finishText:'', idle:true, stats:stats, details:[] };
     const over=st.key==='late', stale=over&&(-p.remainingMinutes>getStaleOverdueMinutes());
     const badge={ok:'در حال کار',warn:'در حال کار',urgent:'نزدیک موعد',late:'دارای تاخیر'}[st.key]||'';
-    return {
+    return Object.assign({
       headTitle:'ویجت پیشرفت کار جاری', headSub:head,
       badgeText:f(Math.min(999,p.percent))+'\u066a',
       name:nm, shop:shop, status:st.key, statusText:badge,
@@ -11450,8 +11452,8 @@
       pct:Math.max(0,Math.min(999,st.pct)), color:st.hex,
       note:over?String(pickLateMotivation(Number(r.id)+todayMotivationSeed())||''):'',
       stale:stale?'این کار بیش از ۳ روز کاری معوق است؛ اگر تمام شده، «کار تمام شد» را بزنید.':'',
-      finishText:'کار تمام شد', recId:Number(r.id), idle:false, stats:stats
-    };
+      finishText:'کار تمام شد', recId:Number(r.id), idle:false, stats:stats, details:details(r)
+    }, timeline(r,p));
   };
   window.getWidgetPayload=function(){ try{
     const at=new Date().toISOString(), title=appSettings.shopName||'';
@@ -11473,6 +11475,32 @@
     try{ const r=await P.pin(); showFeedbackBanner(r&&r.supported===false?'گوشی افزودن مستقیم را پشتیبانی نمی‌کند: روی صفحه اصلی نگه دارید ← ویجت‌ها ← این برنامه.':'درخواست افزودن ویجت به صفحه اصلی ارسال شد.','success'); }
     catch(e){ showFeedbackBanner('افزودن مستقیم ممکن نشد؛ از منوی ویجت‌های گوشی اضافه کنید.','warn'); }
   };
+  /* «کار تمام شد» روی ویجت: ثبت واقعی پایان کار با زمانِ لحظه‌ی لمس */
+  const jDateAt=d=>{ const j=gregorianToJalaali(d.getFullYear(),d.getMonth()+1,d.getDate()); return toPersianDigits(j.jy)+'/'+toPersianDigits(j.jm)+'/'+toPersianDigits(j.jd); };
+  const finishFromWidget=(id,ts)=>{
+    const rec=allRecords.find(r=>Number(r.id)===Number(id));
+    if(!rec){ showFeedbackBanner('کاری که از ویجت زدید دیگر وجود ندارد.','warn'); return; }
+    if(rec.finishedDate){ showFeedbackBanner('کار کد '+(rec.itemCode||'-')+' قبلاً تمام شده بود.','warn'); return; }
+    const d=new Date(Number(ts)||Date.now()), dateStr=jDateAt(d), hhmm=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+    showCustomConfirm('پایان کار کد '+(rec.itemCode||'-')+' در ساعت '+formatDateDigits(hhmm)+' ('+formatDateDigits(dateStr)+') ثبت شود؟',(ok)=>{
+      if(!ok){ pushWidgetData(); return; }
+      rec.finishedDate=dateStr; rec.finishedTime=hhmm; rec.updatedAt=Date.now();
+      evaluateDeliveryAgainst(rec,rec.finishedDate,rec.finishedTime);
+      saveRecords(); renderDashboard(); checkDeliveryProgressNotifications();
+      addLog('پایان کار کد '+(rec.itemCode||'-')+' از ویجت ثبت شد ('+rec.status+').','success');
+      showFeedbackBanner('کار کد '+(rec.itemCode||'-')+' تمام شد — وضعیت: '+rec.status+(rec.durationTime?' ('+rec.durationTime+')':''),'success');
+      pushWidgetData();
+    });
+  };
+  let pendBusy=false;
+  const applyPending=async()=>{ const P=plugin(); if(!P||!P.takePending||pendBusy) return; pendBusy=true;
+    try{ const r=await P.takePending(), seen={}; ((r&&r.items)||[]).forEach(it=>{ if(!seen[it.id]){ seen[it.id]=1; finishFromWidget(it.id,it.ts); } }); }catch(e){}
+    pendBusy=false; };
+  setTimeout(applyPending,2500);
+  document.addEventListener('visibilitychange',()=>{ if(!document.hidden) setTimeout(applyPending,400); });
+  try{ const P=plugin(); if(P&&P.addListener) P.addListener('widgetFinish',()=>setTimeout(applyPending,300)); }catch(e){}
+  /* بعد از هر ذخیره‌ی رکورد، ویجت هم فوراً به‌روز شود */
+  if(typeof window.saveRecords==='function'&&!window.saveRecords.__kw){ const o=window.saveRecords, w=function(){ const r=o.apply(this,arguments); clearTimeout(w._t); w._t=setTimeout(pushWidgetData,500); return r; }; w.__kw=1; window.saveRecords=w; }
   setTimeout(pushWidgetData,4000); setInterval(pushWidgetData,30000);
   document.addEventListener('visibilitychange',()=>{ if(document.hidden)pushWidgetData(); }); window.addEventListener('pagehide',pushWidgetData);
 })();
