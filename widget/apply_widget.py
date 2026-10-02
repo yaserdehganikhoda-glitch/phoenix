@@ -9,15 +9,61 @@ FILES = {
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 @CapacitorPlugin(name = "KarWidget")
 public class KarWidgetPlugin extends Plugin {
+    public static final String A_FINISH = "com.kar.widget.FINISH";
+
+    @Override
+    public void load() {
+        consume(getActivity() != null ? getActivity().getIntent() : null);
+    }
+
+    @Override
+    protected void handleOnNewIntent(Intent intent) {
+        super.handleOnNewIntent(intent);
+        consume(intent);
+    }
+
+    /** لمس «کار تمام شد» روی ویجت: شناسه‌ی رکورد و لحظه‌ی لمس در صف می‌رود و برنامه آن را ثبت می‌کند. */
+    private void consume(Intent i) {
+        if (i == null || !A_FINISH.equals(i.getAction())) return;
+        long id = i.getLongExtra("recId", 0);
+        i.setAction(Intent.ACTION_MAIN);
+        i.removeExtra("recId");
+        if (id <= 0) return;
+        SharedPreferences sp = getContext().getSharedPreferences("kar_widget", Context.MODE_PRIVATE);
+        try {
+            JSONArray a = new JSONArray(sp.getString("pending", "[]"));
+            JSONObject o = new JSONObject();
+            o.put("id", id);
+            o.put("ts", System.currentTimeMillis());
+            a.put(o);
+            sp.edit().putString("pending", a.toString()).apply();
+        } catch (Exception ignored) { }
+        notifyListeners("widgetFinish", new JSObject());
+    }
+
+    @PluginMethod
+    public void takePending(PluginCall call) {
+        SharedPreferences sp = getContext().getSharedPreferences("kar_widget", Context.MODE_PRIVATE);
+        String s = sp.getString("pending", "[]");
+        sp.edit().remove("pending").apply();
+        JSObject r = new JSObject();
+        try { r.put("items", new JSONArray(s)); } catch (Exception e) { r.put("items", new JSONArray()); }
+        call.resolve(r);
+    }
+
     @PluginMethod
     public void update(PluginCall call) {
         Context c = getContext();
@@ -43,6 +89,7 @@ public class KarWidgetPlugin extends Plugin {
 ''',
     'java/KarWidgetProvider.java': r'''package com.example.karfarma;
 
+import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
@@ -58,6 +105,7 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.Shader;
 import android.graphics.Typeface;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.RemoteViews;
@@ -68,7 +116,10 @@ import com.example.karfarma.R;
 
 /** ویجت صفحه اصلی: کپی دقیق کارت «ویجت پیشرفت کار جاری» داخل برنامه. */
 public class KarWidgetProvider extends AppWidgetProvider {
-    static final int[] SV = {R.id.kw_sv1, R.id.kw_sv2, R.id.kw_sv3}, SL = {R.id.kw_sl1, R.id.kw_sl2, R.id.kw_sl3};
+    static final int[] DR = {R.id.kw_dr1, R.id.kw_dr2, R.id.kw_dr3, R.id.kw_dr4, R.id.kw_dr5};
+    static final int[] DL = {R.id.kw_dl1, R.id.kw_dl2, R.id.kw_dl3, R.id.kw_dl4, R.id.kw_dl5};
+    static final int[] DV = {R.id.kw_dv1, R.id.kw_dv2, R.id.kw_dv3, R.id.kw_dv4, R.id.kw_dv5};
+    static final String A_TICK = "com.kar.widget.TICK";
 
     static final String A_PREV = "com.kar.widget.PREV", A_NEXT = "com.kar.widget.NEXT";
 
@@ -86,6 +137,10 @@ public class KarWidgetProvider extends AppWidgetProvider {
     @Override
     public void onReceive(Context c, Intent i) {
         String a = i == null ? null : i.getAction();
+        if (A_TICK.equals(a)) { // تیک دوره‌ای: بدون باز بودن برنامه و بدون اینترنت، زمان و درصد دوباره محاسبه می‌شود
+            refresh(c);
+            return;
+        }
         if (A_PREV.equals(a) || A_NEXT.equals(a)) {
             SharedPreferences sp = c.getSharedPreferences("kar_widget", Context.MODE_PRIVATE);
             int n = 0;
@@ -105,7 +160,80 @@ public class KarWidgetProvider extends AppWidgetProvider {
 
     static void refresh(Context c) {
         AppWidgetManager m = AppWidgetManager.getInstance(c);
-        for (int id : m.getAppWidgetIds(new ComponentName(c, KarWidgetProvider.class))) m.updateAppWidget(id, build(c, m, id));
+        int[] ids = m.getAppWidgetIds(new ComponentName(c, KarWidgetProvider.class));
+        if (ids.length == 0) return;
+        for (int id : ids) m.updateAppWidget(id, build(c, m, id));
+        scheduleTick(c);
+    }
+
+    static void scheduleTick(Context c) {
+        AlarmManager am = (AlarmManager) c.getSystemService(Context.ALARM_SERVICE);
+        if (am == null) return;
+        long at = System.currentTimeMillis() + 5 * 60 * 1000L;
+        PendingIntent pi = navPi(c, A_TICK, 3);
+        try {
+            if (Build.VERSION.SDK_INT >= 23) am.setAndAllowWhileIdle(AlarmManager.RTC, at, pi);
+            else am.set(AlarmManager.RTC, at, pi);
+        } catch (Exception ignored) { }
+    }
+
+    @Override
+    public void onEnabled(Context c) {
+        super.onEnabled(c);
+        scheduleTick(c);
+    }
+
+    @Override
+    public void onDisabled(Context c) {
+        super.onDisabled(c);
+        AlarmManager am = (AlarmManager) c.getSystemService(Context.ALARM_SERVICE);
+        if (am != null) am.cancel(navPi(c, A_TICK, 3));
+    }
+
+    /** «کار تمام شد» روی ویجت: برنامه باز می‌شود و پایان کار با زمان لحظه‌ی لمس ثبت می‌شود. */
+    static PendingIntent finishPi(Context c, long recId) {
+        Intent i = c.getPackageManager().getLaunchIntentForPackage(c.getPackageName());
+        if (i == null) return null;
+        i.setAction(KarWidgetPlugin.A_FINISH);
+        i.putExtra("recId", recId);
+        return PendingIntent.getActivity(c, 100 + (int) (recId % 100000), i, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    /** درصد، وضعیت و تاخیر را از جدول زمانی که برنامه از قبل محاسبه کرده می‌خواند؛ نیازی به اینترنت یا باز بودن برنامه نیست. */
+    static void applyLive(JSONObject k, long now) {
+        try {
+            JSONArray T = k.optJSONArray("tlT"), E = k.optJSONArray("tlE");
+            int target = k.optInt("target", 0), n = T == null ? 0 : T.length();
+            if (E == null || n < 2 || E.length() != n || target <= 0) return;
+            double el;
+            long t0 = T.getLong(0), tl = T.getLong(n - 1);
+            if (now <= t0) el = E.getDouble(0);
+            else if (now >= tl) el = E.getDouble(n - 1) + (now - tl) / 60000.0;
+            else {
+                int i = 0;
+                while (i < n - 2 && T.getLong(i + 1) <= now) i++;
+                long a = T.getLong(i), b = T.getLong(i + 1);
+                double ea = E.getDouble(i), eb = E.getDouble(i + 1);
+                el = ea + (eb - ea) * (now - a) / (double) Math.max(1L, b - a);
+            }
+            double rem = target - el;
+            int pct = Math.max(0, (int) Math.round(el * 100.0 / target));
+            String key = pct >= 100 ? "late" : pct >= 90 ? "urgent" : pct >= 50 ? "warn" : "ok";
+            String hex = key.equals("late") ? "#e11d48" : key.equals("urgent") ? "#f97316" : key.equals("warn") ? "#f59e0b" : "#10b981";
+            boolean over = key.equals("late");
+            int mins = (int) Math.round(Math.abs(rem)), h = mins / 60, mm = mins % 60;
+            String txt = (h > 0 ? fa(h) + " ساعت " : "") + (mm > 0 || h == 0 ? fa(mm) + " دقیقه" : "");
+            int staleMin = k.optInt("staleMin", 0);
+            String p = fa(Math.min(999, pct)) + "\u066A";
+            k.put("pct", Math.min(999, pct));
+            k.put("ringText", p);
+            k.put("badgeText", p);
+            k.put("status", key);
+            k.put("color", hex);
+            k.put("over", over);
+            k.put("remainText", txt.trim() + (over ? " تاخیر از موعد" : " تا موعد باقی مانده"));
+            k.put("stale", over && staleMin > 0 && -rem > staleMin ? "این کار بیش از ۳ روز کاری معوق است؛ اگر تمام شده، «کار تمام شد» را بزنید." : "");
+        } catch (Exception ignored) { }
     }
 
     @Override
@@ -179,13 +307,16 @@ public class KarWidgetProvider extends AppWidgetProvider {
             SharedPreferences sp = c.getSharedPreferences("kar_widget", Context.MODE_PRIVATE);
             int idx = n > 0 ? Math.max(0, Math.min(sp.getInt("idx", 0), n - 1)) : 0;
             JSONObject k = cardOf(o, idx);
+            if (k != null) applyLive(k, System.currentTimeMillis());
             boolean nav = n > 1;
+            JSONArray dt = k == null ? null : k.optJSONArray("details");
+            int nd = dt == null ? 0 : Math.min(5, dt.length());
 
             // ارتفاع لازم (dp): پایه + نوار پیمایش؛ هرچه ویجت کوتاه‌تر باشد ابتدا بخش‌های ثانویه حذف می‌شوند
             int need = 252 + (nav ? 42 : 0), ringDp = 78;
             if (hDp < need) { ringDp = 62; need -= 16; }
             boolean showFinish = hDp >= need + 45; if (showFinish) need += 45;
-            boolean showStats = hDp >= need + 59; if (showStats) need += 59;
+            boolean showDetails = nd > 0 && hDp >= need + 20 + nd * 21; if (showDetails) need += 20 + nd * 21;
             boolean showNote = hDp >= need + 53;
 
             v.setViewVisibility(R.id.kw_nav, nav ? View.VISIBLE : View.GONE);
@@ -201,7 +332,7 @@ public class KarWidgetProvider extends AppWidgetProvider {
                 v.setTextViewText(R.id.kw_sub, t.isEmpty() ? "کار جاری ندارید" : t);
                 v.setViewVisibility(R.id.kw_pill, View.GONE);
                 v.setViewVisibility(R.id.kw_panel, View.GONE);
-                v.setViewVisibility(R.id.kw_st, View.GONE);
+                v.setViewVisibility(R.id.kw_dt, View.GONE);
                 v.setViewVisibility(R.id.kw_empty, View.VISIBLE);
                 return v;
             }
@@ -260,13 +391,23 @@ public class KarWidgetProvider extends AppWidgetProvider {
             v.setViewVisibility(R.id.kw_finish, showFinish && !k.optBoolean("idle", false) ? View.VISIBLE : View.GONE);
             v.setTextViewText(R.id.kw_finish, "✓  " + k.optString("finishText", "کار تمام شد"));
 
-            JSONArray st = k.optJSONArray("stats");
-            boolean sv = showStats && st != null && st.length() >= 3;
-            v.setViewVisibility(R.id.kw_st, sv ? View.VISIBLE : View.GONE);
-            if (sv) for (int i = 0; i < 3; i++) {
-                JSONObject s = st.getJSONObject(i);
-                v.setTextViewText(SV[i], s.optString("v", "—"));
-                v.setTextViewText(SL[i], s.optString("l", ""));
+            // دکمه‌ی «کار تمام شد» واقعاً پایان کار را ثبت می‌کند (برنامه باز می‌شود و با زمان لحظه‌ی لمس ثبت می‌کند)
+            long rid = k.optLong("recId", 0);
+            if (showFinish && rid > 0 && !k.optBoolean("idle", false)) {
+                PendingIntent fpi = finishPi(c, rid);
+                if (fpi != null) v.setOnClickPendingIntent(R.id.kw_finish, fpi);
+            }
+
+            // جزئیات رکورد مربوط به ویجت
+            v.setViewVisibility(R.id.kw_dt, showDetails ? View.VISIBLE : View.GONE);
+            for (int i = 0; i < 5; i++) {
+                boolean on = showDetails && i < nd;
+                v.setViewVisibility(DR[i], on ? View.VISIBLE : View.GONE);
+                if (on) {
+                    JSONObject row = dt.getJSONObject(i);
+                    v.setTextViewText(DL[i], row.optString("l", ""));
+                    v.setTextViewText(DV[i], row.optString("v", ""));
+                }
             }
         } catch (Exception ignored) { }
         return v;
@@ -571,102 +712,188 @@ public class KarWidgetProvider extends AppWidgetProvider {
                 android:visibility="gone" />
         </LinearLayout>
 
-        <!-- سه آمار پایین: کارکرد ماه / تعداد / به‌موقع -->
+        <!-- جزئیات رکوردِ مربوط به ویجت -->
         <LinearLayout
-            android:id="@+id/kw_st"
+            android:id="@+id/kw_dt"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:orientation="horizontal"
+            android:background="@drawable/kar_widget_stat"
+            android:orientation="vertical"
+            android:paddingStart="12dp"
+            android:paddingTop="6dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="6dp"
             android:visibility="gone">
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:id="@+id/kw_dr1"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@drawable/kar_widget_stat"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:paddingTop="9dp"
-                android:paddingBottom="9dp">
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingTop="3dp"
+                android:paddingBottom="3dp"
+                android:visibility="gone">
 
                 <TextView
-                    android:id="@+id/kw_sv1"
+                    android:id="@+id/kw_dl1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/kw_text"
-                    android:textDirection="rtl"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/kw_sl1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
+                    android:maxLines="1"
                     android:textColor="@color/kw_text_sub"
                     android:textDirection="rtl"
-                    android:textSize="10sp" />
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/kw_dv1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:gravity="end"
+                    android:maxLines="1"
+                    android:textColor="@color/kw_text"
+                    android:textDirection="rtl"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
             </LinearLayout>
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:id="@+id/kw_dr2"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="6dp"
-                android:layout_marginEnd="6dp"
-                android:background="@drawable/kar_widget_stat"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:paddingTop="9dp"
-                android:paddingBottom="9dp">
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingTop="3dp"
+                android:paddingBottom="3dp"
+                android:visibility="gone">
 
                 <TextView
-                    android:id="@+id/kw_sv2"
+                    android:id="@+id/kw_dl2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/kw_text"
-                    android:textDirection="rtl"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/kw_sl2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
+                    android:maxLines="1"
                     android:textColor="@color/kw_text_sub"
                     android:textDirection="rtl"
-                    android:textSize="10sp" />
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/kw_dv2"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:gravity="end"
+                    android:maxLines="1"
+                    android:textColor="@color/kw_text"
+                    android:textDirection="rtl"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
             </LinearLayout>
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:id="@+id/kw_dr3"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@drawable/kar_widget_stat"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:paddingTop="9dp"
-                android:paddingBottom="9dp">
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingTop="3dp"
+                android:paddingBottom="3dp"
+                android:visibility="gone">
 
                 <TextView
-                    android:id="@+id/kw_sv3"
+                    android:id="@+id/kw_dl3"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/kw_text"
-                    android:textDirection="rtl"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/kw_sl3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
+                    android:maxLines="1"
                     android:textColor="@color/kw_text_sub"
                     android:textDirection="rtl"
-                    android:textSize="10sp" />
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/kw_dv3"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:gravity="end"
+                    android:maxLines="1"
+                    android:textColor="@color/kw_text"
+                    android:textDirection="rtl"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/kw_dr4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingTop="3dp"
+                android:paddingBottom="3dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/kw_dl4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:maxLines="1"
+                    android:textColor="@color/kw_text_sub"
+                    android:textDirection="rtl"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/kw_dv4"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:gravity="end"
+                    android:maxLines="1"
+                    android:textColor="@color/kw_text"
+                    android:textDirection="rtl"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/kw_dr5"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingTop="3dp"
+                android:paddingBottom="3dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/kw_dl5"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:maxLines="1"
+                    android:textColor="@color/kw_text_sub"
+                    android:textDirection="rtl"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/kw_dv5"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:gravity="end"
+                    android:maxLines="1"
+                    android:textColor="@color/kw_text"
+                    android:textDirection="rtl"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
             </LinearLayout>
         </LinearLayout>
 
