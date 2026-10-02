@@ -1089,19 +1089,15 @@
                                         <span class="block text-[9px] text-slate-400">رفع مشکلات نمایشی؛ داده‌های شما دست‌نخورده می‌ماند</span>
                                     </span>
                                 </button>
-                                <button id="deviceWakeBtn" onclick="toggleKeepAwake()" class="tactile-btn flex items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
+                                <button id="deviceWakeBtn" onclick="toggleKeepAwake()" class="tactile-btn col-span-2 flex items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
                                     <span class="w-9 h-9 shrink-0 rounded-full bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 flex items-center justify-center"><i class="fa-solid fa-display text-xs"></i></span>
                                     <span class="min-w-0"><span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">روشن ماندن صفحه</span><span class="block text-[9px] text-slate-400">مناسب کار پشت میز</span></span>
-                                </button>
-                                <button id="deviceFullscreenBtn" onclick="toggleAppFullscreen()" class="tactile-btn flex items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
-                                    <span class="w-9 h-9 shrink-0 rounded-full bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center"><i class="fa-solid fa-expand text-xs"></i></span>
-                                    <span class="min-w-0"><span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">تمام‌صفحه</span><span class="block text-[9px] text-slate-400">نمایش بدون نوار مرورگر</span></span>
                                 </button>
                                 <button id="devicePersistBtn" onclick="requestPersistentStorage()" class="tactile-btn col-span-2 flex items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
                                     <span class="w-9 h-9 shrink-0 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center"><i class="fa-solid fa-shield-halved text-xs"></i></span>
                                     <span class="min-w-0"><span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">محافظت از داده‌ها</span><span class="block text-[9px] text-slate-400">جلوگیری از پاک‌شدن خودکار</span></span>
                                 </button>
-<button id="deviceAnimBtn" onclick="toggleReduceMotion()" class="tactile-btn flex items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right"><span class="w-9 h-9 shrink-0 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center"><i class="fa-solid fa-bolt text-xs"></i></span><span class="min-w-0"><span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">انیمیشن‌ها: <span id="deviceAnimState">فعال</span></span><span class="block text-[9px] text-slate-400">خاموش‌کردن برای روانی بیشتر</span></span></button>
+<button id="deviceAnimBtn" onclick="toggleReduceMotion()" aria-pressed="false" class="tactile-btn flex items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right"><span id="deviceAnimIcoBox" class="w-9 h-9 shrink-0 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center"><i id="deviceAnimIco" class="fa-solid fa-bolt text-xs"></i></span><span class="min-w-0"><span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">توقف انیمیشن‌ها</span><span class="block text-[9px] text-slate-400"><b id="deviceAnimState">خاموش</b> <span id="deviceAnimHint">• برای توقف بزنید</span></span></span></button>
 <button id="deviceWidgetBtn" onclick="requestHomeWidget()" class="tactile-btn flex items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right"><span class="w-9 h-9 shrink-0 rounded-full bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 flex items-center justify-center"><i class="fa-solid fa-table-cells-large text-xs"></i></span><span class="min-w-0"><span class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">ویجت صفحه اصلی</span><span class="block text-[9px] text-slate-400">نمایش پیشرفت کار روی گوشی</span></span></button>
                                 <button  onclick="openTodayReport(); closeToolsDropdown();" class="tactile-btn col-span-2 flex items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
                                     <span class="w-9 h-9 shrink-0 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center"><i class="fa-solid fa-file-lines text-xs"></i></span>
@@ -3075,13 +3071,6 @@
         document.addEventListener('visibilitychange', async () => {
             if (!document.hidden && _wakeLock === null && window._wantWake) { try { _wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} renderDeviceExtras(); }
         });
-        function toggleAppFullscreen() {
-            const el = document.documentElement;
-            if (document.fullscreenElement) { document.exitFullscreen(); }
-            else if (el.requestFullscreen) { el.requestFullscreen().catch(() => showFeedbackBanner('تمام‌صفحه در این دستگاه ممکن نشد.', 'warn')); }
-            else showFeedbackBanner('تمام‌صفحه در این دستگاه پشتیبانی نمی‌شود.', 'warn');
-            setTimeout(renderDeviceExtras, 300);
-        }
         async function requestPersistentStorage() {
             if (!navigator.storage || !navigator.storage.persist) { showFeedbackBanner('این مرورگر از این قابلیت پشتیبانی نمی‌کند.', 'warn'); return; }
             const ok = await navigator.storage.persist();
@@ -3102,7 +3091,6 @@
             }
             window._wantWake = !!_wakeLock || window._wantWake;
             const w = document.querySelector('#deviceWakeBtn .text-slate-400'); if (w) w.innerText = _wakeLock ? 'فعال است؛ برای غیرفعال‌سازی بزنید' : 'مناسب کار پشت میز';
-            const f = document.querySelector('#deviceFullscreenBtn .text-slate-400'); if (f) f.innerText = document.fullscreenElement ? 'فعال است؛ برای خروج بزنید' : 'نمایش بدون نوار مرورگر';
             if (navigator.storage && navigator.storage.persisted) {
                 try { const ps = await navigator.storage.persisted(); const t = document.querySelector('#devicePersistBtn .text-slate-400'); if (t) t.innerText = ps ? 'فعال است؛ داده‌ها پاک نمی‌شوند' : 'جلوگیری از پاک‌شدن خودکار'; } catch (e) {}
             }
@@ -11423,18 +11411,58 @@
 (function(){
   const R=document.documentElement, orig=Element.prototype.scrollIntoView;
   Element.prototype.scrollIntoView=function(o){ if(R.classList.contains('no-anim')&&o&&typeof o==='object')o=Object.assign({},o,{behavior:'auto'}); return orig.call(this,o); };
-  function sync(){ const t=document.getElementById('deviceAnimState'); if(t)t.textContent=R.classList.contains('no-anim')?'غیرفعال':'فعال'; }
-  window.toggleReduceMotion=function(){ const on=!R.classList.contains('no-anim'); R.classList.toggle('no-anim',on); try{localStorage.setItem('sewing_no_anim',on?'1':'0')}catch(e){} sync(); if(typeof showFeedbackBanner==='function')showFeedbackBanner(on?'انیمیشن‌ها غیرفعال شد؛ برنامه سبک‌تر و روان‌تر اجرا می‌شود.':'انیمیشن‌ها دوباره فعال شد.','success'); };
+  function sync(){
+    const on=R.classList.contains('no-anim'), $=id=>document.getElementById(id);
+    const btn=$('deviceAnimBtn'), box=$('deviceAnimIcoBox'), ico=$('deviceAnimIco'), st=$('deviceAnimState'), hint=$('deviceAnimHint');
+    if(!btn)return;
+    btn.setAttribute('aria-pressed',on?'true':'false');
+    btn.style.background=on?'rgba(16,185,129,.12)':'';
+    btn.style.boxShadow=on?'inset 0 0 0 1px rgba(16,185,129,.45)':'';
+    if(box){ box.style.background=on?'#10b981':''; box.style.color=on?'#ffffff':''; }
+    if(ico) ico.className='fa-solid text-xs '+(on?'fa-pause':'fa-bolt');
+    if(st){ st.textContent=on?'روشن':'خاموش'; st.style.color=on?'#059669':'#94a3b8'; }
+    if(hint) hint.textContent=on?'• انیمیشن‌ها متوقف است؛ برای فعال‌سازی بزنید':'• برای توقف بزنید';
+  }
+  window.toggleReduceMotion=function(){ const on=!R.classList.contains('no-anim'); R.classList.toggle('no-anim',on); try{localStorage.setItem('sewing_no_anim',on?'1':'0')}catch(e){} sync(); if(typeof showFeedbackBanner==='function')showFeedbackBanner(on?'توقف انیمیشن‌ها روشن شد؛ برنامه سبک‌تر و روان‌تر اجرا می‌شود.':'توقف انیمیشن‌ها خاموش شد؛ انیمیشن‌ها دوباره فعال است.','success'); };
   sync();
   const plugin=()=>(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.KarWidget)||null;
   const row=(name,rec,p,hex)=>({name:String(name||''),job:'کد '+(rec.itemCode||'-')+' — '+(rec.itemTitle||'-'),pct:Math.max(0,Math.min(999,p.percent)),color:hex});
+  /* کارتِ کامل (دقیقاً هم‌شکل ویجت پیشرفت کار جاریِ داخل برنامه) برای ویجت صفحه اصلی گوشی */
+  const card=(st,name,shopLine)=>{ const r=st.rec,p=st.p, f=formatNumber;
+    const head=mgrMonthLabel()+' \u2022 '+f(st.cnt)+' \u06a9\u0627\u0631\u06a9\u0631\u062f \u062b\u0628\u062a\u200c\u0634\u062f\u0647';
+    const stats=[{v:f(st.cnt),l:'\u06a9\u0627\u0631\u06a9\u0631\u062f \u0645\u0627\u0647'},{v:f(st.qty),l:'\u062a\u0639\u062f\u0627\u062f'},{v:st.onTime===null?'\u2014':f(st.onTime)+'\u066a',l:'\u0628\u0647\u200c\u0645\u0648\u0642\u0639'}];
+    const nm=String(name||'').trim()||'\u0648\u0636\u0639\u06cc\u062a \u06a9\u0627\u0631 \u062c\u0627\u0631\u06cc';
+    const shop=(shopLine!==undefined&&shopLine!==null)?String(shopLine):String(appSettings.shopName||'');
+    if(!r||!p) return { headTitle:'ویجت پیشرفت کار جاری', headSub:head, badgeText:'\u2014', name:nm, shop:shop,
+      status:'idle', statusText:'بدون کار جاری', jobTitle:'کار جاری ندارد', remainText:'', over:false, meta:'',
+      ringText:'\u2014', pct:0, color:'#94a3b8', note:'', stale:'', finishText:'', idle:true, stats:stats };
+    const over=st.key==='late', stale=over&&(-p.remainingMinutes>getStaleOverdueMinutes());
+    const badge={ok:'در حال کار',warn:'در حال کار',urgent:'نزدیک موعد',late:'دارای تاخیر'}[st.key]||'';
+    return {
+      headTitle:'ویجت پیشرفت کار جاری', headSub:head,
+      badgeText:f(Math.min(999,p.percent))+'\u066a',
+      name:nm, shop:shop, status:st.key, statusText:badge,
+      jobTitle:'کد '+(r.itemCode||'-')+' \u2014 '+(r.itemTitle||'-'),
+      remainText:formatMinutesDuration(p.remainingMinutes)+' '+(over?'تاخیر از موعد':'تا موعد باقی مانده'),
+      over:over,
+      meta:'شروع: '+(r.date||'')+' - '+(r.time||'')+' \u2022 مهلت هدف: '+(r.workDuration||''),
+      ringText:f(Math.min(999,st.pct))+'\u066a',
+      pct:Math.max(0,Math.min(999,st.pct)), color:st.hex,
+      note:over?String(pickLateMotivation(Number(r.id)+todayMotivationSeed())||''):'',
+      stale:stale?'این کار بیش از ۳ روز کاری معوق است؛ اگر تمام شده، «کار تمام شد» را بزنید.':'',
+      finishText:'کار تمام شد', recId:Number(r.id), idle:false, stats:stats
+    };
+  };
   window.getWidgetPayload=function(){ try{
     const at=new Date().toISOString(), title=appSettings.shopName||'';
     if(mgrOn()){ const ws=(mgr().workers||[]).map(w=>mgrWorkerState(w)), act=ws.filter(s=>s.rec&&s.p).sort((a,b)=>b.pct-a.pct);
-      return {mode:'employer',title,active:act.length,total:ws.length,late:act.filter(s=>s.key==='late').length,rows:act.slice(0,3).map(s=>row(s.w.name,s.rec,s.p,s.hex)),at}; }
+      const cards=ws.map(s=>card(s,s.w.name,[s.sc?s.sc.name:'',s.w.role||''].filter(Boolean).join(' \u2022 ')||title));
+      const top=act[0];
+      return {mode:'employer',title,active:act.length,total:ws.length,late:act.filter(s=>s.key==='late').length,rows:act.slice(0,3).map(s=>row(s.w.name,s.rec,s.p,s.hex)),cards:cards,card:top?card(top,top.w.name):null,at}; }
     const rec=getCurrentActiveRecord(), p=rec?computeRecordProgress(rec):null;
-    if(!p) return {mode:'worker',title,active:0,rows:[],at};
-    return {mode:'worker',title,active:1,rows:[row(appSettings.ownerName||'کار جاری',rec,p,personalProgressState(rec,p).hex)],at};
+    if(!p) return {mode:'worker',title,active:0,rows:[],card:null,at};
+    const st=personalProgressState(rec,p);
+    return {mode:'worker',title,active:1,rows:[row(appSettings.ownerName||'کار جاری',rec,p,st.hex)],card:card(st,appSettings.ownerName),at};
   }catch(e){return null;} };
   window.pushWidgetData=function(){ const P=plugin(); if(!P)return; const d=getWidgetPayload(); if(d)P.update({json:JSON.stringify(d)}).catch(()=>{}); };
   window.requestHomeWidget=async function(){
