@@ -72,6 +72,19 @@ public class KarWidgetPlugin extends Plugin {
         call.resolve();
     }
 
+    /** خروج کامل: بستن Activity، حذف از لیست برنامه‌های اخیر و پایان دادن به پروسه (بدون ماندن در پس‌زمینه). */
+    @PluginMethod
+    public void quit(PluginCall call) {
+        call.resolve();
+        final android.app.Activity a = getActivity();
+        if (a == null) { android.os.Process.killProcess(android.os.Process.myPid()); return; }
+        a.runOnUiThread(() -> {
+            try { a.finishAndRemoveTask(); } catch (Exception e) { a.finish(); }
+            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(
+                () -> android.os.Process.killProcess(android.os.Process.myPid()), 350);
+        });
+    }
+
     @PluginMethod
     public void pin(PluginCall call) {
         Context c = getContext();
