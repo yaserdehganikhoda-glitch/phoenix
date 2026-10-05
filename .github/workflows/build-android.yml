@@ -1,4 +1,4 @@
-name: Build Signed Android AAB
+⁷name: Build Signed Android AAB
 
 on:
   workflow_dispatch:
@@ -132,10 +132,4 @@ jobs:
           name: signed-apk-permanent
           path: ${{ steps.sign_apk.outputs.signedReleaseFile }}
 
-      - name: Commit generated android/ folder back (first run only)
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          git add android
-          git diff --staged --quiet || git commit -m "chore: add generated android project"
-          git push || true
+    
