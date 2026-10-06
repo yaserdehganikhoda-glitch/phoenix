@@ -58,7 +58,7 @@ class KarBillingPlugin : Plugin() {
     @PluginMethod
     fun purchase(call: PluginCall) {
         ensureConnected({
-            val req = PurchaseRequest(productId = sku, requestCode = 7311, payload = "")
+            val req = PurchaseRequest(productId = sku, payload = "")
             payment!!.subscribeProduct(registry = activity.activityResultRegistry, request = req) {
                 purchaseFlowBegan { }
                 failedToBeginFlow { t -> call.reject(t.message ?: "flow_failed") }
