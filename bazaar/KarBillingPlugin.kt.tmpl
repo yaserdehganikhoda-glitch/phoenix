@@ -1,0 +1,77 @@
+package __PKG__
+
+import com.getcapacitor.JSObject
+import com.getcapacitor.Plugin
+import com.getcapacitor.PluginCall
+import com.getcapacitor.PluginMethod
+import com.getcapacitor.annotation.CapacitorPlugin
+import ir.cafebazaar.poolakey.Connection
+import ir.cafebazaar.poolakey.Payment
+import ir.cafebazaar.poolakey.config.PaymentConfiguration
+import ir.cafebazaar.poolakey.config.SecurityCheck
+import ir.cafebazaar.poolakey.request.PurchaseRequest
+
+/** اشتراک کافه بازار (Poolakey) برای برنامه. در JS: window.Capacitor.Plugins.KarBilling */
+@CapacitorPlugin(name = "KarBilling")
+class KarBillingPlugin : Plugin() {
+
+    private val sku = "__SKU__"
+    private val rsaKey = "__RSA__"
+
+    private var payment: Payment? = null
+    private var connection: Connection? = null
+    private var connected = false
+
+    private fun ensureConnected(onOk: () -> Unit, onFail: (String) -> Unit) {
+        activity.runOnUiThread {
+            if (connected && payment != null) { onOk(); return@runOnUiThread }
+            val check = if (rsaKey.isNotEmpty()) SecurityCheck.Enable(rsaPublicKey = rsaKey) else SecurityCheck.Disable
+            val p = payment ?: Payment(context = context, config = PaymentConfiguration(localSecurityCheck = check))
+            payment = p
+            connection = p.connect {
+                connectionSucceed { connected = true; onOk() }
+                connectionFailed { t -> connected = false; onFail(t.message ?: "connection_failed") }
+                disconnected { connected = false }
+            }
+        }
+    }
+
+    private fun result(active: Boolean): JSObject {
+        val r = JSObject()
+        r.put("active", active)
+        return r
+    }
+
+    @PluginMethod
+    fun getStatus(call: PluginCall) {
+        ensureConnected({
+            payment!!.getSubscribedProducts {
+                querySucceed { list -> call.resolve(result(list.any { it.productId == sku })) }
+                queryFailed { t -> call.reject(t.message ?: "query_failed") }
+            }
+        }, { msg -> call.reject(msg) })
+    }
+
+    @PluginMethod
+    fun restore(call: PluginCall) = getStatus(call)
+
+    @PluginMethod
+    fun purchase(call: PluginCall) {
+        ensureConnected({
+            val req = PurchaseRequest(productId = sku, requestCode = 7311, payload = "")
+            payment!!.subscribeProduct(registry = activity.activityResultRegistry, request = req) {
+                purchaseFlowBegan { }
+                failedToBeginFlow { t -> call.reject(t.message ?: "flow_failed") }
+                purchaseSucceed { _ -> call.resolve(result(true)) }
+                purchaseCanceled { call.reject("canceled") }
+                purchaseFailed { t -> call.reject(t.message ?: "purchase_failed") }
+            }
+        }, { msg -> call.reject(msg) })
+    }
+
+    override fun handleOnDestroy() {
+        try { connection?.disconnect() } catch (e: Exception) { }
+        connected = false
+        super.handleOnDestroy()
+    }
+}
