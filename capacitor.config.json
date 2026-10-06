@@ -1,6 +1,6 @@
 {
   "appId": "ir.sewingstats.app",
-  "appName": "سامانه کارگاه هوشمند",
+  "appName": "سامانه کار هوشمند",
   "webDir": "www",
   "bundledWebRuntime": false,
   "android": {
