@@ -29,6 +29,12 @@ jobs:
       - name: Install home-screen widget into android project
         run: python3 widget/apply_widget.py
 
+      - name: Install Bazaar billing plugin (Poolakey) into android project
+        run: python3 bazaar/apply_bazaar.py
+        env:
+          BAZAAR_SKU: kar_premium
+          BAZAAR_RSA_KEY: ${{ secrets.BAZAAR_RSA_KEY }}
+
       - name: Add JitPack repository (required to resolve Poolakey)
         run: |
           python3 - <<'PYEOF'
