@@ -63,11 +63,11 @@
         .mode-switch-btn .msb-cur { font-size: 12.5px; font-weight: 800; }
         .mode-switch-btn .msb-go { font-size: 10px; font-weight: 500; color: #7e22ce; }
         /* اشتراک: دکمه‌ی ارتقا در تب اصلی، پنجره‌ی اشتراک و قفل پایان دوره‌ی رایگان */
-        #premiumHomeBtn { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; margin-bottom: 12px; padding: 12px 16px; border: 0; border-radius: 16px; color: #fff; font-family: inherit; font-size: 14px; font-weight: 800; text-align: right; background: linear-gradient(135deg, #f59e0b, #ea580c); box-shadow: 0 8px 20px -8px rgba(234, 88, 12, .6); }
-        #premiumHomeBtn small { display: block; font-size: 10.5px; font-weight: 500; opacity: .92; margin-top: 2px; }
+        #premiumHomeBtn { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; margin-bottom: 10px; padding: 8px 12px; border: 0; border-radius: 12px; color: #fff; font-family: inherit; font-size: 12.5px; font-weight: 800; text-align: right; background: linear-gradient(135deg, #f59e0b, #ea580c); box-shadow: 0 6px 14px -8px rgba(234, 88, 12, .6); }
+        #premiumHomeBtn small { display: block; font-size: 10px; font-weight: 500; opacity: .92; margin-top: 1px; }
+        #premiumHomeBtn small:empty { display: none; }
         #premiumHomeBtn:active { transform: scale(.98); }
-        #premiumHomeBtn.is-active { background: linear-gradient(135deg, #059669, #0d9488); box-shadow: 0 8px 20px -8px rgba(5, 150, 105, .55); }
-        body:not([data-apptab="home"]) #premiumHomeBtn { display: none !important; }
+        #premiumHomeBtn.is-active { background: linear-gradient(135deg, #059669, #0d9488); box-shadow: 0 6px 14px -8px rgba(5, 150, 105, .55); }
         .kar-sheet { position: fixed; inset: 0; z-index: 2147482000; display: none; align-items: center; justify-content: center; padding: 16px; background: rgba(15, 23, 42, .6); }
         .kar-sheet.open { display: flex; }
         .kar-card { width: 100%; max-width: 380px; border-radius: 24px; padding: 22px 20px; text-align: center; color: #1e293b; background: #fff; box-shadow: 0 25px 60px -15px rgba(0, 0, 0, .5); }
@@ -1173,6 +1173,8 @@ body.ai-chat-open #bottomNavBar { display: none !important; }
                         <div class="p-3.5">
                         <!-- تب اصلی -->
                         <div id="toolsTab-main" class="tools-tab-panel">
+                            <button type="button" id="premiumHomeBtn" class="no-print" onclick="closeToolsDropdown(); karOpenPremium()"><span><span id="premiumHomeTitle">ارتقا به نسخه‌ی ویژه</span><small id="premiumHomeSub"></small></span><i class="fa-solid fa-crown"></i></button>
+                            <div id="kobTools" class="no-print"><button type="button" onclick="closeToolsDropdown(); karOnboardOpen()"><i class="fa-solid fa-circle-question"></i> مرور معرفی برنامه</button><button type="button" id="kobClearBtn" class="hidden" onclick="closeToolsDropdown(); kobClearSamples()"><i class="fa-solid fa-trash"></i> حذف داده‌ی نمونه</button></div>
                             <div class="grid grid-cols-2 gap-1.5 mb-1.5">
                                 <button onclick="openOverviewModal(); closeToolsDropdown();" class="tactile-btn flex items-center gap-2 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right">
                                     <span class="w-9 h-9 shrink-0 rounded-full bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
@@ -1435,7 +1437,6 @@ body.ai-chat-open #bottomNavBar { display: none !important; }
         </header>
 
         <button type="button" id="homeMgrBtn" class="hidden no-print" onclick="setAppTab('mgr')"><span class="flex items-center gap-2.5"><i class="fa-solid fa-user-tie"></i> پنل کارفرما</span><i class="fa-solid fa-chevron-left text-xs opacity-80"></i></button>
-        <button type="button" id="premiumHomeBtn" class="no-print" onclick="karOpenPremium()"><span><span id="premiumHomeTitle">ارتقا به نسخه‌ی ویژه</span><small id="premiumHomeSub"></small></span><i class="fa-solid fa-crown"></i></button>
 
         <!-- کادر نمایش لاگ‌ها -->
         <div id="logDropdownPanel" class="hidden bg-slate-900 text-slate-200 rounded-2xl p-4 mb-6 shadow-xl text-xs font-mono transition-all duration-300 border border-slate-800">
@@ -13032,7 +13033,6 @@ document.addEventListener('keydown', function (e) {
     <div class="kar-ico"><i class="fa-solid fa-crown"></i></div>
     <h3 id="karPremTitle">نسخه‌ی ویژه</h3>
     <p id="karPremText"></p>
-    <p id="karPriceLine" style="font-weight:700;color:#7c3aed">اشتراک ماهانه — ۲۹۰٬۰۰۰ تومان در ماه</p>
     <button type="button" class="kar-btn" onclick="karBuy()"><i class="fa-solid fa-cart-shopping ml-1"></i> خرید اشتراک ماهانه</button>
     <button type="button" class="kar-btn alt" onclick="karClosePremium()">بعداً</button>
   </div>
@@ -13118,5 +13118,125 @@ document.addEventListener('keydown', function (e) {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', refresh); else refresh();
 })();
 </script>
+<style id="kobStyle">
+.kob{position:fixed;inset:0;z-index:190;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,.62);padding:16px;direction:rtl}
+.kob-card{width:100%;max-width:380px;background:#fff;color:#1e293b;border-radius:22px;padding:22px 18px 14px;box-shadow:0 24px 60px -16px rgba(0,0,0,.5);text-align:center;max-height:92vh;overflow:auto}
+.dark .kob-card{background:#0f172a;color:#f1f5f9}
+.kob-ico{width:62px;height:62px;border-radius:18px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:27px;color:#fff;background:linear-gradient(135deg,#6366f1,#7c3aed)}
+.kob h2{font-size:17px;font-weight:800;margin:0 0 6px}
+.kob p{font-size:12.5px;line-height:1.9;color:#475569;margin:0}
+.dark .kob p{color:#cbd5e1}
+.kob small{display:block;font-size:11px;color:#94a3b8;margin-top:10px}
+.kob-list{margin:12px 0 2px;display:grid;gap:8px;text-align:right}
+.kob-item{display:flex;gap:10px;align-items:center;padding:9px 11px;border-radius:12px;background:#f1f5f9;font-size:12px;border:2px solid transparent;font-family:inherit;color:inherit;width:100%;text-align:right}
+.dark .kob-item{background:#1e293b}
+.kob-item i{color:#6366f1;width:20px;text-align:center;font-size:15px}
+.kob-item b{display:block;font-size:12.5px}
+.kob-item span{display:block;font-size:11px;color:#64748b;font-weight:400}
+.kob-item.on{border-color:#6366f1;background:#eef2ff}
+.dark .kob-item.on{background:#312e81}
+.kob-item.ok{border-color:#10b981}
+.kob-btn{display:block;width:100%;padding:11px;border:0;border-radius:13px;font-family:inherit;font-weight:800;font-size:13px;color:#fff;background:linear-gradient(135deg,#6366f1,#7c3aed);margin-top:12px}
+.kob-btn.sec{background:transparent;color:#64748b;font-weight:600;margin-top:2px;padding:8px}
+.kob-dots{display:flex;gap:5px;justify-content:center;margin-bottom:14px}
+.kob-dots i{width:6px;height:6px;border-radius:9px;background:#cbd5e1}
+.kob-dots i.on{width:18px;background:#6366f1}
+.kob-tour{position:fixed;inset:0;z-index:190;background:rgba(15,23,42,.45);direction:rtl}
+.kob-tip{position:fixed;width:230px;background:#fff;color:#1e293b;border-radius:14px;padding:11px 12px;box-shadow:0 14px 34px -10px rgba(0,0,0,.5);font-size:12px;line-height:1.8;text-align:right}
+.dark .kob-tip{background:#1e293b;color:#f1f5f9}
+.kob-tip b{display:block;font-size:13px}
+.kob-tip button{margin-top:6px;border:0;border-radius:9px;padding:5px 12px;font-family:inherit;font-weight:700;font-size:11.5px;color:#fff;background:#4f46e5}
+.kob-tip:after{content:"";position:absolute;bottom:-6px;left:var(--kx,50%);width:12px;height:12px;background:inherit;transform:translateX(-50%) rotate(45deg)}
+.kob-hl{position:relative;z-index:191;box-shadow:0 0 0 4px rgba(99,102,241,.85)!important;border-radius:14px}
+#kobTools{display:flex;gap:6px;margin:-4px 0 10px}
+#kobTools button{flex:1;padding:6px 8px;border:1px solid #cbd5e1;border-radius:10px;background:transparent;color:inherit;font-family:inherit;font-size:11px}
+#kobTools button.hidden{display:none}
+</style>
+<script id="kobScript">
+(function(){
+  var KEY='kar_onboard_v1', SKEY='kar_sample_ids';
+  var K={step:0,mode:null,notif:false}, root=null;
+  function ls(g,k,v){try{return g?localStorage.getItem(k):localStorage.setItem(k,v)}catch(e){return null}}
+  function sampleIds(){try{return JSON.parse(ls(1,SKEY)||'[]')}catch(e){return []}}
+  function nat(){return !!(window.NativeNotify&&window.NativeNotify.isSupported&&window.NativeNotify.isSupported())}
+  function batFn(){var n=window.NativeNotify||{};return n.requestBatteryExemption||n.requestIgnoreBatteryOptimizations||n.openBatterySettings||null}
+  function curMode(){try{return mgrOn()?'employer':'worker'}catch(e){return 'worker'}}
+  function dots(){var h='<div class="kob-dots">';for(var i=0;i<4;i++)h+='<i'+(i===K.step?' class="on"':'')+'></i>';return h+'</div>'}
+  function item(ic,t,d,extra){return '<div class="kob-item"'+(extra||'')+'><i class="fa-solid '+ic+'"></i><div><b>'+t+'</b>'+(d?'<span>'+d+'</span>':'')+'</div></div>'}
+  function steps(){return [
+   '<div class="kob-ico"><i class="fa-solid fa-hand-sparkles"></i></div><h2>به سامانه‌ی کار هوشمند خوش آمدید</h2><p>ثبت کارکرد و مدیریت کار، برای همه‌ی مشاغل.</p><div class="kob-list">'+item('fa-wifi','کاملاً آفلاین','بدون اینترنت هم کار می‌کند؛ اطلاعات روی گوشی شما ذخیره می‌شود')+item('fa-stopwatch','ویجت پیشرفت کار','پیشرفت کار جاری را روی صفحه‌ی اصلی گوشی ببینید')+item('fa-robot','دستیار هوشمند و یادآور','تحلیل خودکار و هشدار به‌موقع')+'</div><small>۳۰ روز اول رایگان است.</small>',
+   '<div class="kob-ico"><i class="fa-solid fa-user-gear"></i></div><h2>چه حالتی را می‌خواهید؟</h2><p>بعداً از منوی ابزار هم قابل تغییر است.</p><div class="kob-list"><button type="button" class="kob-item'+(K.mode==='worker'?' on':'')+'" onclick="kobPick(\'worker\')"><i class="fa-solid fa-user"></i><div><b>پرسنل</b><span>ثبت کارکرد شخصی خودم</span></div></button><button type="button" class="kob-item'+(K.mode==='employer'?' on':'')+'" onclick="kobPick(\'employer\')"><i class="fa-solid fa-user-tie"></i><div><b>کارفرما</b><span>مدیریت پرسنل و کارکرد آن‌ها</span></div></button></div>',
+   '<div class="kob-ico"><i class="fa-solid fa-bell"></i></div><h2>اجازه‌ها</h2><p>برای کار کردن یادآورها و ویجت در پس‌زمینه، این اجازه‌ها لازم است. می‌توانید رد کنید و بعداً از تنظیمات بدهید.</p><div class="kob-list"><button type="button" id="kobNotifBtn" class="kob-item'+(K.notif?' ok':'')+'" onclick="kobNotif()"><i class="fa-solid fa-bell"></i><div><b>اعلان‌ها</b><span>'+(K.notif?'مجاز شد ✓':'برای یادآوری و هشدار تاخیر')+'</span></div></button>'+(batFn()?'<button type="button" class="kob-item" onclick="kobBattery()"><i class="fa-solid fa-battery-half"></i><div><b>اجرا در پس‌زمینه</b><span>استثنا از بهینه‌سازی باتری</span></div></button>':'')+'</div>',
+   '<div class="kob-ico"><i class="fa-solid fa-flask"></i></div><h2>با نمونه امتحان کنید؟</h2><p>چند کارکرد آزمایشی می‌سازیم تا صفحه‌ها و ویجت خالی نباشند. هر وقت خواستید با یک دکمه از منوی ابزار پاک می‌شوند.</p><button type="button" class="kob-btn" onclick="kobSample(true)">با نمونه امتحان می‌کنم</button><button type="button" class="kob-btn sec" onclick="kobSample(false)">از صفر شروع می‌کنم</button>'
+  ]}
+  function render(){
+    if(!root){root=document.createElement('div');root.className='kob';root.setAttribute('role','dialog');root.setAttribute('aria-modal','true');document.body.appendChild(root)}
+    var last=K.step===3, nxt=last?'':'<button type="button" class="kob-btn" onclick="kobNext()">'+(K.step===0?'شروع':'ادامه')+'</button>';
+    var skip=last?'':'<button type="button" class="kob-btn sec" onclick="kobFinish()">رد کردن</button>';
+    root.innerHTML='<div class="kob-card">'+dots()+steps()[K.step]+nxt+skip+'</div>';
+  }
+  window.kobNext=function(){
+    if(K.step===1&&K.mode&&K.mode!==curMode()){try{mgrToggle(K.mode==='employer')}catch(e){}}
+    if(K.step<3){K.step++;render()}
+  };
+  window.kobPick=function(m){K.mode=m;render()};
+  window.kobNotif=async function(){
+    try{
+      var r=nat()?await window.NativeNotify.requestPermission():('Notification' in window?await Notification.requestPermission():'denied');
+      K.notif=(r==='granted')
+    }catch(e){K.notif=false}
+    render()
+  };
+  window.kobBattery=function(){try{var f=batFn();if(f)f.call(window.NativeNotify)}catch(e){}};
+  window.kobSample=function(on){
+    if(on){try{addSamples()}catch(e){try{showFeedbackBanner('ساخت داده‌ی نمونه ممکن نشد.','warn')}catch(_){}}}
+    if(root){root.remove();root=null}
+    ls(0,KEY,'1');toolsBtns();tour();
+  };
+  function addSamples(){
+    var rows=[['9001','نمونه: کار شماره ۱',12,450000,2,'09:00','2:30'],['9002','نمونه: کار شماره ۲',8,620000,1,'10:15','3:10'],['9003','نمونه: کار شماره ۳',20,300000,0,'08:30','4:00']],ids=sampleIds();
+    rows.forEach(function(r){
+      var d=new Date();d.setDate(d.getDate()-r[4]);
+      var j=gregorianToJalaali(d.getFullYear(),d.getMonth()+1,d.getDate());
+      var rec=sanitizeRecord({id:generateRecordId(),itemCode:r[0],itemTitle:r[1],quantity:r[2],unitPrice:r[3],totalPrice:r[2]*r[3],status:'به موقع',date:formatJalaliDate(j.jy,j.jm,j.jd),time:r[5],durationTime:r[6]});
+      if(rec){allRecords.unshift(rec);ids.push(rec.id)}
+    });
+    ls(0,SKEY,JSON.stringify(ids));saveRecords();renderDashboard();
+  }
+  window.kobClearSamples=function(){
+    var ids=sampleIds();if(!ids.length)return;
+    for(var i=allRecords.length-1;i>=0;i--){if(ids.indexOf(allRecords[i].id)>-1)allRecords.splice(i,1)}
+    ls(0,SKEY,'[]');saveRecords();renderDashboard();toolsBtns();
+    try{showFeedbackBanner('داده‌ی نمونه پاک شد.','success')}catch(e){}
+  };
+  window.kobFinish=function(){if(root){root.remove();root=null}ls(0,KEY,'1');toolsBtns()};
+  window.karOnboardOpen=function(){K.step=0;K.mode=curMode();render()};
+  var TIPS=[['add','ثبت کارکرد','از اینجا کارکرد جدید ثبت کنید.'],['list','رکوردها','لیست همه‌ی کارکردها و گزارش‌ها اینجاست.'],['progress','پیشرفت کار','پیشرفت کار جاری و ویجت را اینجا ببینید.']];
+  function tour(i){
+    i=i||0;var old=document.getElementById('kobTour');if(old)old.remove();
+    document.querySelectorAll('.kob-hl').forEach(function(e){e.classList.remove('kob-hl')});
+    if(i>=TIPS.length)return;
+    var el=document.querySelector('#bottomNavBar [data-nav="'+TIPS[i][0]+'"]');if(!el){tour(i+1);return}
+    el.classList.add('kob-hl');
+    var rc=el.getBoundingClientRect(),w=230,cx=rc.left+rc.width/2,left=Math.max(10,Math.min(innerWidth-w-10,cx-w/2));
+    var t=document.createElement('div');t.id='kobTour';t.className='kob-tour';
+    t.innerHTML='<div class="kob-tip" style="left:'+left+'px;bottom:'+(innerHeight-rc.top+14)+'px;--kx:'+(cx-left)+'px"><b>'+TIPS[i][1]+'</b>'+TIPS[i][2]+'<br><button type="button">'+(i===TIPS.length-1?'تمام':'بعدی')+'</button></div>';
+    t.querySelector('button').onclick=function(ev){ev.stopPropagation();tour(i+1)};
+    t.onclick=function(){tour(TIPS.length)};
+    document.body.appendChild(t);
+  }
+  function toolsBtns(){var b=document.getElementById('kobClearBtn');if(b)b.classList.toggle('hidden',!sampleIds().length)}
+  function ready(){var s=document.getElementById('appSplashScreen');if(!s||!document.body.contains(s))return true;var c=getComputedStyle(s);return c.display==='none'||c.visibility==='hidden'||c.opacity==='0'}
+  function start(){
+    toolsBtns();
+    if(ls(1,KEY))return;
+    var has=false;try{has=allRecords.length>0}catch(e){}
+    if(has){ls(0,KEY,'1');return}
+    var n=0,t=setInterval(function(){if(ready()||++n>20){clearInterval(t);window.karOnboardOpen()}},400);
+  }
+  if(document.readyState==='complete')start();else window.addEventListener('load',start);
+})();
+</script>
+
 </body>
 </html>
