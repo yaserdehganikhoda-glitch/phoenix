@@ -2,8 +2,8 @@
 <html lang="fa" dir="rtl" id="htmlRoot">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سامانه‌ی کارگاه هوشمند</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
+    <title>سامانه‌ی کار هوشمند</title>
     
     <!-- تنظیمات PWA و مانیفست -->
     <link rel="manifest" href="manifest.json">
@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="کارگاه هوشمند">
+    <meta name="apple-mobile-web-app-title" content="کار هوشمند">
     <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
     <link rel="apple-touch-icon" href="icon-192.png">
     
@@ -36,6 +36,47 @@
         .tactile-btn:hover {
             box-shadow: 0 4px 14px rgba(79, 70, 229, 0.12);
         }
+        /* دکمه‌ی تغییر حالت پرسنل ⇄ کارفرما در هدر صفحه‌ی اصلی */
+        .mode-switch-btn {
+            display: inline-flex; align-items: center; gap: .55rem;
+            padding: .3rem .4rem .3rem .95rem;
+            font-family: inherit; color: #3b0764; cursor: pointer;
+            background: linear-gradient(180deg, #ffffff 0%, #f3e8ff 100%);
+            border: 2px solid #ffffff; border-radius: 9999px;
+            box-shadow: 0 4px 0 rgba(88, 28, 135, .65), 0 8px 18px rgba(0, 0, 0, .28);
+            transition: transform .12s ease, box-shadow .12s ease, filter .2s ease;
+        }
+        .mode-switch-btn:hover { filter: brightness(1.04); }
+        .mode-switch-btn:active {
+            transform: translateY(3px) !important;
+            box-shadow: 0 1px 0 rgba(88, 28, 135, .65), 0 3px 8px rgba(0, 0, 0, .25);
+        }
+        .mode-switch-btn:focus-visible { outline: 3px solid #fde68a; outline-offset: 2px; }
+        .mode-switch-btn .msb-ico {
+            width: 1.75rem; height: 1.75rem; flex-shrink: 0;
+            display: inline-flex; align-items: center; justify-content: center;
+            border-radius: 9999px; color: #fff; font-size: 12px;
+            background: linear-gradient(135deg, #9333ea, #4f46e5);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35);
+        }
+        .mode-switch-btn .msb-txt { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.25; }
+        .mode-switch-btn .msb-cur { font-size: 12.5px; font-weight: 800; }
+        .mode-switch-btn .msb-go { font-size: 10px; font-weight: 500; color: #7e22ce; }
+        /* اشتراک: دکمه‌ی ارتقا در تب اصلی، پنجره‌ی اشتراک و قفل پایان دوره‌ی رایگان */
+        #premiumHomeBtn { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; margin-bottom: 12px; padding: 12px 16px; border: 0; border-radius: 16px; color: #fff; font-family: inherit; font-size: 14px; font-weight: 800; text-align: right; background: linear-gradient(135deg, #f59e0b, #ea580c); box-shadow: 0 8px 20px -8px rgba(234, 88, 12, .6); }
+        #premiumHomeBtn small { display: block; font-size: 10.5px; font-weight: 500; opacity: .92; margin-top: 2px; }
+        #premiumHomeBtn:active { transform: scale(.98); }
+        #premiumHomeBtn.is-active { background: linear-gradient(135deg, #059669, #0d9488); box-shadow: 0 8px 20px -8px rgba(5, 150, 105, .55); }
+        body:not([data-apptab="home"]) #premiumHomeBtn { display: none !important; }
+        .kar-sheet { position: fixed; inset: 0; z-index: 2147482000; display: none; align-items: center; justify-content: center; padding: 16px; background: rgba(15, 23, 42, .6); }
+        .kar-sheet.open { display: flex; }
+        .kar-card { width: 100%; max-width: 380px; border-radius: 24px; padding: 22px 20px; text-align: center; color: #1e293b; background: #fff; box-shadow: 0 25px 60px -15px rgba(0, 0, 0, .5); }
+        .kar-card h3 { font-size: 17px; font-weight: 800; margin: 10px 0 6px; }
+        .kar-card p { font-size: 12.5px; line-height: 1.9; color: #475569; }
+        .kar-ico { width: 60px; height: 60px; margin: 0 auto; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 26px; color: #fff; background: linear-gradient(135deg, #f59e0b, #ea580c); }
+        .kar-btn { display: block; width: 100%; margin-top: 10px; padding: 12px; border: 0; border-radius: 14px; font-family: inherit; font-size: 14px; font-weight: 800; color: #fff; background: linear-gradient(135deg, #4f46e5, #7c3aed); }
+        .kar-btn.alt { color: #334155; font-weight: 600; font-size: 12.5px; background: #f1f5f9; }
+        #karLock { z-index: 2147483000; background: linear-gradient(160deg, #312e81, #4c1d95); }
         /* میکرو-اینترکشن سراسری: همه‌ی دکمه‌های برنامه هنگام لمس/کلیک کمی جمع می‌شوند */
         button:not(:disabled) {
             transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s ease, background-color 0.2s ease, opacity 0.2s ease;
@@ -703,6 +744,11 @@
             body[data-cardfx="on"] :is(#kpiCardWrap > div, #recordFormCard, #dailyNotesSection, #recordsTableCard) { animation: none !important; }
         }
 
+        /* دستیار: در کارت خانه فقط اولین (آخرین) تحلیل؛ صفحه‌ی گفتگو تمام‌صفحه */
+        #aiInsights > :nth-child(n+2) { display: none !important; }
+        #aiChatPage:not(.hidden) { display: flex; }
+        #aiChatHint { display: none; }
+        #aiAnswer.hidden + #aiChatHint { display: block; }
         /* ============ جلوه‌های بصریِ کادر سامانه (هدر) و متن انگیزشی، با رنگی جدا از کادرهای دیگر ============ */
         body[data-hdrfx="on"] { --hx1: #0d9488; --hx2: #22d3ee; }
         body[data-hdrfx="on"][data-hdrfxc="orange"]  { --hx1: #ea580c; --hx2: #fbbf24; }
@@ -1009,6 +1055,19 @@
 .help-it p{font-size:12px;line-height:2;color:rgb(51 65 85);margin:0}
 .dark .help-it p{color:rgb(203 213 225)}
 </style>
+<style>
+body[data-notrack="1"] :is(.c-daily, .c-due, .c-end, .c-next, #deliveryDurationWrapper, #autoCalcInfoBox, [onclick*="toggleDelaySummaryVisibility"]) { display: none !important; }
+</style>
+<style>
+body[data-deadline="1"] :is(.c-daily, .c-due, .c-end, .c-next, #autoCalcInfoBox, [onclick*="toggleDelaySummaryVisibility"]) { display: none !important; }
+</style>
+<style>
+body[data-notrack="1"] :is(div:has(> #dailyStat), div:has(> div > #recordEndDateTime)), body[data-deadline="1"] :is(div:has(> #dailyStat), div:has(> div > #recordEndDateTime)) { display: none !important; }
+</style>
+<style>
+#aiChatPage { z-index: 5000 !important; }
+body.ai-chat-open #bottomNavBar { display: none !important; }
+</style>
 </head>
 <body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 antialiased min-h-screen pb-28 font-normal-size" id="appBody">
 
@@ -1016,9 +1075,9 @@
     <div id="appSplashScreen" class="fixed inset-0 z-[200] flex flex-col items-center justify-between bg-slate-50 dark:bg-slate-950 text-center px-6 py-10 transition-opacity duration-700">
         <div></div>
         <div class="flex flex-col items-center">
-            <img src="icon-192.png" alt="لوگوی سامانه‌ی کارگاه هوشمند" class="w-24 h-24 rounded-2xl shadow-lg mb-5">
-            <p class="text-2xl font-extrabold text-slate-800 dark:text-white tracking-tight">سامانه‌ی کارگاه هوشمند</p>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">مدیریت هوشمند کارگاه</p>
+            <img src="icon-192.png" alt="لوگوی سامانه‌ی کار هوشمند" class="w-24 h-24 rounded-2xl shadow-lg mb-5">
+            <p class="text-2xl font-extrabold text-slate-800 dark:text-white tracking-tight">سامانه‌ی کار هوشمند</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">مدیریت هوشمند کسب‌وکار</p>
             <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1">ساخته‌شده برای تمامی صنف‌های کارگاهی</p>
             <div class="mt-6 flex items-center gap-1.5">
                 <span class="w-2 h-2 rounded-full bg-indigo-500 animate-bounce" style="animation-delay:0ms"></span>
@@ -1028,7 +1087,6 @@
         </div>
         <div class="text-[11px] leading-relaxed text-slate-400 dark:text-slate-500">
             <p>نسخه ۱.۰.۰</p>
-            <p class="mt-1">تیم پروژه و سازنده: <span class="font-medium text-slate-500 dark:text-slate-400">Phoenix.Yaser</span></p>
             <p class="mt-1">پشتیبانی: <span class="font-medium text-slate-500 dark:text-slate-400" dir="ltr">@Freedom_Phoenix_Tabriz</span></p>
             <p class="mt-1">تمامی حقوق محفوظ است © <span id="splashYear"></span></p>
         </div>
@@ -1051,7 +1109,7 @@
             <div class="inline-flex items-center justify-center w-16 h-16 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 rounded-2xl mb-4">
                 <i class="fa-solid fa-lock text-2xl"></i>
             </div>
-            <h2 class="text-lg font-bold text-slate-800 dark:text-white mb-1">ورود به سامانه‌ی کارگاه هوشمند</h2>
+            <h2 class="text-lg font-bold text-slate-800 dark:text-white mb-1">ورود به سامانه‌ی کار هوشمند</h2>
             <p class="text-xs text-slate-500 dark:text-slate-400 mb-5">برای مشاهده اطلاعات، رمز عبور را وارد کنید.</p>
             <form id="pinLockForm" onsubmit="attemptUnlock(event)" class="space-y-3">
                 <input type="password" id="pinLockInput" inputmode="numeric" required autocomplete="off" class="w-full p-3 border border-slate-400 dark:border-slate-500 rounded-xl text-center text-lg tracking-[0.3em] bg-slate-50 dark:bg-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none" placeholder="رمز عبور">
@@ -1334,10 +1392,6 @@
                             <span class="w-9 h-9 shrink-0 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center"><i class="fa-solid fa-broom text-xs"></i></span>
                             <span class="min-w-0"><span class="block text-[11px] font-bold leading-snug text-slate-700 dark:text-slate-200">پاکسازی حافظه پنهان</span><span class="block text-[9px] leading-snug text-slate-400">رفع مشکل نمایش؛ داده‌ها می‌ماند</span></span>
                         </button>
-                        <button onclick="openTodayReport(); closeToolsDropdown();" class="tactile-btn flex items-center gap-2 p-2 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-right col-span-2">
-                            <span class="w-9 h-9 shrink-0 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center"><i class="fa-solid fa-file-lines text-xs"></i></span>
-                            <span class="min-w-0"><span class="block text-[11px] font-bold leading-snug text-slate-700 dark:text-slate-200">گزارش امروز</span><span class="block text-[9px] leading-snug text-slate-400">ارسال در پیام‌رسان</span></span>
-                        </button>
                     </div>
                             </div>
 
@@ -1360,7 +1414,7 @@
                 <img src="icon-192.png" alt="لوگوی سامانه" class="w-6 h-6 object-contain rounded-md">
             </div>
             <h1 id="mainAppTitle" class="text-base md:text-lg font-bold text-white tracking-tight relative z-10">
-                سامانه‌ی کارگاه هوشمند
+                سامانه‌ی کار هوشمند
             </h1>
             <p id="mainAppSubtitle" class="basis-full text-[11px] text-indigo-100 font-normal relative z-10 leading-tight">سیستم هوشمند آمار و مدیریت کار</p>
             <p id="ownerInfoLine" class="hidden basis-full text-[10px] text-indigo-100/80 mt-0.5 relative z-10"></p>
@@ -1381,6 +1435,7 @@
         </header>
 
         <button type="button" id="homeMgrBtn" class="hidden no-print" onclick="setAppTab('mgr')"><span class="flex items-center gap-2.5"><i class="fa-solid fa-user-tie"></i> پنل کارفرما</span><i class="fa-solid fa-chevron-left text-xs opacity-80"></i></button>
+        <button type="button" id="premiumHomeBtn" class="no-print" onclick="karOpenPremium()"><span><span id="premiumHomeTitle">ارتقا به نسخه‌ی ویژه</span><small id="premiumHomeSub"></small></span><i class="fa-solid fa-crown"></i></button>
 
         <!-- کادر نمایش لاگ‌ها -->
         <div id="logDropdownPanel" class="hidden bg-slate-900 text-slate-200 rounded-2xl p-4 mb-6 shadow-xl text-xs font-mono transition-all duration-300 border border-slate-800">
@@ -1441,17 +1496,18 @@
                     </div>
                     <p id="incomeGoalCongrats" class="hidden mt-2 text-xs font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl px-3 py-2"></p>
                 </div>
+                <div id="kpiWorkersBox" class="hidden basis-full w-full mt-4 pt-4 border-t border-slate-200 dark:border-slate-700"></div>
             </div>
         </div>
 
         <!-- کارت پیشرفت کار جاری (حالت پرسنل) با همان جلوه‌های بصری ویجت حالت کارفرما -->
-        <!-- دستیار هوشمند (تب خانه) -->
+        <!-- دستیار هوشمند (تب خانه): فقط کارت خلاصه‌ی آخرین تحلیل + دکمه‌ی ورود به صفحه‌ی گفتگو -->
         <div id="aiAssistantCard" class="mb-6 bg-white dark:bg-slate-900 pro-card rounded-2xl border border-slate-300 dark:border-slate-600 overflow-hidden no-print">
             <div class="bg-gradient-to-l from-fuchsia-600 to-indigo-600 px-4 py-3 text-white flex items-center justify-between gap-2">
                 <div class="flex items-center gap-2.5 min-w-0">
                     <span class="w-8 h-8 shrink-0 rounded-xl bg-white/20 flex items-center justify-center"><i class="fa-solid fa-wand-magic-sparkles text-sm"></i></span>
                     <div class="min-w-0">
-                        <h2 class="text-sm font-extrabold">دستیار هوشمند</h2>
+                        <h2 class="text-sm font-extrabold">تحلیل هوشمند</h2>
                         <p id="aiSub" class="text-[10px] opacity-80 truncate">تحلیل آفلاین روی همین دستگاه</p>
                     </div>
                 </div>
@@ -1461,15 +1517,30 @@
             </div>
             <div class="p-4 space-y-3">
                 <div id="aiInsights" class="space-y-2"></div>
+                <button type="button" onclick="aiChatOpen()" class="tactile-btn w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center justify-center gap-2"><i class="fa-solid fa-comments"></i> چت با دستیار</button>
+            </div>
+        </div>
+
+        <!-- صفحه‌ی اختصاصی گفتگو با دستیار (عناصر پرسش و پاسخ با همان idهای قبلی تا ai-assistant.js بدون تغییر کار کند) -->
+        <div id="aiChatPage" class="no-print hidden fixed inset-0 z-[65] flex-col bg-slate-50 dark:bg-slate-950" role="dialog" aria-label="چت با دستیار" style="padding-top:env(safe-area-inset-top,0px)">
+            <div class="bg-gradient-to-l from-fuchsia-600 to-indigo-600 px-3 py-3 text-white flex items-center gap-2 shrink-0">
+                <button type="button" onclick="aiChatClose()" class="w-9 h-9 shrink-0 rounded-xl hover:bg-white/15 flex items-center justify-center" aria-label="بازگشت"><i class="fa-solid fa-arrow-right"></i></button>
+                <span class="w-8 h-8 shrink-0 rounded-xl bg-white/20 flex items-center justify-center"><i class="fa-solid fa-wand-magic-sparkles text-sm"></i></span>
+                <div class="min-w-0"><h2 class="text-sm font-extrabold">چت با دستیار</h2><p class="text-[10px] opacity-80 truncate">پرسش و پاسخ آفلاین روی همین دستگاه</p></div>
+            </div>
+            <div class="px-3 pt-3 shrink-0"><div id="aiChips" class="flex gap-1.5 overflow-x-auto pb-1" style="scrollbar-width:thin"></div></div>
+            <div class="flex-1 min-h-0 overflow-y-auto px-3 py-3">
+                <div id="aiAnswer" class="hidden rounded-xl bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 text-[12px] leading-relaxed text-slate-700 dark:text-slate-200"></div>
+                <div id="aiChatHint" class="text-center text-[12px] text-slate-400 dark:text-slate-500 py-10"><i class="fa-solid fa-comments text-3xl mb-3 block opacity-40"></i>سؤال خود را بنویسید یا یکی از پیشنهادها را بزنید.</div>
+            </div>
+            <div class="shrink-0 px-3 pt-2 border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900" style="padding-bottom:calc(env(safe-area-inset-bottom,0px) + 10px)">
                 <div class="flex items-center gap-2">
                     <div class="relative flex-1 min-w-0">
-                        <input id="aiInput" type="text" enterkeyhint="send" autocomplete="off" placeholder="بپرس: «درآمد هر روز هفته قبل»، «کد ۶۴۴۹ ماه قبل»، «چرا درآمدم کم شد؟»…" onkeydown="if(event.key==='Enter'){event.preventDefault();aiAsk();}" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-[12px] text-slate-800 dark:text-slate-100">
-                        <div id="aiSuggest" class="hidden absolute z-20 inset-x-0 top-full mt-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg overflow-hidden"></div>
+                        <input id="aiInput" type="text" enterkeyhint="send" autocomplete="off" placeholder="بپرس: «درآمد هر روز هفته قبل»، «کد ۶۴۴۹ ماه قبل»، «چرا درآمدم کم شد؟»…" onkeydown="if(event.key==='Enter'){event.preventDefault();aiAsk();}" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-[12px] text-slate-800 dark:text-slate-100">
+                        <div id="aiSuggest" class="hidden absolute z-20 inset-x-0 bottom-full mb-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg overflow-hidden"></div>
                     </div>
-                    <button type="button" onclick="aiAsk()" title="پرسیدن" aria-label="پرسیدن" class="tactile-btn shrink-0 w-9 h-9 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center"><i class="fa-solid fa-paper-plane text-xs"></i></button>
+                    <button type="button" onclick="aiAsk()" title="پرسیدن" aria-label="پرسیدن" class="tactile-btn shrink-0 w-10 h-10 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center"><i class="fa-solid fa-paper-plane text-xs"></i></button>
                 </div>
-                <div id="aiChips" class="flex gap-1.5 overflow-x-auto pb-1" style="scrollbar-width:thin"></div>
-                <div id="aiAnswer" class="hidden max-h-[65vh] overflow-y-auto rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 text-[12px] leading-relaxed text-slate-700 dark:text-slate-200"></div>
             </div>
         </div>
 
@@ -1519,15 +1590,16 @@
             </div>
 
             <form id="stitchingForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
+<div id="quickItemsBar" class="hidden flex flex-wrap gap-1.5 mb-3"></div>
                 <input type="hidden" id="editingRecordId" value="">
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1.5" data-field-label="itemCode">کد کار / قطعه</label>
+                        <label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1.5" data-field-label="itemCode">کد / شماره کار</label>
                         <input type="text" inputmode="numeric" id="itemCode" required class="w-full p-3 border border-slate-400 dark:border-slate-500 rounded-xl text-sm bg-white dark:bg-slate-800 field-box-bg dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1.5" data-field-label="itemTitle">عنوان کار / قطعه</label>
+                        <label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1.5" data-field-label="itemTitle">عنوان کار / خدمت</label>
                         <input type="text" id="itemTitle" required class="w-full p-2.5 border border-slate-400 dark:border-slate-500 rounded-xl text-xs bg-white dark:bg-slate-800 field-box-bg dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all">
                     </div>
                     <div>
@@ -1595,7 +1667,7 @@
                     </div>
 
                     <div>
-                        <label title="محاسبه خودکار، جمعه‌ها تعطیل محسوب می‌شود" class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1 flex items-center gap-1">
+                        <label title="محاسبه خودکار؛ روزهای تعطیل هفته (از تنظیمات ساعات کاری) حساب نمی‌شود" class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1 flex items-center gap-1">
                             <i class="fa-solid fa-hourglass text-indigo-400 dark:text-indigo-500 text-[10px]"></i>
                             <span data-field-label="recordWorkDuration">مدت زمان تحویل کار</span>
                         </label>
@@ -1754,7 +1826,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">متن یادداشت / نکته</label>
-                    <textarea id="noteTextInput" rows="4" placeholder="مثلاً: تعطیلی کارگاه یا تحویل سفارش خاص..." class="w-full p-3.5 border border-slate-400 dark:border-slate-500 rounded-xl text-base bg-white dark:bg-slate-800 field-box-bg dark:text-slate-100 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none transition-all resize-y"></textarea>
+                    <textarea id="noteTextInput" rows="4" placeholder="مثلاً: تعطیلی یا تحویل سفارش خاص..." class="w-full p-3.5 border border-slate-400 dark:border-slate-500 rounded-xl text-base bg-white dark:bg-slate-800 field-box-bg dark:text-slate-100 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none transition-all resize-y"></textarea>
                 </div>
 
                 <!-- لیست یادداشت‌های ثبت شده در ماه جاری -->
@@ -1928,9 +2000,6 @@
             </div>
         </div>
 
-        <footer class="mt-8 mb-4 text-center text-xs text-slate-400 dark:text-slate-500 border-t border-slate-200/60 dark:border-slate-800/60 pt-4 transition-all">
-            <p>Designed & Developed by <span class="font-bold text-slate-600 dark:text-slate-300">Phoenix.Yaser</span></p>
-        </footer>
 
     </div>
 
@@ -2124,7 +2193,24 @@
     </div>
 
     <!-- مدال تنظیمات و ظاهر برنامه -->
-    <div id="settingsModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div id="setupWizard" class="fixed inset-0 z-[70] hidden flex items-center justify-center p-4 overflow-y-auto bg-slate-900/60 backdrop-blur-sm">
+<div class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full shadow-2xl border border-slate-300 dark:border-slate-600 my-6 overflow-hidden">
+<div class="bg-gradient-to-l from-purple-700 to-indigo-700 px-5 py-4 text-white"><h2 class="text-base font-bold">به سامانه خوش آمدید</h2><p id="wizStepLabel" class="text-[11px] text-white/80 mt-1"></p></div>
+<div class="p-5 space-y-4">
+<div id="wizStep1"><p class="text-xs font-medium text-slate-600 dark:text-slate-300 mb-2">شغل یا صنف شما چیست؟</p><div id="wizBiz" class="grid grid-cols-2 gap-2"></div></div>
+<div id="wizStep2" class="hidden space-y-3">
+<div><label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">نام کسب‌وکار</label><input id="wizName" type="text" maxlength="60" placeholder="مثلاً: آرایشگاه نگین" class="w-full p-2.5 border border-slate-400 dark:border-slate-500 rounded-xl text-sm bg-white dark:bg-slate-800 field-box-bg dark:text-slate-100"></div>
+<div><label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">واحد پول</label><select id="wizCurrency" class="w-full p-2.5 border border-slate-400 dark:border-slate-500 rounded-xl text-sm bg-white dark:bg-slate-800 field-box-bg dark:text-slate-100"><option value="تومان">تومان</option><option value="ریال">ریال</option></select></div>
+<div class="grid grid-cols-2 gap-3"><div><label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">شروع کار</label><input id="wizStart" type="time" value="08:00" class="w-full p-2.5 border border-slate-400 dark:border-slate-500 rounded-xl text-sm bg-white dark:bg-slate-800 field-box-bg dark:text-slate-100"></div><div><label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">پایان کار</label><input id="wizEnd" type="time" value="18:00" class="w-full p-2.5 border border-slate-400 dark:border-slate-500 rounded-xl text-sm bg-white dark:bg-slate-800 field-box-bg dark:text-slate-100"></div></div>
+<div><label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">روزهای تعطیل هفته</label><div id="wizWeekend" class="flex flex-wrap gap-1.5"></div></div>
+<div class="grid grid-cols-2 gap-3 items-end"><div><label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">واحد شمارش</label><input id="wizUnit" type="text" maxlength="12" class="w-full p-2.5 border border-slate-400 dark:border-slate-500 rounded-xl text-sm bg-white dark:bg-slate-800 field-box-bg dark:text-slate-100"></div><label class="flex items-center gap-2 text-[12px] text-slate-600 dark:text-slate-300 pb-3 cursor-pointer"><input id="wizTrack" type="checkbox" class="accent-purple-600">محاسبه‌ی زمان تحویل و تاخیر</label></div>
+<label class="flex items-center gap-2 text-[12px] text-slate-600 dark:text-slate-300 cursor-pointer"><input id="wizDeadline" type="checkbox" class="accent-purple-600">هر سفارش مهلت تحویل دارد (وضعیت از مقایسه‌ی مهلت با تحویل ساخته شود)</label>
+</div>
+<p id="wizErr" class="hidden text-xs text-red-600"></p>
+<div class="flex gap-2"><button type="button" id="wizBackBtn" onclick="wizShow(1)" class="hidden px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 text-sm font-bold text-slate-600 dark:text-slate-300">قبلی</button><button type="button" id="wizNextBtn" onclick="wizNext()" class="flex-1 py-2.5 rounded-xl bg-purple-700 text-white text-sm font-bold">بعدی</button></div>
+<button type="button" onclick="wizSkip()" class="w-full text-[11px] text-slate-400">فعلاً رد شود (بعداً از تنظیمات)</button>
+</div></div></div>
+<div id="settingsModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
         <div class="bg-white dark:bg-slate-900 pro-modal rounded-2xl max-w-xl w-full shadow-2xl border border-slate-300 dark:border-slate-600 my-8 transition-all overflow-hidden">
             <div class="bg-gradient-to-l from-purple-700 to-indigo-700 px-6 py-5 text-white relative">
                 <button onclick="closeSettingsModal()" class="absolute top-4 left-4 text-white/80 hover:text-white p-1.5 rounded-xl hover:bg-white/10 transition-colors">
@@ -2142,7 +2228,7 @@
                     </div>
                     <div class="min-w-0">
                         <p id="settingsProfilePreviewName" class="text-sm font-bold truncate">کاربر مهمان</p>
-                        <p id="settingsProfilePreviewSub" class="text-[11px] text-white/70 truncate">سامانه‌ی کارگاه هوشمند</p>
+                        <p id="settingsProfilePreviewSub" class="text-[11px] text-white/70 truncate">سامانه‌ی کار هوشمند</p>
                     </div>
                 </div>
             </div>
@@ -2232,7 +2318,7 @@
                         <p class="text-[11px] leading-relaxed text-slate-400 dark:text-slate-500 mt-1">اگر اختلاف زمان واقعی با مدت هدف کمتر از این مقدار باشد، وضعیت «به موقع» ثبت می‌شود (۰ = دقیقاً بدون اختلاف، حداکثر ۱۲۰).</p>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">عنوان کارگاه / سامانه</label>
+                        <label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">نام کسب‌وکار / سامانه</label>
                         <input type="text" id="settingShopName" oninput="updateSettingsProfilePreview()" class="w-full p-2.5 border border-slate-400 dark:border-slate-500 rounded-xl text-sm bg-white dark:bg-slate-800 field-box-bg dark:text-slate-100 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all">
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -2262,6 +2348,18 @@
                         <i id="workHoursSectionIcon" class="fa-solid fa-chevron-up text-[10px] text-slate-400 shrink-0 transition-transform"></i>
                     </button>
                     <div id="workHoursSectionBody" class="space-y-3">
+<div>
+<label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">روزهای تعطیل هفته</label>
+<div id="settingWeekendDays" class="flex flex-wrap gap-1.5"></div>
+<label for="settingWeekStart" class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-2 mb-1">شروع هفته (برای هدف هفتگی)</label>
+<select id="settingWeekStart" class="w-full p-2.5 border border-slate-400 dark:border-slate-500 rounded-xl text-sm bg-white dark:bg-slate-800 field-box-bg dark:text-slate-100"></select>
+<label for="settingQuickItems" class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-2 mb-1">منوی سریع (هر خط: نام | قیمت) — برای ثبت با یک لمس</label>
+<textarea id="settingQuickItems" rows="4" placeholder="مثلاً: لاته | 85000" class="w-full p-2.5 border border-slate-400 dark:border-slate-500 rounded-xl text-sm bg-white dark:bg-slate-800 field-box-bg dark:text-slate-100"></textarea>
+<label for="settingQtyUnit" class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-2 mb-1">واحد شمارش (عدد، متر، ساعت، کیلو...)</label>
+<input id="settingQtyUnit" type="text" maxlength="12" class="w-full p-2.5 border border-slate-400 dark:border-slate-500 rounded-xl text-sm bg-white dark:bg-slate-800 field-box-bg dark:text-slate-100">
+<label class="flex items-center gap-2 mt-2 text-[12px] text-slate-600 dark:text-slate-300 cursor-pointer"><input id="settingTrackDelivery" type="checkbox" class="accent-purple-600"> محاسبه‌ی زمان تحویل و تاخیر کارها (برای خدمات و فروش خاموش کنید)</label>
+<label class="flex items-center gap-2 mt-2 text-[12px] text-slate-600 dark:text-slate-300 cursor-pointer"><input id="settingDeadlineMode" type="checkbox" class="accent-purple-600"> حالت «مهلت تحویل»: وضعیت از مقایسه‌ی مهلت هر سفارش با تاریخ ثبت/تحویل ساخته می‌شود</label>
+</div>
                     <p class="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">«ساعت کاری مفید روزانه» (مبنای محاسبه مدت از روی آمار روزانه) مستقل از بازه‌های زیر وارد می‌شود؛ بازه‌ها فقط تعیین می‌کنند کار در چه ساعاتی جلو برود. برای حذف یک استراحت، هر دو ساعت آن را خالی بگذارید. جمعه‌ها همچنان تعطیل است. تغییر فقط روی محاسبه‌های بعدی اثر می‌گذارد؛ رکوردهای قبلی تا زمان ویرایش عوض نمی‌شوند.</p>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
@@ -2301,7 +2399,7 @@
                 </div>
                 <div class="space-y-3 pb-4 border-b border-slate-300 dark:border-slate-600">
                     <h3 class="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider flex items-center gap-1.5"><i class="fa-solid fa-bullseye"></i> هدف درآمد</h3>
-                    <p class="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">مبلغ هدف را به تومان/ریال (مطابق واحد پول برنامه) وارد کنید؛ خالی یا صفر یعنی بدون هدف. هفته از شنبه تا جمعه است و درآمد، مجموع «ارزش کل» رکوردهای همان بازه (بدون رکوردهای قیمت نامعلوم) است. ماهانه شامل همه‌ی رکوردهای ثبت‌شده در ماه جاری است. نوار پیشرفت و پیام تبریک در کادر «ارزش کل کارکرد» نمایش داده می‌شود.</p>
+                    <p class="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">مبلغ هدف را به تومان/ریال (مطابق واحد پول برنامه) وارد کنید؛ خالی یا صفر یعنی بدون هدف. شروع هفته در تنظیمات «ساعات کاری» قابل تغییر است (پیش‌فرض شنبه) و درآمد، مجموع «ارزش کل» رکوردهای همان بازه (بدون رکوردهای قیمت نامعلوم) است. ماهانه شامل همه‌ی رکوردهای ثبت‌شده در ماه جاری است. نوار پیشرفت و پیام تبریک در کادر «ارزش کل کارکرد» نمایش داده می‌شود.</p>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">هدف هفتگی</label>
@@ -2346,8 +2444,8 @@
                 </div>
 
                 <div id="settingsTab-manager" class="settings-tab-panel hidden space-y-4">
-                    <h3 class="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider flex items-center gap-1.5"><i class="fa-solid fa-user-tie"></i> قابلیت کارفرما (مدیر کارگاه)</h3>
-                    <p class="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">کارفرما مدیر کارگاه است و همه‌ی بخش‌ها و پرسنل را مدیریت می‌کند: تعریف بخش‌ها و پرسنل و ارجاع کار به پرسنل. غیرفعال‌سازی هیچ داده‌ای را پاک نمی‌کند و فقط بخش‌های مربوط پنهان می‌شوند.</p>
+                    <h3 class="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider flex items-center gap-1.5"><i class="fa-solid fa-user-tie"></i> قابلیت کارفرما (مدیر مجموعه)</h3>
+                    <p class="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">کارفرما مدیر مجموعه است و همه‌ی بخش‌ها و پرسنل را مدیریت می‌کند: تعریف بخش‌ها و پرسنل و ارجاع کار به پرسنل. غیرفعال‌سازی هیچ داده‌ای را پاک نمی‌کند و فقط بخش‌های مربوط پنهان می‌شوند.</p>
                     <label class="flex items-center justify-between gap-3 cursor-pointer bg-slate-50 dark:bg-slate-800/60 rounded-xl p-3 border border-slate-300 dark:border-slate-600">
                         <span class="text-xs font-bold text-slate-700 dark:text-slate-200">فعال‌سازی قابلیت کارفرما</span>
                         <input type="checkbox" id="settingManagerEnabled" onchange="mgrToggle(this.checked)" class="w-5 h-5 accent-purple-600 cursor-pointer">
@@ -2519,8 +2617,8 @@
                         <div>
                             <label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">اندازه فونت متن انگیزشی</label>
                             <select id="settingMotivationFontSize" class="w-full p-2.5 border border-slate-400 dark:border-slate-500 rounded-xl text-sm bg-white dark:bg-slate-800 field-box-bg dark:text-slate-100 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all">
-                                <option value="small">کوچک</option>
-                                <option value="normal">معمولی (پیش‌فرض)</option>
+                                <option value="small">کوچک (پیش‌فرض)</option>
+                                <option value="normal">معمولی</option>
                                 <option value="large">بزرگ</option>
                                 <option value="xlarge">خیلی بزرگ</option>
                             </select>
@@ -2824,19 +2922,19 @@
 
                 <div id="settingsTab-about" class="settings-tab-panel hidden space-y-4">
                 <div class="space-y-3 pb-4 border-b border-slate-300 dark:border-slate-600">
-                    <h3 class="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider flex items-center gap-1.5"><i class="fa-solid fa-circle-info"></i> درباره سامانه‌ی کارگاه هوشمند</h3>
+                    <h3 class="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider flex items-center gap-1.5"><i class="fa-solid fa-circle-info"></i> درباره سامانه‌ی کار هوشمند</h3>
                     <p class="text-[12px] leading-relaxed text-slate-600 dark:text-slate-300">این سامانه‌یک ابزار آفلاین (PWA) برای ثبت و مدیریت کارکرد روزانه‌ی هر شغل کارمزدی یا پروژه‌ای است: هر کد کار با عنوان، رنگ/مشخصات، تعداد و قیمت ثبت می‌شود، مدت‌زمان تحویل به‌صورت خودکار از روی آمار روزانه محاسبه می‌شود و وضعیت «به‌موقع / تاخیر / زودتر از موعد» خودکار تعیین می‌گردد.</p>
                 </div>
                 <div class="space-y-2 pb-4 border-b border-slate-300 dark:border-slate-600">
                     <h4 class="text-[11px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">امکانات کلیدی</h4>
                     <ul class="text-[12px] text-slate-600 dark:text-slate-300 leading-relaxed space-y-1.5">
                         <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-0.5"></i><span>ثبت سریع کارکرد روزانه با کد، عنوان، تعداد و قیمت هر کد کار، به‌همراه عکس اختیاری نمونه کار</span></li>
-                        <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-0.5"></i><span>محاسبه‌ی خودکار زمان تحویل با احتساب ساعات کاری، استراحت‌ها و تعطیلی جمعه‌ها</span></li>
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-0.5"></i><span>محاسبه‌ی خودکار زمان تحویل با احتساب ساعات کاری، استراحت‌ها و تعطیلی روزهای تعطیل هفته</span></li>
                         <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-0.5"></i><span>تعیین خودکار وضعیت «به‌موقع / تاخیر / زودتر از موعد» برای هر رکورد</span></li>
                         <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-0.5"></i><span>ویجت دایره‌ای پیشرفت کار جاری و اعلان‌های هوشمند پلکانی (۲۵٪ تا ۹۰٪)</span></li>
                         <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-0.5"></i><span>یادداشت‌های خاص روزانه (عادی، یادآوری، تعطیلی) برای هر تاریخ</span></li>
                         <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-0.5"></i><span>لیست کارکردها با نمای جدولی/کارتی، فیلتر ماهانه، جستجوی پیشرفته و نمایش تمام‌صفحه</span></li>
-                        <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-0.5"></i><span>گزارش کلی و نمای کلی ماهانه از کارگاه هوشمند، همراه هدف‌گذاری درآمد هفتگی/ماهانه</span></li>
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-0.5"></i><span>گزارش کلی و نمای کلی ماهانه از کار هوشمند، همراه هدف‌گذاری درآمد هفتگی/ماهانه</span></li>
                         <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-0.5"></i><span>پشتیبان‌گیری خودکار و دستی JSON، ارسال به فضای ابری و پشتیبان چرخشی در پوشه دستگاه</span></li>
                         <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-0.5"></i><span>خروجی گزارش رسمی HTML قابل چاپ و خروجی CSV اکسل از رکوردها</span></li>
                         <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-0.5"></i><span>سطل بازیافت (۳۰ روزه)، بررسی سلامت داده و لاگ کامل رویدادهای سیستم</span></li>
@@ -2871,7 +2969,7 @@
                     <div class="inline-flex items-center justify-center w-14 h-14 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 rounded-2xl mb-2 shadow-inner overflow-hidden">
                         <img src="icon-192.png" alt="لوگوی سامانه" class="w-10 h-10 object-contain rounded-lg">
                     </div>
-                    <p class="text-sm font-bold text-slate-800 dark:text-white">سامانه‌ی کارگاه هوشمند</p>
+                    <p class="text-sm font-bold text-slate-800 dark:text-white">سامانه‌ی کار هوشمند</p>
                     <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">نسخه ۱۳.۰</p>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-3">طراحی و توسعه توسط تیم <span class="font-bold text-indigo-600 dark:text-indigo-400">Phoenix.Yaser</span></p>
                 </div>
@@ -3211,7 +3309,7 @@
             if (navigator.share) {
                 try {
                     await navigator.share({
-                        title: 'سامانه‌ی کارگاه هوشمند',
+                        title: 'سامانه‌ی کار هوشمند',
                         text: 'این سامانه‌ی هوشمند آمار و مدیریت کار رو ببین:',
                         url: shareUrl
                     });
@@ -3309,8 +3407,18 @@
         }
         async function shareTodayReport() {
             const t = buildTodayReportData().text;
+            // در اپ نصب‌شده (APK) پنجره‌ی اشتراک‌گذاری خودِ گوشی با پلاگین Share باز می‌شود
+            const ShareApi = (typeof getNativePlugin === 'function') ? getNativePlugin('Share') : null;
+            if (ShareApi && typeof ShareApi.share === 'function') {
+                try {
+                    await ShareApi.share({ title: 'گزارش امروز', text: t, dialogTitle: 'ارسال گزارش امروز' });
+                    return;
+                } catch (e) {
+                    if (/cancel/i.test((e && e.message) || '')) return; // کاربر پنجره را بست
+                }
+            }
             if (navigator.share) {
-                try { await navigator.share({ text: t }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
+                try { await navigator.share({ title: 'گزارش امروز', text: t }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
             }
             copyTodayReport();
         }
@@ -3775,7 +3883,7 @@
             s.motivationBadgeVisible = s.motivationBadgeVisible !== false;
             s.motivationAnimation = pick(s.motivationAnimation, ['default', 'pulse', 'glow', 'shake', 'bounce', 'wiggle', 'tada', 'rainbow', 'flip', 'slide', 'none'], 'default');
             s.motivationFontFamily = pick(s.motivationFontFamily, ['inherit', 'Vazirmatn', 'Vazir', 'Sahel', 'Samim', 'Shabnam'], 'inherit');
-            s.motivationFontSize = pick(s.motivationFontSize, ['small', 'normal', 'large', 'xlarge'], 'normal');
+            s.motivationFontSize = pick(s.motivationFontSize, ['small', 'normal', 'large', 'xlarge'], 'small');
             ['motivationBgColor', 'motivationTextColor'].forEach(k => { if (!colorOk(s[k])) s[k] = 'default'; });
             s.cardFx = !!s.cardFx;
             s.cardFxScheme = pick(s.cardFxScheme, ['indigo', 'emerald', 'sky', 'amber', 'rose', 'slate', 'teal', 'fuchsia', 'lime', 'gold', 'sunset', 'royal', 'multi'], 'indigo');
@@ -3788,6 +3896,7 @@
             s.motivFxStyle = pick(s.motivFxStyle, ['ring', 'double', 'neon', 'gradient', 'shimmer', 'dashed', 'underline', 'pulse', 'corners', 'flow', 'offset'], 'ring');
             s.motivFxColor = pick(s.motivFxColor, ['violet', 'cyan', 'gold', 'red', 'blue', 'sunset', 'ocean', 'forest', 'candy', 'royal', 'graphite'], 'violet');
             s.shopName = String(s.shopName || DEFAULT_APP_SETTINGS.shopName).slice(0, 120);
+            if (s.shopName === 'سامانه‌ی کارگاه' + ' هوشمند') s.shopName = DEFAULT_APP_SETTINGS.shopName;
             ['ownerName', 'ownerPhone', 'ownerAddress'].forEach(k => { s[k] = String(s[k] == null ? '' : s[k]).slice(0, 200); });
             s.ownerPhoto = isSafeImageDataUrl(s.ownerPhoto) ? s.ownerPhoto : null;
             s.pinHash = (typeof s.pinHash === 'string' && s.pinHash) ? s.pinHash : null;
@@ -3832,6 +3941,14 @@
                 .filter(f => f && typeof f === 'object' && /^cf[a-z0-9]{3,24}$/.test(String(f.id)) && !seenCf.has(String(f.id)) && seenCf.add(String(f.id)))
                 .slice(0, CF_MAX).map(f => ({ id: String(f.id), label: String(f.label == null ? '' : f.label).trim().slice(0, 40) || 'فیلد', type: f.type === 'number' ? 'number' : 'text' })); }
             s.businessType = (typeof BUSINESS_PRESETS !== 'undefined' && BUSINESS_PRESETS[s.businessType]) ? s.businessType : 'general';
+            s.weekendDays = Array.isArray(s.weekendDays) ? [...new Set(s.weekendDays.map(Number).filter(n => Number.isInteger(n) && n >= 0 && n <= 6))] : [6];
+            if (s.weekendDays.length > 6) s.weekendDays = [6];
+            s.weekStartDay = (Number.isInteger(Number(s.weekStartDay)) && Number(s.weekStartDay) >= 0 && Number(s.weekStartDay) <= 6) ? Number(s.weekStartDay) : 0;
+            s.setupDone = !!s.setupDone;
+            s.quickItems = Array.isArray(s.quickItems) ? s.quickItems.map(x => ({ t: String((x && x.t) || '').trim().slice(0, 40), p: Math.max(0, Number(x && x.p) || 0) })).filter(x => x.t).slice(0, 40) : [];
+            s.qtyUnit = String(s.qtyUnit || 'عدد').trim().slice(0, 12) || 'عدد';
+            s.trackDelivery = s.trackDelivery !== false;
+            s.deadlineMode = !!s.deadlineMode;
             s.bestStreak = Math.max(0, Number(s.bestStreak) || 0);
             const m = (s.manager && typeof s.manager === 'object' && !Array.isArray(s.manager)) ? s.manager : {};
             const A = v => Array.isArray(v) ? v : [];
@@ -4294,13 +4411,13 @@
             { id: 'home', ic: 'fa-house', t: 'تب خانه', items: [
                 ['کارت‌های آمار', 'خلاصه‌ی ماه فعال، از جمله «ارزش کل کارکرد» به واحد پول انتخابی (تومان یا ریال).'],
                 ['هدف درآمد', 'می‌توانید هدف <b>هفتگی</b>، <b>ماهانه</b> یا <b>بازه‌ی دلخواه</b> تعیین کنید (تنظیمات ← پروفایل/مشخصات) و نوار پیشرفت آن را در خانه ببینید. با رسیدن به هدف، تبریک نمایش داده می‌شود.'],
-                ['دستیار هوشمند', 'تحلیل <b>آفلاین</b> روی همان دستگاه؛ داده‌های شما به جایی ارسال نمی‌شود. با دکمه‌ی به‌روزرسانی روی کارت، تحلیل دوباره ساخته می‌شود.'],
+                ['دستیار هوشمند', 'کارت خلاصه‌ی آخرین تحلیل <b>آفلاین</b> روی همان دستگاه؛ داده‌های شما به جایی ارسال نمی‌شود. با دکمه‌ی به‌روزرسانی تحلیل دوباره ساخته می‌شود و با «چت با دستیار» وارد صفحه‌ی اختصاصی پرسش و پاسخ می‌شوید.'],
                 ['ویجت پیشرفت کار جاری', 'کار در حال انجام، درصد پیشرفت و زمان باقی‌مانده تا موعد (یا میزان تاخیر) را نشان می‌دهد.'],
                 ['نوار متن انگیزشی', 'نوار بالای صفحه، همراه با شمارش تحویل‌های به‌موقع پشت‌سرهم. نمایش، انیمیشن، فونت و رنگ آن از تنظیمات ← ظاهری قابل تغییر است.'],
                 ['میان‌برها', 'دکمه‌های «ثبت کارکرد جدید» و «لیست کارکردها» و (در حالت کارفرما) «پنل کارفرما» در همین تب قرار دارند.']
             ] },
             { id: 'add', ic: 'fa-circle-plus', t: 'ثبت کارکرد جدید', items: [
-                ['فیلدهای اصلی', 'کد کار/قطعه، عنوان، رنگ/مشخصات (اختیاری)، تعداد دریافتی و قیمت واحد. مبلغ کل خودکار = تعداد × قیمت واحد. نام فیلدها با «نوع کسب‌وکار» و تنظیمات فرم قابل تغییر است.'],
+                ['فیلدهای اصلی', 'کد/شماره کار، عنوان، رنگ/مشخصات (اختیاری)، تعداد دریافتی و قیمت واحد. مبلغ کل خودکار = تعداد × قیمت واحد. نام فیلدها با «نوع کسب‌وکار» و تنظیمات فرم قابل تغییر است.'],
                 ['قیمت نامعلوم', 'اگر قیمت هنوز مشخص نیست، «قیمت نامعلوم» را بزنید؛ رکورد ثبت می‌شود ولی در جمع مبلغ حساب نمی‌شود و بعداً با ویرایش کامل می‌شود.'],
                 ['پرسنل مسئول', 'در حالت کارفرما، کار را به یک پرسنل ارجاع می‌دهید؛ کارکرد در حساب همان پرسنل می‌آید.'],
                 ['وضعیت تحویل', 'سه وضعیت: <b>به موقع</b>، <b>تاخیر</b>، <b>زودتر از موعد</b>. در حالت «خودکار» وضعیت از روی مهلت و زمان پایان محاسبه می‌شود و در حالت «دستی» خودتان انتخاب می‌کنید (تنظیمات ← ساعات کاری و فرم).'],
@@ -4321,7 +4438,7 @@
                 ['پایان کار', 'برای کارهای باز، دکمه‌ی «پایان کار» زمان همین لحظه را به‌عنوان پایان ثبت می‌کند و با آیکون برگشت قابل لغو است. ستون «شروع کد بعد» زنجیره‌ی کارها را نشان می‌دهد.'],
                 ['جمع مدت زمان تاخیر', 'زیر لیست، مجموع تاخیرها بر مبنای ساعت کاری مفید روزانه (پیش‌فرض ۸ ساعت و ۱۵ دقیقه، قابل تغییر در تنظیمات) نمایش داده می‌شود.'],
                 ['کدهای تکراری', 'کدهایی که بیش از یک بار ثبت شده‌اند و فهرست کامل کارکردهای هر کد.'],
-                ['چاپ لیست', 'دکمه‌ی «چاپ لیست» لیست فعلی را با سربرگ (نام کارگاه، دوره، تعداد و مجموع مبلغ) چاپ می‌کند. چاپ همیشه با تم روشن انجام می‌شود.'],
+                ['چاپ لیست', 'دکمه‌ی «چاپ لیست» لیست فعلی را با سربرگ (نام کسب‌وکار، دوره، تعداد و مجموع مبلغ) چاپ می‌کند. چاپ همیشه با تم روشن انجام می‌شود.'],
                 ['ویرایش و حذف', 'هر ردیف دکمه‌ی ویرایش و حذف دارد؛ حذف‌شده‌ها ۳۰ روز در سطل بازیافت می‌مانند.']
             ] },
             { id: 'progress', ic: 'fa-stopwatch', t: 'پیشرفت کار', items: [
@@ -4334,7 +4451,7 @@
                 ['نتایج', 'نتیجه‌ها در همان لیست رکوردها با نوار هشدار «نتایج جستجوی پیشرفته» نمایش داده می‌شوند؛ با «بازگشت به نمای ماهانه» به حالت عادی برمی‌گردید. چاپ در این حالت شامل چند ماه است.']
             ] },
             { id: 'reports', ic: 'fa-chart-pie', t: 'گزارش‌ها و خروجی‌ها', items: [
-                ['گزارش کلی', 'خلاصه‌ی آمار ماه فعال؛ در حالت کارفرما داده‌های کارگاه و در حالت پرسنل داده‌های شخصی را نشان می‌دهد و قابل چاپ و تمام‌صفحه است.'],
+                ['گزارش کلی', 'خلاصه‌ی آمار ماه فعال؛ در حالت کارفرما داده‌های مجموعه و در حالت پرسنل داده‌های شخصی را نشان می‌دهد و قابل چاپ و تمام‌صفحه است.'],
                 ['گزارش امروز', 'خلاصه‌ی کار امروز برای ارسال در پیام‌رسان‌ها.'],
                 ['خروجی HTML', 'گزارش رسمی قابل چاپ (منوی ابزار ← داده‌ها).'],
                 ['خروجی CSV', 'جدول رکوردهای دوره‌ی جاری برای باز کردن در اکسل.']
@@ -4343,19 +4460,23 @@
                 ['فعال‌سازی', 'تنظیمات ← کارفرما ← «فعال‌سازی قابلیت کارفرما». غیرفعال‌کردن هیچ داده‌ای را پاک نمی‌کند و فقط بخش‌های مربوط پنهان می‌شوند.'],
                 ['پنل کارفرما', 'از دکمه‌ی «پنل کارفرما» در تب خانه باز می‌شود و سه زبانه دارد: <b>پرسنل</b>، <b>بخش‌ها</b> و <b>مالی و حقوق</b>.'],
                 ['پرسنل', 'افزودن/ویرایش با نام، تلفن، نقش، بخش، تاریخ شروع و پایان، یادداشت و عکس. می‌توانید پرسنل را غیرفعال کنید (سوابق می‌ماند) یا حذف کنید. فایل جداگانه‌ی هر پرسنل دانلود و در صورت نیاز بازیابی می‌شود.'],
-                ['بخش‌ها', 'بخش‌های کارگاه (مثلاً برش، دوخت، انبار) را تعریف و پرسنل را به آن‌ها اختصاص دهید.'],
+                ['بخش‌ها', 'بخش‌های مجموعه (مثلاً تولید، انبار، فروش) را تعریف و پرسنل را به آن‌ها اختصاص دهید.'],
+                ['راه‌اندازی اولیه', 'در اولین اجرا شغل، نام کسب‌وکار، واحد پول، ساعت کاری، روزهای تعطیل، واحد شمارش و محاسبه‌ی زمان تحویل را انتخاب کنید؛ همه‌ی آن‌ها بعداً از تنظیمات قابل تغییرند.'],
+                ['مهلت تحویل', 'در این حالت برای هر سفارش «مهلت تحویل» را انتخاب می‌کنید و وضعیت (به‌موقع، تاخیر، زودتر) از مقایسه‌ی آن با «تاریخ ثبت» به‌دست می‌آید؛ مدت تاخیر یا زودتر بر حسب شبانه‌روز است. سفارش را در روز تحویل ثبت کنید.'],
+                ['بدون زمان تحویل', 'برای خدمات و فروش، گزینه‌ی «محاسبه‌ی زمان تحویل و تاخیر» را در تنظیمات خاموش کنید تا فیلدها و ستون‌های زمان‌بندی مخفی شوند.'],
+                ['خروجی CSV حقوق', 'در پنل کارفرما، بخش حقوق، دکمه‌ی «خروجی CSV حقوق ماه» خلاصه و ریز موارد ماه انتخاب‌شده را برای اکسل می‌دهد.'],
                 ['ارجاع کار', 'هنگام ثبت کارکرد، پرسنل مسئول را انتخاب کنید. در لیست رکوردها می‌توانید «نمایش کارکرد» را برای یک پرسنل یا «بدون ارجاع» فیلتر کنید.'],
                 ['مالی و حقوق', 'چهار زیرزبانه: <b>خلاصه‌ی حقوق</b> (کارت هر پرسنل و مجموع قابل پرداخت)، <b>ثبت موارد</b> (اضافه‌کاری، غیبت، مرخصی، پاداش، کسورات)، <b>نرخ‌های ساعتی</b> و <b>حقوق پایه</b> (از ماهی که تعیین می‌کنید به بعد معتبر است).'],
                 ['فرمول قابل پرداخت', 'حقوق پایه + کارکرد (جمع مبلغ رکوردهای ارجاع‌شده) + اضافه‌کاری + پاداش − غیبت − کسورات ± مرخصی. هر مورد نرخ لحظه‌ی ثبت را نگه می‌دارد و تغییر بعدی نرخ روی ثبت‌های قبل اثر نمی‌گذارد.']
             ] },
             { id: 'wfin', ic: 'fa-wallet', t: 'کادر خلاصه‌ی مالی پرسنل', items: [
                 ['باز کردن', 'در لیست رکوردها (حالت کارفرما) روی <b>نام پرسنل</b> بزنید تا کادر کوچک مالی همان ماه باز شود (در جدول، کارت موبایل و نمای گروه‌بندی‌شده).'],
-                ['محتوا', 'آمار (کارکرد، روز کاری، میانگین هر رکورد، سهم از کارکرد کارگاه)، ریز حقوق پایه/کارکرد/اضافه‌کاری و ...، مبلغ قابل پرداخت، و دو بخش بازشونده برای «ثبت‌های مالی ماه» و «کارکردهای ماه».'],
+                ['محتوا', 'آمار (کارکرد، روز کاری، میانگین هر رکورد، سهم از کارکرد مجموعه)، ریز حقوق پایه/کارکرد/اضافه‌کاری و ...، مبلغ قابل پرداخت، و دو بخش بازشونده برای «ثبت‌های مالی ماه» و «کارکردهای ماه».'],
                 ['بستن', 'با دکمه‌ی ✕، کلید Esc یا زدن دوباره‌ی همان نام. کلیک بیرون کادر آن را نمی‌بندد.'],
                 ['چاپ', 'اگر کادر باز باشد، هنگام چاپ لیست، خلاصه‌ی کامل آن پرسنل (با همه‌ی ثبت‌ها و کارکردها) زیر لیست چاپ می‌شود.']
             ] },
             { id: 'settings', ic: 'fa-gear', t: 'تنظیمات (هفت زبانه)', items: [
-                ['پروفایل', 'نام، تلفن و آدرس، نام کارگاه، واحد پول، وضعیت پیش‌فرض ثبت، حاشیه‌ی «به‌موقع» (دقیقه)، هدف‌های درآمد و نوع کسب‌وکار.'],
+                ['پروفایل', 'نام، تلفن و آدرس، نام کسب‌وکار، واحد پول، وضعیت پیش‌فرض ثبت، حاشیه‌ی «به‌موقع» (دقیقه)، هدف‌های درآمد و نوع کسب‌وکار.'],
                 ['ساعات کاری و فرم', 'شروع/پایان کار و استراحت‌ها، ساعت کاری مفید روزانه، منطق محاسبه‌ی وضعیت تحویل (خودکار/دستی)، نام فیلدهای فرم، و افزودن/حذف فیلدهای دلخواه.'],
                 ['کارفرما', 'روشن/خاموش‌کردن قابلیت کارفرما.'],
                 ['ظاهری', 'تم روشن/تاریک، فرمت اعداد (فارسی/انگلیسی)، فونت و اندازه، رنگ پس‌زمینه، کادرها و فیلدها، نوار متن انگیزشی، و جلوه‌های بصری کادرها، کادر سامانه و متن انگیزشی (هرکدام با رنگ و نوع جلوه‌ی مستقل).'],
@@ -4723,7 +4844,7 @@
         let dailyNotes = (() => { const raw = safeLoadJSON('sewing_daily_notes_v13', []); return Array.isArray(raw) ? raw.map(sanitizeNote).filter(Boolean) : []; })();
 
         const FORM_LABEL_DEFAULTS = {
-            itemCode: 'کد کار / قطعه', itemTitle: 'عنوان کار / قطعه', itemColor: 'رنگ / مشخصات', receivedQuantity: 'تعداد دریافتی',
+            itemCode: 'کد / شماره کار', itemTitle: 'عنوان کار / خدمت', itemColor: 'رنگ / مشخصات', receivedQuantity: 'تعداد دریافتی',
             unitPrice: 'قیمت واحد', itemStatus: 'وضعیت تحویل / ثبت', recordDate: 'تاریخ ثبت', recordTime: 'ساعت ثبت',
             dailyStat: 'آمار روزانه', recordEndDateTime: 'تاریخ و زمان پایان', recordWorkDuration: 'مدت زمان تحویل کار'
         };
@@ -4732,20 +4853,34 @@
         const BUSINESS_PRESETS = {
             general: { name: 'عمومی (همه‌ی مشاغل)', labels: {}, optional: { itemColor: true },
                 hints: { role: 'مثلاً استادکار، شاگرد، راننده', section: 'مثلاً تولید، انبار، فروش، خدمات' } },
-            repair: { name: 'تعمیرگاه (لوازم برقی، موبایل و...)', labels: { itemCode: 'شماره پذیرش', itemTitle: 'دستگاه / قطعه', itemColor: 'عیب / توضیح', receivedQuantity: 'تعداد', unitPrice: 'دستمزد', itemStatus: 'وضعیت تحویل' }, optional: { itemColor: true },
+            repair: { deadline: true, name: 'تعمیرگاه (لوازم برقی، موبایل و...)', labels: { itemCode: 'شماره پذیرش', itemTitle: 'دستگاه / قطعه', itemColor: 'عیب / توضیح', receivedQuantity: 'تعداد', unitPrice: 'دستمزد', itemStatus: 'وضعیت تحویل' }, optional: { itemColor: true },
                 hints: { role: 'مثلاً تعمیرکار، تکنسین', section: 'مثلاً پذیرش، تعمیر، تست، تحویل' } },
             auto: { name: 'مکانیکی و خدمات خودرو', labels: { itemCode: 'شماره پلاک / پذیرش', itemTitle: 'خودرو / نوع خدمت', itemColor: 'مشخصات', receivedQuantity: 'تعداد', unitPrice: 'دستمزد / قیمت واحد' }, optional: { itemColor: true },
                 hints: { role: 'مثلاً مکانیک، برقکار خودرو', section: 'مثلاً موتور، برق، کارواش، صافکاری' } },
-            carpentry: { name: 'نجاری، کابینت و مبلمان', labels: { itemCode: 'کد سفارش', itemTitle: 'نوع کار (درب، کابینت، مبل...)', itemColor: 'جنس / رنگ', receivedQuantity: 'تعداد' }, optional: { itemColor: true },
+            carpentry: { deadline: true, name: 'نجاری، کابینت و مبلمان', labels: { itemCode: 'کد سفارش', itemTitle: 'نوع کار (درب، کابینت، مبل...)', itemColor: 'جنس / رنگ', receivedQuantity: 'تعداد' }, optional: { itemColor: true },
                 hints: { role: 'مثلاً نجار، رنگ‌کار، نصاب', section: 'مثلاً برش، مونتاژ، رنگ، نصب' } },
-            construction: { name: 'ساختمان و نصب', labels: { itemCode: 'کد پروژه', itemTitle: 'شرح کار', itemColor: 'محل / توضیح', receivedQuantity: 'مقدار (متر / عدد)', unitPrice: 'نرخ واحد' }, optional: { itemColor: true },
+            construction: { deadline: true, name: 'ساختمان و نصب', labels: { itemCode: 'کد پروژه', itemTitle: 'شرح کار', itemColor: 'محل / توضیح', receivedQuantity: 'مقدار (متر / عدد)', unitPrice: 'نرخ واحد' }, optional: { itemColor: true },
                 hints: { role: 'مثلاً بنّا، برقکار، لوله‌کش', section: 'مثلاً اسکلت، برق، لوله‌کشی، نازک‌کاری' } },
-            salon: { name: 'آرایشگاه و خدمات زیبایی', labels: { itemCode: 'کد پذیرش', itemTitle: 'نوع خدمت', itemColor: 'توضیح', receivedQuantity: 'تعداد', unitPrice: 'تعرفه', itemStatus: 'وضعیت ثبت' }, optional: { itemColor: true },
+            salon: { track: false, unit: 'مورد', name: 'آرایشگاه و خدمات زیبایی', labels: { itemCode: 'کد پذیرش', itemTitle: 'نوع خدمت', itemColor: 'توضیح', receivedQuantity: 'تعداد', unitPrice: 'تعرفه', itemStatus: 'وضعیت ثبت' }, optional: { itemColor: true },
                 hints: { role: 'مثلاً آرایشگر، پدیکور، شاگرد', section: 'مثلاً مو، پوست، ناخن، پذیرش' } },
             food: { name: 'آشپزخانه، قنادی و نانوایی', labels: { itemCode: 'کد سفارش', itemTitle: 'نام محصول', itemColor: 'مشخصات', receivedQuantity: 'تعداد', unitPrice: 'قیمت واحد' }, optional: { itemColor: true },
                 hints: { role: 'مثلاً آشپز، شاطر، کمک‌آشپز', section: 'مثلاً آماده‌سازی، پخت، بسته‌بندی، ارسال' } },
-            print: { name: 'چاپ و تبلیغات', labels: { itemCode: 'شماره سفارش', itemTitle: 'عنوان سفارش', itemColor: 'سایز / رنگ', receivedQuantity: 'تیراژ', unitPrice: 'قیمت واحد' }, optional: { itemColor: true },
+            print: { deadline: true, name: 'چاپ و تبلیغات', labels: { itemCode: 'شماره سفارش', itemTitle: 'عنوان سفارش', itemColor: 'سایز / رنگ', receivedQuantity: 'تیراژ', unitPrice: 'قیمت واحد' }, optional: { itemColor: true },
                 hints: { role: 'مثلاً طراح، اپراتور چاپ', section: 'مثلاً طراحی، چاپ، برش، بسته‌بندی' } },
+            retail: { name: 'فروشگاه و عمده‌فروشی', labels: { itemCode: 'شماره فاکتور', itemTitle: 'کالا / شرح', itemColor: 'توضیح', receivedQuantity: 'تعداد', unitPrice: 'قیمت واحد' }, optional: { itemColor: true }, unit: 'عدد', track: false, customer: 'مشتری',
+                hints: { role: 'مثلاً فروشنده، صندوق‌دار', section: 'مثلاً فروش، انبار، صندوق' } },
+            cafe: { name: 'کافه و رستوران', labels: { itemCode: 'شماره سفارش', itemTitle: 'سفارش / محصول', itemColor: 'توضیح', receivedQuantity: 'تعداد', unitPrice: 'قیمت واحد' }, optional: { itemColor: true }, unit: 'پرس', track: false,
+                hints: { role: 'مثلاً گارسون، آشپز، باریستا', section: 'مثلاً سالن، آشپزخانه، بار' } },
+            academy: { name: 'آموزشگاه و کلاس', labels: { itemCode: 'کد جلسه', itemTitle: 'عنوان کلاس', itemColor: 'توضیح', receivedQuantity: 'مدت', unitPrice: 'شهریه واحد' }, optional: { itemColor: true }, unit: 'ساعت', track: false, customer: 'دانش‌آموز',
+                hints: { role: 'مثلاً مدرس، مربی، مسئول آموزش', section: 'مثلاً کلاس‌ها، دفتر، پشتیبانی' } },
+            farm: { name: 'کشاورزی و باغ', labels: { itemCode: 'کد عملیات', itemTitle: 'محصول / عملیات', itemColor: 'زمین / توضیح', receivedQuantity: 'مقدار', unitPrice: 'نرخ واحد' }, optional: { itemColor: true }, unit: 'کیلو', track: false,
+                hints: { role: 'مثلاً کارگر فصلی، تراکتورکار', section: 'مثلاً کاشت، برداشت، آبیاری' } },
+            transport: { name: 'حمل‌ونقل و باربری', labels: { itemCode: 'شماره بارنامه', itemTitle: 'مبدأ و مقصد', itemColor: 'نوع بار', receivedQuantity: 'مقدار', unitPrice: 'کرایه واحد' }, optional: { itemColor: true }, unit: 'کیلو', track: true, customer: 'مشتری',
+                hints: { role: 'مثلاً راننده، باربر', section: 'مثلاً بارگیری، حمل، تحویل' } },
+            clinic: { name: 'کلینیک و خدمات درمانی', labels: { itemCode: 'شماره پذیرش', itemTitle: 'نوع خدمت', itemColor: 'توضیح', receivedQuantity: 'تعداد', unitPrice: 'تعرفه' }, optional: { itemColor: true }, unit: 'مورد', track: false, customer: 'بیمار',
+                hints: { role: 'مثلاً پزشک، پرستار، منشی', section: 'مثلاً پذیرش، درمان، صندوق' } },
+            freelance: { deadline: true, name: 'فریلنسر و خدمات پروژه‌ای', labels: { itemCode: 'کد پروژه', itemTitle: 'عنوان پروژه', itemColor: 'توضیح', receivedQuantity: 'مقدار', unitPrice: 'نرخ واحد' }, optional: { itemColor: true }, unit: 'ساعت', track: true, customer: 'مشتری',
+                hints: { role: 'مثلاً طراح، برنامه‌نویس، مشاور', section: 'مثلاً طراحی، اجرا، پشتیبانی' } },
             tailor: { name: 'خیاطی و تولیدی پوشاک', labels: { itemCode: 'کد لباس', itemTitle: 'عنوان لباس / مدل', itemColor: 'رنگ', receivedQuantity: 'تعداد دریافتی' }, optional: {},
                 hints: { role: 'مثلاً خیاط، اتوکار', section: 'مثلاً برش، دوخت، اتو، بسته‌بندی' } }
         };
@@ -4759,7 +4894,139 @@
             const cur = BUSINESS_PRESETS[appSettings.businessType] ? appSettings.businessType : 'general';
             sel.innerHTML = Object.keys(BUSINESS_PRESETS).map(k => `<option value="${k}"${k === cur ? ' selected' : ''}>${escapeHTML(BUSINESS_PRESETS[k].name)}</option>`).join('');
         }
+const WK_NAMES = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه'];
+        function weekendSet() { const a = (typeof appSettings !== 'undefined' && appSettings) ? appSettings.weekendDays : null; return new Set(Array.isArray(a) ? a : [6]); }
+        function renderWeekChecks(id, sel) {
+            const box = document.getElementById(id); if (!box) return;
+            box.innerHTML = WK_NAMES.map((n, i) => `<label class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 text-[12px] text-slate-600 dark:text-slate-300 cursor-pointer"><input type="checkbox" value="${i}" ${sel.includes(i) ? 'checked' : ''} class="accent-purple-600">${n}</label>`).join('');
+        }
+        function readWeekChecks(id) { const box = document.getElementById(id); return box ? [...box.querySelectorAll('input:checked')].map(x => Number(x.value)) : [6]; }
+        function populateWeekSettings() {
+            populateUnitTrack();
+            renderWeekChecks('settingWeekendDays', [...weekendSet()]);
+            const sel = document.getElementById('settingWeekStart');
+            if (sel) sel.innerHTML = WK_NAMES.map((n, i) => `<option value="${i}"${i === (appSettings.weekStartDay || 0) ? ' selected' : ''}>${n}</option>`).join('');
+        }
+        let wizBizId = 'general';
+        function wizRenderBiz() {
+            document.getElementById('wizBiz').innerHTML = Object.keys(BUSINESS_PRESETS).map(k => `<button type="button" onclick="wizBizId='${k}';wizRenderBiz()" class="p-2.5 rounded-xl border text-[12px] font-bold text-right ${k === wizBizId ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300' : 'border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300'}">${escapeHTML(BUSINESS_PRESETS[k].name)}</button>`).join('');
+        }
+        function wizShow(n) {
+            document.getElementById('wizStep1').classList.toggle('hidden', n !== 1);
+            document.getElementById('wizStep2').classList.toggle('hidden', n !== 2);
+            document.getElementById('wizBackBtn').classList.toggle('hidden', n !== 2);
+            if (n === 2) { const q = BUSINESS_PRESETS[wizBizId] || BUSINESS_PRESETS.general; document.getElementById('wizUnit').value = q.unit || 'عدد'; document.getElementById('wizTrack').checked = q.track !== false; document.getElementById('wizDeadline').checked = !!q.deadline; }
+            document.getElementById('wizNextBtn').dataset.step = n;
+            document.getElementById('wizNextBtn').innerText = n === 2 ? 'شروع کار' : 'بعدی';
+            document.getElementById('wizStepLabel').innerText = `مرحله ${formatNumber(n)} از ${formatNumber(2)}`;
+            document.getElementById('wizErr').classList.add('hidden');
+        }
+        function wizOpen() {
+            wizBizId = 'general'; wizRenderBiz(); renderWeekChecks('wizWeekend', [6]); wizShow(1);
+            document.getElementById('setupWizard').classList.remove('hidden');
+        }
+        function wizSkip() { appSettings.setupDone = true; persistAppSettings(); document.getElementById('setupWizard').classList.add('hidden'); }
+        function wizNext() {
+            if (document.getElementById('wizNextBtn').dataset.step !== '2') { wizShow(2); return; }
+            const st = document.getElementById('wizStart').value, en = document.getElementById('wizEnd').value, err = document.getElementById('wizErr');
+            if (!st || !en || parseTimeToMinutes(en) - parseTimeToMinutes(st) < 60) { err.innerText = 'ساعت پایان کار باید حداقل یک ساعت بعد از شروع باشد.'; err.classList.remove('hidden'); return; }
+            const off = readWeekChecks('wizWeekend');
+            if (off.length > 6) { err.innerText = 'حداقل یک روز کاری در هفته باید باقی بماند.'; err.classList.remove('hidden'); return; }
+            const p = BUSINESS_PRESETS[wizBizId] || BUSINESS_PRESETS.general, name = document.getElementById('wizName').value.trim();
+            appSettings.businessType = wizBizId; appSettings.formLabels = { ...(p.labels || {}) }; appSettings.optionalFields = { ...(p.optional || {}) };
+            if (name) appSettings.shopName = name.slice(0, 120);
+            appSettings.currency = document.getElementById('wizCurrency').value;
+            appSettings.qtyUnit = (document.getElementById('wizUnit').value.trim() || 'عدد').slice(0, 12); appSettings.trackDelivery = document.getElementById('wizTrack').checked;
+            appSettings.deadlineMode = document.getElementById('wizDeadline').checked && appSettings.trackDelivery;
+            appSettings.customFields = [...(p.customer ? [custField(p)] : []), ...(appSettings.deadlineMode ? [{ ...DEADLINE_FIELD }] : []), ...presetCf(wizBizId)].slice(0, CF_MAX); appSettings.hiddenFields = presetHide(wizBizId); appSettings.quickItems = presetQuick(wizBizId);
+            appSettings.shiftStart = st; appSettings.shiftEnd = en;
+            appSettings.shiftBreaks = {}; BREAK_KEYS.forEach(k => { appSettings.shiftBreaks[k] = { start: '', end: '' }; });
+            appSettings.workdayMinutes = parseTimeToMinutes(en) - parseTimeToMinutes(st);
+            appSettings.weekendDays = off; appSettings.setupDone = true; appSettings.updatedAt = new Date().toISOString();
+            try { fridayCache.clear(); } catch (e) { /* بی‌اهمیت */ }
+            applyShiftSettings(); persistAppSettings(); applyAppSettingsToUI(); runAutoDeliveryCalculation(true); renderDashboard();
+            document.getElementById('setupWizard').classList.add('hidden');
+        }
+        function qtyUnit() { return escapeHTML((typeof appSettings !== 'undefined' && appSettings && appSettings.qtyUnit) || 'عدد'); }
+        function custField(p) { return { id: 'cfcustomer', label: typeof p.customer === 'string' ? p.customer : 'مشتری', type: 'text' }; }
+        function populateUnitTrack() {
+            const u = document.getElementById('settingQtyUnit'); if (u) u.value = appSettings.qtyUnit || 'عدد';
+            const k = document.getElementById('settingTrackDelivery'); if (k) k.checked = appSettings.trackDelivery !== false;
+            const qi = document.getElementById('settingQuickItems'); if (qi) qi.value = (appSettings.quickItems || []).map(x => x.t + (x.p ? ' | ' + x.p : '')).join('\n');
+            const dm = document.getElementById('settingDeadlineMode'); if (dm) dm.checked = !!appSettings.deadlineMode;
+        }
+        function presetExtras(p, id) {
+            const u = document.getElementById('settingQtyUnit'); if (u) u.value = p.unit || 'عدد';
+            const k = document.getElementById('settingTrackDelivery'); if (k) k.checked = p.track !== false;
+            const dm = document.getElementById('settingDeadlineMode'); if (dm) dm.checked = !!p.deadline;
+            if (p.deadline && Array.isArray(cfDraft) && !cfDraft.some(f => f.id === 'cfdeadline')) { cfDraft.push({ ...DEADLINE_FIELD }); cfEditorRender(); }
+            if (p.customer && Array.isArray(cfDraft) && !cfDraft.some(f => f.id === 'cfcustomer')) { cfDraft.push(custField(p)); cfEditorRender(); }
+            const qi = document.getElementById('settingQuickItems'); if (qi && id && !qi.value.trim()) qi.value = presetQuick(id).map(x => x.t).join('\n');
+            if (id && Array.isArray(cfDraft)) { presetCf(id).forEach(f => { if (!cfDraft.some(x => x.id === f.id) && cfDraft.length < CF_MAX) cfDraft.push(f); }); cfEditorRender(); }
+        }
+        const DEADLINE_FIELD = { id: 'cfdeadline', label: 'مهلت تحویل', type: 'text' };
+        function deadlineEval(deliveredStr) {
+            const el = document.getElementById('cf_cfdeadline'), v = el ? toEnglishDigits(el.value.trim()) : '';
+            const dj = parseJalaliDateToJdn(v), aj = parseJalaliDateToJdn(toEnglishDigits(String(deliveredStr || '')));
+            if (!dj || !aj) return null;
+            const diff = aj - dj;
+            if (diff === 0) return { status: 'به موقع', durationTime: '' };
+            const h = Math.abs(diff) * 24;
+            return { status: diff > 0 ? 'تاخیر' : 'زودتر از موعد', durationTime: h > 999 ? 'نامعلوم' : String(h).padStart(2, '0') + ':00' };
+        }
+        const PRESET_EXTRA = {
+            cafe: { cf: [{id: 'cftable', label: 'شماره میز'}, {id: 'cforder', label: 'نوع سفارش (سالن / بیرون\u200cبر / پیک)'}], hide: [] },
+            retail: { cf: [{id: 'cfpay', label: 'نحوه پرداخت'}], hide: ['itemColor'] },
+            academy: { cf: [{id: 'cfclass', label: 'نام کلاس'}], hide: [] },
+            farm: { cf: [{id: 'cfland', label: 'نام زمین / باغ'}], hide: [] },
+            transport: { cf: [{id: 'cfplate', label: 'پلاک خودرو'}, {id: 'cfroute', label: 'مسیر'}], hide: [] },
+            clinic: { cf: [{id: 'cfdoctor', label: 'پزشک / ارائه\u200cدهنده'}], hide: ['itemColor'] },
+            freelance: { cf: [{id: 'cfref', label: 'لینک / مرجع'}], hide: [] },
+            salon: { cf: [{id: 'cfstylist', label: 'آرایشگر'}], hide: [] },
+            repair: { cf: [{id: 'cfphone', label: 'شماره تماس مشتری'}, {id: 'cfmodel', label: 'مدل دستگاه'}], hide: [] }
+        };
+        const PRESET_QUICK = {
+            cafe: ['اسپرسو', 'آمریکانو', 'لاته', 'کاپوچینو', 'موکا', 'چای', 'دمنوش', 'قهوه ترک', 'شیک', 'آبمیوه', 'کیک', 'ساندویچ', 'پیتزا', 'سالاد'],
+            salon: ['کوتاهی مو', 'رنگ مو', 'مش', 'کراتین', 'اصلاح صورت', 'مانیکور', 'پدیکور', 'ابرو'],
+            clinic: ['ویزیت', 'مشاوره', 'پانسمان', 'تزریق', 'نوار قلب', 'آزمایش']
+        };
+        function presetQuick(id) { return (PRESET_QUICK[id] || []).map(t => ({ t, p: 0 })); }
+        function presetCf(id) { return ((PRESET_EXTRA[id] || {}).cf || []).map(f => ({ id: f.id, label: f.label, type: 'text' })); }
+        function presetHide(id) { const h = {}; ((PRESET_EXTRA[id] || {}).hide || []).forEach(k => { h[k] = true; }); return h; }
+        function parseQuickItems(txt) {
+            return String(txt || '').split('\n').map(l => { const a = l.split(/[|،]/); return { t: (a[0] || '').trim().slice(0, 40), p: Math.max(0, Number(String(toEnglishDigits(a[1] || '')).replace(/[^\d.]/g, '')) || 0) }; }).filter(x => x.t).slice(0, 40);
+        }
+        function renderQuickItems() {
+            const bar = document.getElementById('quickItemsBar'); if (!bar) return;
+            const list = (appSettings && appSettings.quickItems) || [];
+            bar.classList.toggle('hidden', !list.length);
+            bar.innerHTML = list.map((x, i) => `<button type="button" onclick="quickFill(${i})" class="px-2.5 py-1.5 rounded-lg border border-purple-300 dark:border-purple-700 bg-purple-50 dark:bg-purple-950/40 text-[12px] font-bold text-purple-700 dark:text-purple-300">${escapeHTML(x.t)}${x.p ? ' <span class="opacity-70 font-normal">' + formatNumber(x.p) + '</span>' : ''}</button>`).join('');
+        }
+        function quickFill(i) {
+            const x = ((appSettings && appSettings.quickItems) || [])[i]; if (!x) return;
+            const set = (id, v) => { const el = document.getElementById(id); if (el) { el.value = v; el.dispatchEvent(new Event('input', { bubbles: true })); } };
+            set('itemTitle', x.t); if (x.p) set('unitPrice', String(x.p));
+            const q = document.getElementById('receivedQuantity'); if (q && !q.value.trim()) set('receivedQuantity', '1');
+        }
+        function ensureNoTrackStatus() {
+            if (!(appSettings && (appSettings.trackDelivery === false || isDeadlineMode()))) return;
+            const el = document.getElementById('itemStatus');
+            if (el && !el.value) { const d = appSettings.defaultStatus; el.value = [...el.options].some(o => o.value === d && d) ? d : (el.options[1] ? el.options[1].value : ''); }
+        }
+        function applyTrackMode() {
+            const on = !(appSettings && appSettings.trackDelivery === false);
+            const dl = isDeadlineMode();
+            document.body.dataset.notrack = on ? '' : '1';
+            document.body.dataset.deadline = dl ? '1' : '';
+            renderQuickItems();
+            ensureNoTrackStatus();
+            ['overviewOnTimeCount', 'overviewEarlyCount', 'overviewDelayedCount'].forEach(id => {
+                const el = document.getElementById(id), grid = el && el.parentElement && el.parentElement.parentElement && el.parentElement.parentElement.parentElement;
+                if (grid) grid.style.display = on ? '' : 'none';
+            });
+        }
         function applyBusinessPreset(id) {
+            const _p = BUSINESS_PRESETS[id]; if (_p) presetExtras(_p, id);
             const p = BUSINESS_PRESETS[id];
             if (!p) return;
             Object.keys(FORM_LABEL_DEFAULTS).forEach(k => {
@@ -4793,9 +5060,9 @@
         // نسخه‌ی نصبی (APK/Capacitor): پیش‌فرض بدون انیمیشن و بدون جلوه‌های بصری (کاربر می‌تواند از تنظیمات روشن کند)
         const IS_APK_BUILD = (() => { try { const C = window.Capacitor; return !!(C && ((C.isNativePlatform && C.isNativePlatform()) || (C.getPlatform && C.getPlatform() !== 'web'))); } catch (e) { return false; } })();
         const DEFAULT_APP_SETTINGS = {
-            workdayMinutes: 495, shiftStart: '08:00', shiftEnd: '18:00', shiftBreaks: null, formLabels: {}, optionalFields: { itemColor: true }, businessType: 'general', customFields: [], hiddenFields: {},
+            workdayMinutes: 495, shiftStart: '08:00', shiftEnd: '18:00', shiftBreaks: null, formLabels: {}, optionalFields: { itemColor: true }, businessType: 'general', customFields: [], hiddenFields: {}, weekendDays: [6], weekStartDay: 0, setupDone: false, qtyUnit: 'عدد', trackDelivery: true, deadlineMode: false,
             schemaVersion: 1,
-            shopName: 'سامانه‌ی کارگاه هوشمند',
+            shopName: 'سامانه‌ی کار هوشمند',
             currency: 'تومان',
             defaultStatus: 'به موقع',
             onTimeToleranceMinutes: 5,
@@ -4820,7 +5087,7 @@
             motivationBadgeVisible: true,
             motivationAnimation: IS_APK_BUILD ? 'none' : 'default',
             motivationFontFamily: 'inherit',
-            motivationFontSize: 'normal',
+            motivationFontSize: 'small',
             motivationBgColor: 'default',
             motivationTextColor: 'default',
             onTimeStreak: 0,
@@ -4841,6 +5108,7 @@
             motivFxColor: 'violet',
             manager: null
         };
+        const IS_FIRST_RUN = (() => { try { return !localStorage.getItem('sewing_app_settings_v13'); } catch (e) { return false; } })();
         let appSettings = sanitizeSettings(safeLoadJSON('sewing_app_settings_v13', null));
         /* ---- همگام‌سازی اطلاعات کارفرما بین تب‌ها و نسخه‌ی پشتیبان در IndexedDB ----
          * mgrStamp: زمانِ آخرین نسخه‌ای از اطلاعات کارفرما که این تب خوانده/نوشته است
@@ -5265,7 +5533,7 @@
         function emailRecoveryCode(code) {
             code = code || (document.getElementById('pinRecoveryCodeValue') || {}).innerText || '';
             if (!/^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(code)) { showFeedbackBanner('کدی برای ارسال وجود ندارد.', 'warn'); return; }
-            const shop = appSettings.shopName || 'سامانه‌ی کارگاه هوشمند';
+            const shop = appSettings.shopName || 'سامانه‌ی کار هوشمند';
             const subject = 'کد بازیابی رمز - ' + shop;
             const body = 'کد بازیابی رمز برنامه:\n\n' + code + '\n\nاین کد را فقط در صفحه‌ی قفل، بخش «رمز را فراموش کرده‌ام» وارد کنید. آن را با کسی به اشتراک نگذارید و پس از استفاده، کد جدید جایگزین می‌شود.';
             const a = document.createElement('a');
@@ -6855,7 +7123,7 @@
                     const monthName = PERSIAN_MONTHS[parseInt(monthNum, 10) - 1] || '';
                     return `${monthName} ${formatYearDigits(year)}`;
                 })();
-            const shopName = (appSettings.shopName || 'سامانه‌ی کارگاه هوشمند');
+            const shopName = (appSettings.shopName || 'سامانه‌ی کار هوشمند');
             const currency = appSettings.currency || 'تومان';
             const totalAmountSum = sumTotalPrice(records);
             const unknownPriceCount = countUnknownPriceRecords(records);
@@ -7208,6 +7476,7 @@
             cfDraft = cfList().map(f => ({ ...f })); cfEditorRender();
             updateShiftPreview();
             populateBusinessTypeSelect();
+            populateWeekSettings();
         }
 
         /* ---- افزودن / حذف فیلدهای فرم «ثبت کارکرد» (بازتاب مستقیم در لیست کارکردها) ---- */
@@ -7242,7 +7511,7 @@
             const keep = {}; list.forEach(f => { const el = document.getElementById('cf_' + f.id); if (el) keep[f.id] = el.value; });
             const cls = 'w-full p-3 border border-slate-400 dark:border-slate-500 rounded-xl text-sm bg-white dark:bg-slate-800 field-box-bg dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all';
             box.style.display = list.length ? '' : 'none';
-            box.innerHTML = list.map(f => `<div><label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1.5">${escapeHTML(f.label)}</label><input type="text" id="cf_${f.id}" ${f.type === 'number' ? 'inputmode="numeric" data-thousands="1" maxlength="15"' : 'maxlength="100"'} value="${escapeHTML(keep[f.id] || '')}" class="${cls}"></div>`).join('');
+            box.innerHTML = list.map(f => `<div><label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1.5">${escapeHTML(f.label)}</label><input type="text" id="cf_${f.id}" ${f.type === 'number' ? 'inputmode="numeric" data-thousands="1" maxlength="15"' : (f.id === 'cfdeadline' ? 'readonly placeholder="انتخاب تاریخ" onclick="openDatePicker(\'cf_cfdeadline\', event)"' : 'maxlength="100"')} value="${escapeHTML(keep[f.id] || '')}" class="${cls}"></div>`).join('');
         }
         function cfCollectForm() {
             const o = {};
@@ -7335,11 +7604,13 @@
                 const el = document.getElementById('settingRequired_' + k);
                 if (el && !el.checked) optionalFields[k] = true;
             });
+            const wk = readWeekChecks('settingWeekendDays');
+            if (wk.length > 6) return { error: 'حداقل یک روز کاری در هفته باید باقی بماند.' };
             const btEl = document.getElementById('settingBusinessType');
             const businessType = (btEl && BUSINESS_PRESETS[btEl.value]) ? btEl.value : 'general';
             const hiddenFields = {};
             HIDEABLE_FIELDS.forEach(k => { const w = document.getElementById('settingFieldWrap_' + k); if (w && w.dataset.hidden === '1') hiddenFields[k] = true; });
-            return { data: { workdayMinutes, shiftStart: v.start, shiftEnd: v.end, shiftBreaks: breaks, formLabels: labels, optionalFields, businessType, hiddenFields, customFields: cfReadEditor() } };
+            return { data: { workdayMinutes, shiftStart: v.start, shiftEnd: v.end, shiftBreaks: breaks, formLabels: labels, optionalFields, businessType, hiddenFields, customFields: cfReadEditor(), weekendDays: wk, weekStartDay: Number(document.getElementById('settingWeekStart').value) || 0, qtyUnit: (document.getElementById('settingQtyUnit').value.trim() || 'عدد').slice(0, 12), trackDelivery: document.getElementById('settingTrackDelivery').checked, deadlineMode: document.getElementById('settingDeadlineMode').checked, quickItems: parseQuickItems(document.getElementById('settingQuickItems').value) } };
         }
         /* ============ پایان نام فیلدها و ساعات کاری ============ */
 
@@ -7362,7 +7633,7 @@
                 removePhotoBtn.classList.add('hidden');
             }
 
-            document.getElementById('settingShopName').value = appSettings.shopName || 'سامانه‌ی کارگاه هوشمند';
+            document.getElementById('settingShopName').value = appSettings.shopName || 'سامانه‌ی کار هوشمند';
             document.getElementById('settingCurrency').value = appSettings.currency || 'تومان';
             document.getElementById('settingDefaultStatus').value = appSettings.defaultStatus || 'به موقع';
             document.getElementById('settingOnTimeTolerance').value = formatNumber(getOnTimeTolerance()).replace(/,/g, '');
@@ -7382,7 +7653,7 @@
             document.getElementById('settingMotivationVisible').checked = appSettings.motivationBadgeVisible !== false;
             document.getElementById('settingMotivationAnimation').value = appSettings.motivationAnimation || 'default';
             document.getElementById('settingMotivationFontFamily').value = appSettings.motivationFontFamily || 'inherit';
-            document.getElementById('settingMotivationFontSize').value = appSettings.motivationFontSize || 'normal';
+            document.getElementById('settingMotivationFontSize').value = appSettings.motivationFontSize || 'small';
             document.getElementById('settingMotivationBgColor').value = appSettings.motivationBgColor || 'default';
             document.getElementById('settingMotivationTextColor').value = appSettings.motivationTextColor || 'default';
             document.getElementById('settingCardFx').checked = !!appSettings.cardFx;
@@ -7496,7 +7767,7 @@
             const ownerAddressVal = document.getElementById('settingOwnerAddress').value.trim();
             // اگر نام فروشگاه خالی گذاشته شود، از مقدار پیش‌فرض استفاده می‌شود؛ قبلاً در این حالت
             // کل فرم (از جمله تم، فونت، رنگ‌ها و واحد پول) بدون هیچ پیام خطایی ذخیره نمی‌شد.
-            const shopNameVal = document.getElementById('settingShopName').value.trim() || appSettings.shopName || 'سامانه‌ی کارگاه هوشمند';
+            const shopNameVal = document.getElementById('settingShopName').value.trim() || appSettings.shopName || 'سامانه‌ی کار هوشمند';
             const currencyVal = document.getElementById('settingCurrency').value;
             const defaultStatusVal = document.getElementById('settingDefaultStatus').value;
             const themeVal = document.getElementById('settingTheme').value;
@@ -7555,6 +7826,8 @@
             appSettings.motivationBgColor = motivationBgColorVal;
             appSettings.motivationTextColor = motivationTextColorVal;
             Object.assign(appSettings, workRes.data);
+            if (appSettings.deadlineMode && !cfList().some(f => f.id === 'cfdeadline')) appSettings.customFields = [...cfList(), { ...DEADLINE_FIELD }].slice(0, CF_MAX);
+            try { fridayCache.clear(); } catch (e) { /* بی‌اهمیت */ }
             { const keepCf = new Set(cfList().map(f => f.id)); let chCf = false;
               allRecords.forEach(r => { if (r.custom) { Object.keys(r.custom).forEach(k => { if (!keepCf.has(k)) { delete r.custom[k]; chCf = true; } }); if (!Object.keys(r.custom).length) r.custom = null; if (chCf) r.updatedAt = Date.now(); } });
               if (chCf) saveRecords(); }
@@ -7648,6 +7921,7 @@
         }
 
         function applyAppSettingsToUI() {
+            applyTrackMode();
             applyShiftSettings();
             applyManagerToUI();
             const currency = appSettings.currency || 'تومان';
@@ -8012,7 +8286,7 @@
                         await FS.writeFile({ path, data: jsonString, directory: 'CACHE', encoding: 'utf8', recursive: true });
                         const uriResult = await FS.getUri({ path, directory: 'CACHE' });
                         await ShareApi.share({
-                            title: 'پشتیبان سامانه‌ی کارگاه هوشمند',
+                            title: 'پشتیبان سامانه‌ی کار هوشمند',
                             text: `فایل پشتیبان ماه جاری (${jsonFilename})`,
                             url: uriResult.uri,
                             dialogTitle: 'ارسال فایل پشتیبان'
@@ -8067,7 +8341,7 @@
             try {
                 await navigator.share({
                     files: [file],
-                    title: 'پشتیبان سامانه‌ی کارگاه هوشمند',
+                    title: 'پشتیبان سامانه‌ی کار هوشمند',
                     text: `فایل پشتیبان ماه جاری (${jsonFilename}) — محتوای آن JSON است؛ به‌دلیل محدودیت اشتراک‌گذاری فایل در مرورگر با پسوند txt ارسال شده است.`
                 });
                 addLog('فایل پشتیبان از طریق منوی اشتراک‌گذاری سیستم ارسال شد.', 'success');
@@ -8084,6 +8358,27 @@
          * برخلاف پشتیبان JSON (که برای بازیابی کامل برنامه است)، این خروجی برای بازکردن سریع در اکسل/Sheets
          * و تحلیل جدولی داده‌هاست.
          */
+        function downloadCSV(name, rows) {
+            const cell = v => { let s = (v === null || v === undefined) ? '' : String(v); if (typeof v === 'string' && /^[=+\-@]/.test(s)) s = "'" + s; return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+            const blob = new Blob(['\uFEFF' + rows.map(r => r.map(cell).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click();
+            setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+        }
+        function exportPayrollCSV() {
+            const mk = selectedMonthFilter, ws = mgrPayWorkersOfMonth(mk);
+            if (!ws.length) { showFeedbackBanner('پرسنلی برای خروجی گرفتن وجود ندارد.', 'warn'); return; }
+            const kinds = Object.keys(PAY_KINDS), secs = (mgr().sections || []);
+            const rows = [['پرسنل', 'بخش', 'تعداد کارکرد', 'مجموع تعداد', 'کارکرد', 'حقوق پایه', ...kinds.map(k => PAY_KINDS[k].t), 'جمع افزایشی', 'جمع کسورات', 'قابل پرداخت']];
+            ws.forEach(w => { const c = mgrPayCalc(w, mk); rows.push([w.name, (secs.find(x => x.id === w.sectionId) || {}).name || '', c.recs, c.qty, c.work, c.base, ...kinds.map(k => c.by[k].amount), c.plus, c.minus, c.total]); });
+            rows.push([], ['ریز موارد ثبت‌شده'], ['پرسنل', 'نوع', 'عنوان', 'ساعت', 'مبلغ']);
+            mgrPay().entries.filter(e => e.monthKey === mk).forEach(e => { const w = mgr().workers.find(x => x.id === e.workerId); rows.push([w ? w.name : '', (PAY_KINDS[e.kind] || {}).t || '', e.rateTitle || '', e.hours || '', (e.effect === 'minus' ? -1 : 1) * e.amount]); });
+            downloadCSV(`حقوق_${String(mk).replace(/\s+/g, '_')}.csv`, rows);
+            showFeedbackBanner('فایل CSV حقوق آماده شد.', 'success');
+        }
+        function logoImgHTML() {
+            const d = appSettings && appSettings.ownerPhoto;
+            return (typeof d === 'string' && /^data:image\/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+\/=]+$/.test(d)) ? `<img src="${d}" alt="" style="height:56px;max-width:140px;object-fit:contain;border-radius:8px;display:block;margin:0 auto 6px">` : '';
+        }
         function exportRecordsToCSV() {
             const records = getFilteredRecords();
             if (records.length === 0) {
@@ -8221,8 +8516,8 @@
             renderTodayDateBar();
             const titleElement = document.getElementById('mainAppTitle');
             if (titleElement) {
-                const customShopName = appSettings.shopName || 'سامانه‌ی کارگاه هوشمند';
-                titleElement.innerText = `${customShopName} - گزارش ماه ${currentJalali.monthName} ${formatYearDigits(currentJalali.yearEn)}`;
+                const customShopName = appSettings.shopName || 'سامانه‌ی کار هوشمند';
+                titleElement.innerText = `${customShopName} - ماه ${currentJalali.monthName} ${formatYearDigits(currentJalali.yearEn)}`;
             }
             const ownerLine = document.getElementById('ownerInfoLine');
             if (ownerLine) {
@@ -8359,7 +8654,7 @@
                 const shopName = shopInput ? shopInput.value.trim() : (appSettings.shopName || '');
 
                 nameEl.innerText = ownerName || 'کاربر مهمان';
-                subEl.innerText = shopName || 'سامانه‌ی کارگاه هوشمند';
+                subEl.innerText = shopName || 'سامانه‌ی کار هوشمند';
 
                 if (currentOwnerPhotoData) {
                     imgEl.src = currentOwnerPhotoData;
@@ -8464,7 +8759,8 @@
         // مقایسه‌ی «مدت زمان تحویل کار» (هدف) رکورد با زمان کاریِ واقعاً سپری‌شده تا لحظه‌ی شروع
         // کد بعدیِ واقعی، و تنظیم وضعیت (تاخیر/زودتر از موعد/به‌موقع) و مقدار آن روی رکورد.
         // خروجی: true اگر محاسبه واقعاً انجام شد (یعنی داده‌های لازم کامل بودند).
-        function isManualDeliveryMode() { return appSettings.deliveryStatusMode === 'manual'; }
+        function isDeadlineMode() { return !!(appSettings && appSettings.trackDelivery !== false && appSettings.deadlineMode); }
+function isManualDeliveryMode() { return appSettings.deliveryStatusMode === 'manual' || isDeadlineMode(); }
 
         function getOnTimeTolerance() {
             const t = Number(appSettings.onTimeToleranceMinutes);
@@ -8694,7 +8990,7 @@
             const qty = parsePersianInt(document.getElementById('receivedQuantity').value);
             const isPriceUnknown = document.getElementById('priceUnknownCheckbox').checked;
             const price = isPriceUnknown ? null : parsePersianInt(document.getElementById('unitPrice').value);
-            const status = document.getElementById('itemStatus').value;
+            let status = document.getElementById('itemStatus').value;
             const dailyStatRaw = document.getElementById('dailyStat').value.trim();
             const dailyStat = dailyStatRaw ? parsePersianInt(dailyStatRaw) : null;
             const receivedQuantity = qty;
@@ -8702,6 +8998,8 @@
             const workDuration = document.getElementById('recordWorkDuration').value.trim() || null;
             const date = document.getElementById('recordDate').value || info.fullDateStr;
             const time = document.getElementById('recordTime').value || new Date().toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
+            let dlDur = null;
+            if (isDeadlineMode()) { const dl = deadlineEval(date); if (dl) { status = dl.status; dlDur = dl.durationTime; } }
             const needsDuration = (status === 'تاخیر' || status === 'زودتر از موعد');
             let durationTime = '';
             if (needsDuration) {
@@ -8715,6 +9013,7 @@
                 }
             }
 
+            if (dlDur !== null) durationTime = dlDur;
             if ((!isFieldOptional('receivedQuantity') && qty <= 0) || (!isPriceUnknown && !isFieldOptional('unitPrice') && price <= 0)) {
                 showFeedbackBanner('لطفاً مقادیر معتبر (بزرگ‌تر از صفر) برای تعداد دریافتی و قیمت واحد وارد کنید.', 'warn');
                 return;
@@ -8993,7 +9292,7 @@
         function getIncomeGoalData() {
             const cur = getCurrentJalaliInfo();
             const todayJdn = parseJalaliDateToJdn(cur.fullDateStr);
-            const ws = todayJdn - saturdayBasedDayIndex(todayJdn), we = ws + 6;
+            const wsd = appSettings.weekStartDay || 0, ws = todayJdn - ((saturdayBasedDayIndex(todayJdn) - wsd + 7) % 7), we = ws + 6;
             let weekly = 0, monthly = 0, custom = 0;
             const cj1 = parseJalaliDateToJdn(appSettings.incomeGoalFrom), cj2 = parseJalaliDateToJdn(appSettings.incomeGoalTo), cOk = !!(cj1 && cj2);
             allRecords.forEach(r => {
@@ -9005,7 +9304,7 @@
                 if (cOk && j && j >= cj1 && j <= cj2) custom += price;
             });
             return {
-                weekly: { income: weekly, goal: appSettings.incomeGoalWeekly || 0, key: `w${ws}`, label: 'هفتگی', period: 'این هفته (شنبه تا جمعه)' },
+                weekly: { income: weekly, goal: appSettings.incomeGoalWeekly || 0, key: `w${ws}`, label: 'هفتگی', period: `این هفته (${WK_NAMES[wsd]} تا ${WK_NAMES[(wsd + 6) % 7]})` },
                 monthly: { income: monthly, goal: appSettings.incomeGoalMonthly || 0, key: `m${cur.monthKey}`, label: 'ماهانه', period: `${cur.monthName} ${cur.year}` },
                 custom: { income: custom, goal: cOk ? (appSettings.incomeGoalCustom || 0) : 0, key: `c${appSettings.incomeGoalFrom}-${appSettings.incomeGoalTo}`, label: 'بازه‌ای', period: cOk ? `${toPersianDigits(appSettings.incomeGoalFrom)} تا ${toPersianDigits(appSettings.incomeGoalTo)}` : 'بازه تعیین نشده' }
             };
@@ -9624,7 +9923,7 @@
                 const g = jalaaliToGregorian(jy, jm, jd);
                 const jsDay = new Date(g.gy, g.gm - 1, g.gd).getDay();
                 // در تقویم شمسی، جمعه معادل jsDay === 5 (Friday در تقویم میلادی) است.
-                return jsDay === 5;
+                return weekendSet().has((jsDay + 1) % 7);
             } catch (e) {
                 return false;
             }
@@ -9817,6 +10116,7 @@
                 return normalizeSearchText(r.itemCode).includes(searchQuery) ||
                        normalizeSearchText(r.itemTitle).includes(searchQuery) ||
                        normalizeSearchText(r.itemColor).includes(searchQuery) ||
+                       (r.custom && Object.values(r.custom).some(v => normalizeSearchText(String(v)).includes(searchQuery))) ||
                        (mgrOn() && normalizeSearchText(mgrRecWorker(r)).includes(searchQuery));
             });
             return sortRecords(filtered);
@@ -9888,7 +10188,7 @@
 
 
         // پیش‌رفتن به‌اندازه‌ی «target» دقیقه‌ی کاری از لحظه‌ی شروع؛ قطعه‌قطعه (نه دقیقه‌به‌دقیقه)،
-        // با همان قواعدِ پرش شیفت، استراحت‌ها و تعطیلی جمعه‌ها. خروجی: لحظه‌ی پایان (دقیقه از نیمه‌شبِ روز شروع).
+        // با همان قواعدِ پرش شیفت، استراحت‌ها و تعطیلی روزهای تعطیل هفته. خروجی: لحظه‌ی پایان (دقیقه از نیمه‌شبِ روز شروع).
         function advanceWorkingMinutes(startTotalMinutes, target, startJdn) {
             let p = startTotalMinutes;
             let remaining = target;
@@ -9909,7 +10209,7 @@
             return p;
         }
 
-        // فرمول: (تایم کاری شیفت / آمار روزانه) * تعداد دریافتی، با شبیه‌سازی دقیق استراحت‌ها، پرش شیفت و تعطیلی جمعه‌ها
+        // فرمول: (تایم کاری شیفت / آمار روزانه) * تعداد دریافتی، با شبیه‌سازی دقیق استراحت‌ها، پرش شیفت و تعطیلی روزهای تعطیل هفته
         function calculateCompletionEstimate(startTimeStr, dailyStatVal, receivedQtyVal, startDateStr) {
             if (!startTimeStr || !dailyStatVal || dailyStatVal <= 0 || !receivedQtyVal || receivedQtyVal < 0) return null;
 
@@ -10382,7 +10682,7 @@
                             <span class="text-slate-700 dark:text-slate-200 font-medium truncate">${escapeHTML(r.itemTitle) || '-'}</span>
                             <span class="text-slate-400">— ${escapeHTML(r.itemColor) || '-'}</span>
                         </span>
-                        <span class="text-slate-500 dark:text-slate-400 whitespace-nowrap">${formatNumber(r.quantity)} عدد &nbsp;|&nbsp; ${formatPriceValue(r.totalPrice)} ${escapeHTML(currency)}</span>
+                        <span class="text-slate-500 dark:text-slate-400 whitespace-nowrap">${formatNumber(r.quantity)} ${qtyUnit()} &nbsp;|&nbsp; ${formatPriceValue(r.totalPrice)} ${escapeHTML(currency)}</span>
                         <span class="text-slate-400 dark:text-slate-500 whitespace-nowrap">${escapeHTML(r.date)} <span class="opacity-60">-</span> ${escapeHTML(r.time)}</span>
                         <span class="text-[10px] px-2 py-0.5 rounded-full border whitespace-nowrap ${getStatusBadgeClass(getDisplayStatus(r))}">${formatStatusWithDuration(getDisplayStatus(r), r.durationTime)}</span>
                     </div>
@@ -10442,7 +10742,7 @@
         }
 
         // درصد پیشرفت رکورد نسبت به «مدت زمان تحویل کار» هدف، بر مبنای همان منطق دقیقِ محاسبه‌ی
-        // زمان کاریِ واقعی (با احتساب استراحت‌ها، پایان شیفت و تعطیلی جمعه‌ها) که در بقیه‌ی برنامه هم استفاده می‌شود.
+        // زمان کاریِ واقعی (با احتساب استراحت‌ها، پایان شیفت و تعطیلی روزهای تعطیل هفته) که در بقیه‌ی برنامه هم استفاده می‌شود.
         function computeRecordProgress(rec) {
             const targetMinutes = parseDurationStrToMinutes(rec.workDuration);
             if (targetMinutes === null || targetMinutes <= 0) return null;
@@ -10734,7 +11034,7 @@
         // نگاشتِ گزینه‌ی «تنوع انیمیشن» در تنظیمات به کلاس CSS متناظرش
         const MOTIVATION_ANIM_CLASS_MAP = { default: 'motiv-anim-default', pulse: 'motiv-anim-pulse', glow: 'motiv-anim-glow', shake: 'motiv-anim-shake', bounce: 'motiv-anim-bounce', wiggle: 'motiv-anim-wiggle', tada: 'motiv-anim-tada', rainbow: 'motiv-anim-rainbow', flip: 'motiv-anim-flip', slide: 'motiv-anim-slide', none: 'motiv-anim-none' };
         // نگاشتِ گزینه‌ی «اندازه فونت متن انگیزشی» به مقدار em متناظرش (نسبت به فونتِ به‌ارث‌رسیده از body)
-        const MOTIVATION_FONT_SIZE_MAP = { small: '0.8em', normal: '0.95em', large: '1.15em', xlarge: '1.35em' };
+        const MOTIVATION_FONT_SIZE_MAP = { small: '0.7em', normal: '0.82em', large: '1.0em', xlarge: '1.2em' };
 
         function renderStreakBadge() {
             const el = document.getElementById('streakBadgeText');
@@ -11009,7 +11309,7 @@
             container.innerHTML = records.map((r, index) => buildRecordCardHTML(r, index)).join('');
         }
 
-        /* ==================== قابلیت کارفرما (مدیر کارگاه): بخش‌ها، پرسنل و ارجاع کار ==================== */
+        /* ==================== قابلیت کارفرما (مدیر مجموعه): بخش‌ها، پرسنل و ارجاع کار ==================== */
         var mgrTab = 'workers', mgrEditW = '', mgrEditS = '', mgrLastTab = '';
         var mgrFormPhoto; // undefined = بدون تغییر نسبت به عکس ذخیره‌شده؛ null = حذف؛ رشته = عکس جدید
         const MGR_TABS = [['workers', 'fa-users', 'پرسنل'], ['sections', 'fa-sitemap', 'بخش‌ها'], ['payroll', 'fa-wallet', 'مالی و حقوق']];
@@ -11076,7 +11376,7 @@
                 const rows = g.recs.map((r, i) => `<tr class="border-t border-slate-200 dark:border-slate-700"><td class="p-2.5 text-slate-400">${f(i + 1)}</td><td class="p-2.5 font-mono text-[11px]">${escapeHTML(r.itemCode) || '-'}</td><td class="p-2.5 font-semibold">${escapeHTML(r.itemTitle)}</td><td class="p-2.5">${escapeHTML(r.itemColor) || '-'}</td><td class="p-2.5 tabular-nums">${f(r.quantity)}</td><td class="p-2.5 tabular-nums">${formatPriceValue(r.unitPrice)}</td><td class="p-2.5 tabular-nums font-bold ${r.totalPrice == null ? 'text-amber-600' : 'text-emerald-600'}">${formatPriceValue(r.totalPrice)}</td><td class="p-2.5"><span class="text-[11px] px-2 py-0.5 rounded-full border whitespace-nowrap ${getStatusBadgeClass(getDisplayStatus(r))}">${formatStatusWithDuration(getDisplayStatus(r), r.durationTime)}</span></td><td class="p-2.5 whitespace-nowrap text-slate-500">${escapeHTML(r.date)} ${escapeHTML(r.time)}</td><td class="p-2.5 no-print whitespace-nowrap"><button data-action="edit" data-id="${Number(r.id)}" class="w-7 h-7 rounded-full text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30" title="ویرایش"><i class="fa-solid fa-pen text-xs"></i></button><button data-action="delete" data-id="${Number(r.id)}" class="w-7 h-7 rounded-full text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30" title="حذف"><i class="fa-solid fa-trash text-xs"></i></button></td></tr>`).join('');
                 return `<div class="rounded-2xl border border-slate-300 dark:border-slate-600 overflow-hidden"><button type="button" onclick="mgrToggleGroupAt(${gi})" class="w-full flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-indigo-50/60 dark:bg-indigo-950/20 text-right">
                     <span class="text-sm font-bold text-slate-800 dark:text-slate-100"><i class="fa-solid ${open ? 'fa-chevron-down' : 'fa-chevron-left'} text-[10px] ml-2"></i><i class="fa-solid fa-user-gear text-indigo-500 ml-1"></i>${(g.id !== '__none' && g.id.indexOf('__del') !== 0) ? `<span data-wfin="${escapeHTML(g.id)}" role="button" tabindex="0" class="wfin-link" title="خلاصه‌ی مالی">${escapeHTML(g.name)}</span>` : escapeHTML(g.name)} <span class="text-[11px] font-normal text-slate-500">${[escapeHTML(g.sec)].filter(Boolean).join(' • ')}</span></span>
-                    <span class="text-[11px] text-slate-600 dark:text-slate-300">${f(g.recs.length)} کارکرد • ${f(qty)} عدد • ${f(tot)} ${cur}</span></button>
+                    <span class="text-[11px] text-slate-600 dark:text-slate-300">${f(g.recs.length)} کارکرد • ${f(qty)} ${qtyUnit()} • ${f(tot)} ${cur}</span></button>
                     ${open ? (g.recs.length ? `<div class="overflow-x-auto"><table class="w-full text-xs text-right"><thead><tr><th class="${th}">#</th><th class="${th}">کد</th><th class="${th}">عنوان کار</th><th class="${th}">مشخصات</th><th class="${th}">تعداد</th><th class="${th}">قیمت واحد</th><th class="${th}">مبلغ کل</th><th class="${th}">وضعیت</th><th class="${th}">تاریخ</th><th class="${th} no-print"></th></tr></thead><tbody>${rows}</tbody></table></div>` : mgrEmpty('کارکردی در این دوره ندارد.')) : ''}</div>`;
             }).join('');
         }
@@ -11087,24 +11387,46 @@
             return el;
         }
         function mgrA11y(root) { if (root) root.querySelectorAll('button[title]:not([aria-label])').forEach(b => b.setAttribute('aria-label', b.getAttribute('title'))); }
+        /* ---- کادر «ارزش کل کارکرد» در حالت کارفرما: حقوق و کارکرد هر پرسنل (با کلیک، خلاصه‌ی مالی کامل) ---- */
+        var kpiWorkersOpen = true;
+        function kpiWorkersToggle() { kpiWorkersOpen = !kpiWorkersOpen; mgrRenderKpiWorkers(); }
+        function mgrRenderKpiWorkers() {
+            const box = document.getElementById('kpiWorkersBox'); if (!box) return;
+            if (!mgrOn()) { box.classList.add('hidden'); box.innerHTML = ''; return; }
+            const mk = selectedMonthFilter, ws = mgrPayWorkersOfMonth(mk);
+            box.classList.remove('hidden');
+            const head = `<button type="button" onclick="kpiWorkersToggle()" aria-expanded="${kpiWorkersOpen}" class="w-full flex items-center justify-between gap-2 text-xs font-medium text-slate-500 dark:text-slate-400"><span class="flex items-center gap-1.5"><i class="fa-solid fa-users text-indigo-500"></i> حقوق و کارکرد پرسنل <span class="text-[11px] text-slate-400 dark:text-slate-500">${payMonthLabel(mk)}</span></span><i class="fa-solid ${kpiWorkersOpen ? 'fa-chevron-up' : 'fa-chevron-down'} text-[10px]"></i></button>`;
+            if (!kpiWorkersOpen) { box.innerHTML = head; return; }
+            if (!ws.length) { box.innerHTML = head + '<p class="mt-3 text-[11px] text-slate-400 text-center">پرسنلی برای نمایش وجود ندارد.</p>'; return; }
+            let sumWork = 0, sumTotal = 0;
+            const rows = ws.map(w => {
+                const c = mgrPayCalc(w, mk); sumWork += c.work; sumTotal += c.total;
+                return `<div data-wfin="${escapeHTML(w.id)}" data-mk="${escapeHTML(mk)}" role="button" tabindex="0" aria-label="خلاصه‌ی مالی ${escapeHTML(w.name)}" class="flex items-center gap-2.5 p-2 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer text-right">`
+                    + `${mgrMiniAvatar(w, 34)}<div class="min-w-0 flex-1"><b class="block text-[12px] text-slate-700 dark:text-slate-200 truncate">${escapeHTML(w.name)}${w.active ? '' : ' (غیرفعال)'}</b><small class="block text-[10px] text-slate-400">${payDigits(c.recs)} کارکرد • ${payMoney(c.work)}</small></div>`
+                    + `<div class="shrink-0 text-left"><small class="block text-[9px] text-slate-400">قابل پرداخت</small><b class="text-[12px] ${c.total < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}">${payMoney(c.total)}</b></div></div>`;
+            }).join('');
+            box.innerHTML = head + `<div class="mt-3 space-y-1.5">${rows}</div>`
+                + `<div class="mt-2.5 flex items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-400"><span>جمع کارکرد پرسنل: <b>${payMoney(sumWork)}</b></span><span>جمع قابل پرداخت: <b class="text-emerald-600 dark:text-emerald-400">${payMoney(sumTotal)}</b></span></div>`;
+        }
         function mgrApplyMainView() {
             const on = mgrOn(), cur = escapeHTML(appSettings.currency || 'تومان');
             document.body.dataset.mode = on ? 'employer' : 'worker';
             ['thSection'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.toggle('hidden', !on); });
             const badge = mgrEnsureEl('mgrModeBadge', document.getElementById('mainAppSubtitle'), 'after');
-            if (badge) { badge.className = 'relative z-10 mt-1 flex flex-wrap items-center justify-center gap-1.5 basis-full'; badge.innerHTML = `<button type="button" onclick="mgrToggle(!mgrOn())" title="تغییر حالت" class="tactile-btn inline-flex items-center gap-1.5 text-[10px] bg-white hover:bg-slate-100 text-purple-700 font-bold rounded-full px-2 py-0.5"><i class="fa-solid fa-repeat"></i> ${on ? 'حالت کارفرما' : 'حالت پرسنل'} <span class="opacity-60 font-normal">• رفتن به ${on ? 'پرسنل' : 'کارفرما'}</span></button>`; }
+            if (badge) { badge.className = 'relative z-10 mt-2 flex flex-wrap items-center justify-center gap-1.5 basis-full'; badge.innerHTML = `<button type="button" onclick="mgrToggle(!mgrOn())" title="تغییر حالت" aria-label="تغییر حالت بین پرسنل و کارفرما" class="mode-switch-btn"><span class="msb-ico"><i class="fa-solid fa-repeat"></i></span><span class="msb-txt"><span class="msb-cur">${on ? 'حالت کارفرما' : 'حالت پرسنل'}</span><span class="msb-go">رفتن به ${on ? 'پرسنل' : 'کارفرما'}</span></span><i class="fa-solid fa-chevron-left text-[10px] opacity-60"></i></button>`; }
             const goal = document.getElementById('incomeGoalSection'); if (goal) goal.style.display = on ? 'none' : '';
             const stats = mgrEnsureEl('mgrMainStats', document.getElementById('activeProgressCard'));
             const bar = mgrEnsureEl('mgrFilterBar', document.getElementById('historyIncompleteBanner'));
             const sum = mgrEnsureEl('mgrListSummary', document.getElementById('emptyState'), 'after');
             const grp = mgrEnsureEl('mgrWorkerLists', document.getElementById('emptyState'), 'after');
             document.body.dataset.grouped = (on && mgrGrouped) ? '1' : '0';
+            try { mgrRenderKpiWorkers(); } catch (e) { console.warn('kpi workers', e); }
             if (!on) { if (typeof wfinClose === 'function') wfinClose(); mgrPageW = ''; delete document.body.dataset.wpage; [stats, bar, sum, grp].forEach(e => { if (e) e.innerHTML = ''; }); return; }
             if (mgrPageW && !mgrWorker(mgrPageW)) { mgrPageW = ''; mgrListFilter = ''; delete document.body.dataset.wpage; }
             const wfw = document.getElementById('workerFieldWrap'); if (wfw) wfw.classList.toggle('hidden', !!mgrPageW);
             const M = mgr(), mk = selectedMonthFilter;
             const recs = allRecords.filter(r => r.monthKey === mk);
-            const kl = document.getElementById('kpiPriceLabel'); if (kl) kl.innerText = `ارزش کل کارکرد کارگاه (${appSettings.currency || 'تومان'})`;
+            const kl = document.getElementById('kpiPriceLabel'); if (kl) kl.innerText = `ارزش کل کارکرد مجموعه (${appSettings.currency || 'تومان'})`;
             stats.className = 'mb-6';
             mgrRenderWorkerCards(stats);
             if (typeof wfinRefresh === 'function') wfinRefresh();
@@ -11784,7 +12106,7 @@
             if (!subs.some(s => s[0] === mgrPayView)) mgrPayView = 'summary';
             const nav = `<div class="pay-sub" role="tablist">${subs.map(([k, ic, t]) => `<button type="button" role="tab" aria-selected="${k === mgrPayView}" data-mgr="pay-view" data-id="${k}" class="${k === mgrPayView ? 'on' : ''}"><i class="fa-solid ${ic}"></i> ${t}</button>`).join('')}</div>`;
             const body = mgrPayView === 'entries' ? mgrPayEntriesHTML() : mgrPayView === 'rates' ? mgrPayRatesHTML() : mgrPayView === 'base' ? mgrPayBaseHTML() : mgrPaySummaryHTML();
-            return nav + body;
+            return nav + body + '<div class="no-print" style="margin-top:10px"><button type="button" onclick="exportPayrollCSV()" class="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 text-xs font-bold text-slate-600 dark:text-slate-300"><i class="fa-solid fa-file-csv"></i> خروجی CSV حقوق ماه</button></div>';
         }
 
         function mgrPaySummaryHTML() {
@@ -11843,7 +12165,7 @@
             const c = d.c, sc = mgrSection(w.sectionId), g = mgrGrad(w);
             const sub = [sc ? escapeHTML(sc.name) : '', w.role ? escapeHTML(w.role) : '', payMonthLabel(mk)].filter(Boolean).join(' • ');
             const tile = (t, v, s) => `<div class="pay-stat"><small>${t}</small><b>${v}</b>${s ? `<small class="wfin-s">${s}</small>` : ''}</div>`;
-            const tiles = `<div class="pay-stats wfin-tiles">${tile('کارکرد ثبت‌شده', payDigits(c.recs), d.done ? payDigits(d.done) + ' تکمیل‌شده' : '')}${tile('روز کاری', payDigits(d.days))}${tile('میانگین هر رکورد', d.avg ? payMoney(d.avg) : '—')}${tile('سهم از کارکرد کارگاه', d.share == null ? '—' : payDigits(d.share) + '٪')}</div>`;
+            const tiles = `<div class="pay-stats wfin-tiles">${tile('کارکرد ثبت‌شده', payDigits(c.recs), d.done ? payDigits(d.done) + ' تکمیل‌شده' : '')}${tile('روز کاری', payDigits(d.days))}${tile('میانگین هر رکورد', d.avg ? payMoney(d.avg) : '—')}${tile('سهم از کارکرد مجموعه', d.share == null ? '—' : payDigits(d.share) + '٪')}</div>`;
             const sec = (key, ic, title, n, body) => n ? `<details class="wfin-sec" data-k="${key}"${wfinSec[key] ? ' open' : ''}><summary><i class="fa-solid ${ic}"></i> ${title} <span>${payDigits(n)}</span></summary>${body}</details>` : '';
             const entRows = d.ents.slice(0, WFIN_LIM).map(e => { const K = PAY_KINDS[e.kind], pos = e.effect !== 'minus'; return `<div class="wfin-row"><span class="wfin-ico ${pos ? 'pos' : 'neg'}"><i class="fa-solid ${K.ic}"></i></span><span class="wfin-main"><b>${K.t}${e.rateTitle ? ' — ' + escapeHTML(e.rateTitle) : ''}</b><small>${wfinEntDetail(e) || '&nbsp;'}</small></span><span class="wfin-amt ${pos ? 'pay-pos' : 'pay-neg'}">${payMoney((pos ? 1 : -1) * e.amount, true)}</span></div>`; }).join('')
                 + (d.ents.length > WFIN_LIM ? `<p class="pay-hint wfin-more">و ${payDigits(d.ents.length - WFIN_LIM)} مورد دیگر (در چاپ کامل می‌آید)</p>` : '');
@@ -11860,7 +12182,7 @@
                 + tr('کارکرد ثبت‌شده', `${payDigits(c.recs)} رکورد • ${formatNumber(c.qty)} واحد${c.unknown ? ` • ${payDigits(c.unknown)} بدون قیمت` : ''}`, payMoney(c.work, true));
             Object.keys(PAY_KINDS).forEach(k => { const b = c.by[k], K = PAY_KINDS[k]; if (b.n) rows += tr(K.t, `${K.hour ? payHours(b.hours) + ' • ' : ''}${payDigits(b.n)} مورد`, payMoney(b.amount, true)); });
             rows += `<tr class="tot"><td colspan="2">قابل پرداخت</td><td class="n">${payMoney(c.total)}</td></tr>`;
-            const meta = [sc ? escapeHTML(sc.name) : '', w.role ? escapeHTML(w.role) : '', `روز کاری: ${payDigits(d.days)}`, d.avg ? `میانگین هر رکورد: ${payMoney(d.avg)}` : '', d.share != null ? `سهم از کارکرد کارگاه: ${payDigits(d.share)}٪` : '', d.done ? `${payDigits(d.done)} کارکرد تکمیل‌شده` : ''].filter(Boolean).join(' • ');
+            const meta = [sc ? escapeHTML(sc.name) : '', w.role ? escapeHTML(w.role) : '', `روز کاری: ${payDigits(d.days)}`, d.avg ? `میانگین هر رکورد: ${payMoney(d.avg)}` : '', d.share != null ? `سهم از کارکرد مجموعه: ${payDigits(d.share)}٪` : '', d.done ? `${payDigits(d.done)} کارکرد تکمیل‌شده` : ''].filter(Boolean).join(' • ');
             const entT = d.ents.length ? `<h4>ثبت‌های مالی ماه (${payDigits(d.ents.length)})</h4><table><thead><tr><th>مورد</th><th>جزئیات</th><th>مبلغ</th></tr></thead><tbody>${d.ents.map(e => `<tr><td>${PAY_KINDS[e.kind].t}${e.rateTitle ? ' — ' + escapeHTML(e.rateTitle) : ''}</td><td>${wfinEntDetail(e)}</td><td class="n">${payMoney((e.effect !== 'minus' ? 1 : -1) * e.amount, true)}</td></tr>`).join('')}</tbody></table>` : '';
             const recT = d.recs.length ? `<h4>کارکردهای ماه (${payDigits(d.recs.length)})</h4><table><thead><tr><th>کد</th><th>عنوان</th><th>تاریخ</th><th>تعداد</th><th>مبلغ کل (${cur})</th></tr></thead><tbody>${d.recs.map(r => `<tr><td>${escapeHTML(r.itemCode) || '-'}</td><td>${escapeHTML(r.itemTitle) || '-'}</td><td>${escapeHTML(r.date || '')}</td><td>${formatNumber(r.quantity)}</td><td class="n">${(typeof r.totalPrice === 'number' && Number.isFinite(r.totalPrice)) ? formatNumber(Math.round(r.totalPrice)) : '—'}</td></tr>`).join('')}</tbody></table>` : '';
             return `<div class="wfin-pr"><h3>خلاصه‌ی مالی ${escapeHTML(w.name)} — ${payMonthLabel(mk)}</h3><p class="meta">${meta}</p><table><thead><tr><th>شرح</th><th>جزئیات</th><th>مبلغ</th></tr></thead><tbody>${rows}</tbody></table>${entT}${recT}</div>`;
@@ -12181,7 +12503,7 @@
             document.getElementById('overviewDelayedCount').innerText = formatNumber(delayedCount);
             document.getElementById('overviewDelayedPercent').innerText = `${formatNumber(calcPercent(delayedCount))}٪`;
 
-            document.getElementById('overviewTotalItemsCount').innerText = `${formatNumber(totalQtySum)} عدد`;
+            document.getElementById('overviewTotalItemsCount').innerText = `${formatNumber(totalQtySum)} ${qtyUnit()}`;
             document.getElementById('overviewTotalAmount').innerText = `${formatNumber(totalAmountSum)} ${currency}${unknownPriceCount > 0 ? ' (+' + formatNumber(unknownPriceCount) + ' نامعلوم)' : ''}`;
 
             const empBox = document.getElementById('overviewEmployerBox');
@@ -12270,7 +12592,7 @@
     </style>
 </head>
 <body>
-    <h1>${escapeHTML(appSettings.shopName || 'سامانه‌ی کارگاه هوشمند')} - گزارش عملکرد ${periodLabel}</h1>
+    ${logoImgHTML()}<h1>${escapeHTML(appSettings.shopName || 'سامانه‌ی کار هوشمند')} - گزارش عملکرد ${periodLabel}</h1>
     <p>${getOwnerInfoLineText() ? escapeHTML(getOwnerInfoLineText()) + ' &nbsp;|&nbsp; ' : ''}تاریخ تهیه گزارش: ${formatDateDigits(currentJalali.fullDateStr)}</p>
     <table>
         <tr>
@@ -12300,7 +12622,7 @@
         </tr>`).join('') +
         `</table>
         <div class="summary-box">
-            <strong>مجموع کل تعداد:</strong> ${totalQtySum.toLocaleString('en-US')} عدد &nbsp;&nbsp;|&nbsp;&nbsp; 
+            <strong>مجموع کل تعداد:</strong> ${totalQtySum.toLocaleString('en-US')} ${qtyUnit()} &nbsp;&nbsp;|&nbsp;&nbsp; 
             <strong>مجموع کل کارکرد:</strong> ${totalAmountSum.toLocaleString('en-US')} ${currency}${unknownPriceCount > 0 ? ' &nbsp;&nbsp;|&nbsp;&nbsp; <span style="color:#b45309;">' + unknownPriceCount.toLocaleString('en-US') + ' رکورد با قیمت نامعلوم</span>' : ''}
         </div>
 </body>
@@ -12357,6 +12679,7 @@
 
         document.getElementById('recordTime').addEventListener('input', () => { recordTimeTouched = true; });
         document.getElementById('recordFormCard').addEventListener('focusin', refreshFormDateTimeIfUntouched);
+document.getElementById('recordFormCard').addEventListener('focusin', ensureNoTrackStatus);
         setInterval(() => { if (!document.hidden) refreshFormDateTimeIfUntouched(); }, 30 * 1000);
         document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshFormDateTimeIfUntouched(); });
 
@@ -12365,6 +12688,7 @@
         setCurrentTimeInInput();
         populateDeliveryDurationSelects();
         applyAppSettingsToUI();
+        if (IS_FIRST_RUN && !appSettings.setupDone) wizOpen();
 
         // کادر یادداشت‌های روزانه به‌طور پیش‌فرض بسته است؛ اگر کاربر قبلاً بازش گذاشته بود، دوباره باز می‌ماند
         if (localStorage.getItem('sewing_daily_notes_section_hidden') === '0') {
@@ -12602,7 +12926,197 @@
   document.addEventListener('visibilitychange',()=>{ if(document.hidden)pushWidgetData(); }); window.addEventListener('pagehide',pushWidgetData);
 })();
 </script>
+<script>
+function aiChatOpen() {
+    const p = document.getElementById('aiChatPage'); if (!p) return;
+    if (p.parentNode !== document.body) document.body.appendChild(p);
+    p.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    setTimeout(function () { const i = document.getElementById('aiInput'); if (i) { try { i.focus({ preventScroll: true }); } catch (e) {} } }, 120);
+}
+function aiChatClose() {
+    const p = document.getElementById('aiChatPage'); if (!p) return;
+    p.classList.add('hidden');
+    document.body.style.overflow = '';
+    const sg = document.getElementById('aiSuggest'); if (sg) sg.classList.add('hidden');
+}
+document.addEventListener('keydown', function (e) {
+    const p = document.getElementById('aiChatPage');
+    if (e.key === 'Escape' && p && !p.classList.contains('hidden')) aiChatClose();
+});
+</script>
 <script src="ai-assistant.js" onerror="try{var e=document.getElementById('aiSub');if(e)e.textContent='فایل ai-assistant.js بارگذاری نشد';}catch(x){}"></script>
+<script>
+(function () {
+  const $ = id => document.getElementById(id), U = () => (appSettings && appSettings.qtyUnit) || 'عدد', CUR = () => (appSettings && appSettings.currency) || 'تومان';
+  const num = n => formatNumber(Math.round(n || 0)), money = n => num(n) + ' ' + CUR();
+  const jd = r => parseJalaliDateToJdn(toEnglishDigits(String(r.date || '')));
+  const today = () => parseJalaliDateToJdn(toEnglishDigits(currentJalali.fullDateStr));
+  const sum = (l, k) => l.reduce((s, r) => s + (Number(r[k]) || 0), 0);
+  const cfs = () => (appSettings.customFields || []).filter(f => f && f.label);
+  const clean = s => String(s).replace(/\(.*?\)/g, ' ').replace(/\s+/g, ' ').trim();
+  const words = s => clean(s).split(' ').filter(w => w.length > 2 && !/^(شماره|نوع|نام|کد)$/.test(w));
+  function span(q, d) { const t = today(); if (/دیروز/.test(q)) return ['دیروز', t - 1, t - 1]; if (/امروز/.test(q)) return ['امروز', t, t]; if (/هفته/.test(q)) return ['۷ روز اخیر', t - 6, t]; if (/ماه/.test(q) || d) return ['۳۰ روز اخیر', t - 29, t]; return ['کل دوره', 0, 1e9]; }
+  const inSpan = s => allRecords.filter(r => { const j = jd(r); return j >= s[1] && j <= s[2]; });
+  function group(L, kf) { const m = {}; L.forEach(r => { const k = kf(r); if (!k) return; const o = m[k] || (m[k] = { q: 0, m: 0, n: 0 }); o.q += Number(r.quantity) || 0; o.m += Number(r.totalPrice) || 0; o.n++; }); return Object.entries(m).sort((a, b) => b[1].m - a[1].m || b[1].q - a[1].q); }
+  const line = e => `${e[0]}: ${money(e[1].m)} • ${num(e[1].q)} ${U()} • ${num(e[1].n)} ثبت`;
+  const title = r => String(r.itemTitle || r.itemCode || '').trim();
+  function jobAnswer(q) {
+    q = toEnglishDigits(q.trim());
+    const f = cfs().find(f => words(f.label).some(w => q.includes(w)) && /هر|تفکیک|بر اساس|پرفروش|بیشترین|رتبه/.test(q));
+    if (f) { const s = span(q, true), g = group(inSpan(s), r => String((r.custom || {})[f.id] || '').trim()).slice(0, 8); return g.length ? `${clean(f.label)} (${s[0]}):\n` + g.map(line).join('\n') : `برای «${clean(f.label)}» در ${s[0]} داده‌ای ثبت نشده.`; }
+    if (/پرفروش|پرتکرار|محبوب|بیشترین|پرمصرف/.test(q)) { const s = span(q, true), g = group(inSpan(s), title).slice(0, 5); return g.length ? `پرتکرارترین‌ها (${s[0]}):\n` + g.map(line).join('\n') : 'در این بازه داده‌ای نیست.'; }
+    if (/تاخیر|تأخیر/.test(q)) { if (appSettings.trackDelivery === false) return 'محاسبه‌ی زمان تحویل و تاخیر برای این شغل خاموش است (تنظیمات ← ساعات کاری).'; const s = span(q, true), L = inSpan(s); return `${s[0]}: ${num(L.filter(r => r.status === 'تاخیر').length)} تاخیر و ${num(L.filter(r => r.status === 'زودتر از موعد').length)} زودتر از موعد، از ${num(L.length)} ثبت.`; }
+    const f2 = cfs().find(f => words(f.label).some(w => q.includes(w))), cv = (r, id) => toEnglishDigits(String((r.custom || {})[id] || '').trim());
+    if (f2) { const v2 = q.split(/\s+/).find(x => allRecords.some(r => cv(r, f2.id) === x)); if (v2) { const L = allRecords.filter(r => cv(r, f2.id) === v2); return `${clean(f2.label)} «${v2}»: ${num(L.length)} ثبت، مجموع ${money(sum(L, 'totalPrice'))}، ${num(sum(L, 'quantity'))} ${U()}.`; } }
+    const vs = new Set(); allRecords.forEach(r => Object.values(r.custom || {}).forEach(v => { v = String(v).trim(); if (v.length > 1) vs.add(v); }));
+    const v = [...vs].find(x => q.includes(x));
+    if (v) { const L = allRecords.filter(r => Object.values(r.custom || {}).some(y => String(y).trim() === v)); return `«${v}»: ${num(L.length)} ثبت، مجموع ${money(sum(L, 'totalPrice'))}، ${num(sum(L, 'quantity'))} ${U()}.`; }
+    return null;
+  }
+  function generic(q) {
+    q = toEnglishDigits(q.trim()); const s = span(q), L = inSpan(s);
+    if (/درآمد|فروش|مجموع|مبلغ|دریافتی/.test(q)) return `${s[0]}: مجموع ${money(sum(L, 'totalPrice'))} از ${num(L.length)} ثبت.`;
+    if (/تعداد|چند/.test(q)) return `${s[0]}: ${num(L.length)} ثبت، مجموع ${num(sum(L, 'quantity'))} ${U()}.`;
+    const tk = q.split(/\s+/).filter(w => w.length > 1).map(w => w.toLowerCase());
+    const hit = allRecords.filter(r => { const h = [r.itemCode, r.itemTitle, r.itemColor, ...Object.values(r.custom || {})].join(' ').toLowerCase(); return tk.length && tk.every(w => h.includes(w)); }).slice(-5).reverse();
+    if (hit.length) return hit.map(r => `${r.date} | ${r.itemCode} ${r.itemTitle || ''} | ${num(r.quantity)} ${U()} | ${money(r.totalPrice)}`).join('\n');
+    return 'متوجه نشدم. مثال: «درآمد امروز»، «پرفروش‌ترین‌های ماه»، «درآمد هر ' + (cfs()[0] ? clean(cfs()[0].label) : 'روز') + '» یا بخشی از کد، نام یا مشتری را بنویسید.';
+  }
+  function bubble(t, me) { const d = document.createElement('div'); d.className = 'px-3 py-2 rounded-2xl text-[13px] leading-relaxed mb-2 ' + (me ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-100'); d.style.cssText = 'width:fit-content;max-width:90%;white-space:pre-line;' + (me ? 'margin-inline-end:auto' : 'margin-inline-start:auto'); d.textContent = t; return d; }
+  const orig = typeof window.aiAsk === 'function' ? window.aiAsk : null;
+  window.aiAsk = function (t) {
+    const i = $('aiInput'), q = String(typeof t === 'string' ? t : (i && i.value) || '').trim(), box = $('aiAnswer'); if (!q || !box) return;
+    let a = null; try { a = jobAnswer(q); } catch (e) { a = null; }
+    if (a === null && orig) return orig.apply(this, arguments);
+    if (a === null) { try { a = generic(q); } catch (e) { a = 'خطا در پردازش پرسش.'; } }
+    box.classList.remove('hidden'); box.appendChild(bubble(q, true)); box.appendChild(bubble(a, false));
+    if (i) i.value = ''; box.scrollTop = box.scrollHeight; if (box.parentElement) box.parentElement.scrollTop = box.parentElement.scrollHeight;
+  };
+  function jobChips() {
+    const c = $('aiChips'); if (!c) return; c.querySelectorAll('[data-job]').forEach(x => x.remove());
+    const l = ['پرتکرارترین‌های ماه']; cfs().slice(0, 2).forEach(f => l.push('درآمد هر ' + clean(f.label).replace(/^(شماره|نوع|نام)\s+/, '') + ' (ماه)'));
+    if (appSettings.trackDelivery !== false) l.push('تاخیرهای ماه');
+    if (!orig) l.unshift('درآمد امروز', 'درآمد هفته', 'تعداد ثبت‌های امروز');
+    l.forEach(x => { const b = document.createElement('button'); b.type = 'button'; b.dataset.job = '1'; b.textContent = x; b.className = 'shrink-0 px-3 py-1.5 rounded-full border border-indigo-300 dark:border-indigo-700 text-[12px] text-indigo-700 dark:text-indigo-300 bg-white dark:bg-slate-800'; b.onclick = () => window.aiAsk(x); c.appendChild(b); });
+    const i = $('aiInput'); if (i) i.placeholder = 'بپرس: «پرتکرارترین‌ها»، «درآمد امروز»' + (cfs()[0] ? '، «درآمد هر ' + clean(cfs()[0].label).replace(/^(شماره|نوع|نام)\s+/, '') + '»' : '') + '…';
+  }
+  const baseIns = typeof window.aiRenderInsights === 'function' ? window.aiRenderInsights : function () {
+    const box = $('aiInsights'); if (!box) return; const t = today(), d = allRecords.filter(r => jd(r) === t), w = allRecords.filter(r => { const j = jd(r); return j >= t - 6 && j <= t; });
+    box.innerHTML = [['امروز', d], ['۷ روز اخیر', w]].map(x => `<div class="flex justify-between text-[12px] py-1 text-slate-600 dark:text-slate-300"><span>${x[0]}</span><b>${escapeHTML(money(sum(x[1], 'totalPrice')) + ' • ' + num(x[1].length) + ' ثبت')}</b></div>`).join('');
+    const s = $('aiSub'); if (s) s.textContent = 'تحلیل آفلاین روی همین دستگاه';
+  };
+  window.aiRenderInsights = function () {
+    try { baseIns.apply(this, arguments); } catch (e) { /* بی‌اهمیت */ }
+    const box = $('aiInsights'); if (!box) return; box.querySelectorAll('[data-job]').forEach(x => x.remove());
+    const g = group(inSpan(span('ماه', true)), title)[0]; if (!g) return;
+    const d = document.createElement('div'); d.dataset.job = '1'; d.className = 'flex justify-between text-[12px] py-1 text-slate-600 dark:text-slate-300'; d.innerHTML = '<span>پرتکرارترین (۳۰ روز اخیر)</span><b></b>'; d.lastChild.textContent = g[0] + ' • ' + num(g[1].q) + ' ' + U(); box.appendChild(d);
+  };
+  try { window.aiRenderInsights(); } catch (e) { /* بی‌اهمیت */ }
+  const vv = window.visualViewport;
+  function fit() {
+    const p = $('aiChatPage'); if (!p || p.classList.contains('hidden')) return;
+    if (vv) { p.style.top = vv.offsetTop + 'px'; p.style.bottom = 'auto'; p.style.height = vv.height + 'px'; }
+    const a = $('aiAnswer'); if (a && a.parentElement) a.parentElement.scrollTop = a.parentElement.scrollHeight;
+  }
+  if (vv) { vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit); }
+  const inp = $('aiInput'); if (inp) inp.addEventListener('focus', () => { setTimeout(fit, 150); setTimeout(fit, 450); });
+  const o1 = window.aiChatOpen; window.aiChatOpen = function () { document.body.classList.add('ai-chat-open'); if (o1) o1(); jobChips(); fit(); setTimeout(() => { jobChips(); fit(); }, 300); };
+  const o2 = window.aiChatClose; window.aiChatClose = function () { document.body.classList.remove('ai-chat-open'); if (o2) o2(); const p = $('aiChatPage'); if (p) { p.style.top = ''; p.style.height = ''; p.style.bottom = ''; } };
+})();
+</script>
 
+
+<div id="karPremiumModal" class="kar-sheet no-print" dir="rtl" onclick="if(event.target===this)karClosePremium()">
+  <div class="kar-card">
+    <div class="kar-ico"><i class="fa-solid fa-crown"></i></div>
+    <h3 id="karPremTitle">نسخه‌ی ویژه</h3>
+    <p id="karPremText"></p>
+    <p id="karPriceLine" style="font-weight:700;color:#7c3aed">اشتراک ماهانه — ۲۹۰٬۰۰۰ تومان در ماه</p>
+    <button type="button" class="kar-btn" onclick="karBuy()"><i class="fa-solid fa-cart-shopping ml-1"></i> خرید اشتراک ماهانه</button>
+    <button type="button" class="kar-btn alt" onclick="karClosePremium()">بعداً</button>
+  </div>
+</div>
+<div id="karLock" class="kar-sheet no-print" dir="rtl">
+  <div class="kar-card">
+    <div class="kar-ico" style="background:linear-gradient(135deg,#6366f1,#7c3aed)"><i class="fa-solid fa-lock"></i></div>
+    <h3>دوره‌ی رایگان یک‌ماهه تمام شد</h3>
+    <p>برای ادامه‌ی استفاده از برنامه لازم است اشتراک ماهانه تهیه کنید. اطلاعات شما سر جایش محفوظ است و بعد از خرید اشتراک همه‌چیز دقیقاً مثل قبل در دسترس است.</p>
+    <button type="button" class="kar-btn" onclick="karBuy()"><i class="fa-solid fa-cart-shopping ml-1"></i> خرید اشتراک ماهانه</button>
+    <button type="button" class="kar-btn alt" onclick="karRecheck()"><i class="fa-solid fa-rotate ml-1"></i> اشتراک خریده‌ام؛ بررسی مجدد</button>
+    <button type="button" class="kar-btn alt" onclick="exportSmartBackup()"><i class="fa-solid fa-download ml-1"></i> دریافت نسخه‌ی پشتیبان از اطلاعات</button>
+  </div>
+</div>
+<script>
+/* پل پلاگین بومی بازار: فقط داخل اپ اندروید (که پلاگین KarBilling در آن ثبت شده) تعریف می‌شود؛
+   در مرورگر تعریف نمی‌شود و فقط دوره‌ی آزمایشی محلی کار می‌کند. */
+(function () {
+  function P() { return (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.KarBilling) || null; }
+  var native = false;
+  try { native = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()); } catch (e) {}
+  if (!native) return;
+  function call(name) { var p = P(); if (!p || !p[name]) return Promise.reject(new Error('no-plugin')); return p[name](); }
+  window.KarBilling = {
+    getStatus: function () { return call('getStatus'); },
+    purchase: function () { return call('purchase'); },
+    restore: function () { return call('restore'); }
+  };
+})();
+</script>
+<script>
+/* اشتراک: ۳۰ روز رایگان، سپس قفل کامل تا خرید اشتراک.
+   اتصال به بازار: پلاگین بومی باید window.KarBilling را با سه تابع getStatus() ← {active, daysLeft}، purchase() و restore() فراهم کند. */
+(function () {
+  var DAY = 864e5, TRIAL_DAYS = 30, K_START = 'kar_trial_start', K_SEEN = 'kar_last_seen';
+  var cur = { state: 'trial', daysLeft: TRIAL_DAYS };
+  function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) {} return null; }
+  function el(id) { return document.getElementById(id); }
+  function now() { var n = Date.now(), seen = +ls(K_SEEN) || 0; if (n < seen) n = seen; ls(K_SEEN, String(n)); return n; }
+  function localStatus() {
+    var n = now(), st = +ls(K_START);
+    if (!st) { st = n; ls(K_START, String(st)); }
+    var left = Math.ceil((st + TRIAL_DAYS * DAY - n) / DAY);
+    return left > 0 ? { state: 'trial', daysLeft: Math.min(left, TRIAL_DAYS) } : { state: 'expired', daysLeft: 0 };
+  }
+  async function getStatus() {
+    try { var B = window.KarBilling; if (B && B.getStatus) { var r = await B.getStatus(); if (r && r.active) return { state: 'active', daysLeft: r.daysLeft || 0 }; } } catch (e) {}
+    return localStatus();
+  }
+  function paint() {
+    var b = el('premiumHomeBtn'), lock = el('karLock');
+    if (b) {
+      b.classList.toggle('is-active', cur.state === 'active');
+      el('premiumHomeTitle').textContent = cur.state === 'active' ? 'اشتراک ویژه فعال است' : 'ارتقا به نسخه‌ی ویژه';
+      el('premiumHomeSub').textContent = cur.state === 'active' ? 'ممنون که از ما حمایت می‌کنید' : (cur.state === 'trial' ? cur.daysLeft + ' روز از دوره‌ی رایگان باقی مانده' : '');
+    }
+    var lockOn = cur.state === 'expired';
+    if (lock) lock.classList.toggle('open', lockOn);
+    document.documentElement.style.overflow = lockOn ? 'hidden' : '';
+    if (lockOn) { var m = el('karPremiumModal'); if (m) m.classList.remove('open'); }
+  }
+  async function refresh() { cur = await getStatus(); paint(); return cur; }
+  window.karPremiumRefresh = refresh;
+  window.karOpenPremium = function () {
+    el('karPremTitle').textContent = cur.state === 'active' ? 'اشتراک شما فعال است' : 'نسخه‌ی ویژه';
+    el('karPremText').textContent = cur.state === 'active' ? 'همه‌ی امکانات برنامه برای شما باز است.' : 'تا ' + cur.daysLeft + ' روز دیگر همه‌ی امکانات رایگان است. بعد از آن، برای ادامه‌ی کار با برنامه باید اشتراک ماهانه تهیه کنید.';
+    el('karPremiumModal').classList.add('open');
+  };
+  window.karClosePremium = function () { el('karPremiumModal').classList.remove('open'); };
+  function say(m, t) { if (typeof showFeedbackBanner === 'function') showFeedbackBanner(m, t || 'warn'); else alert(m); }
+  window.karBuy = async function () {
+    var B = window.KarBilling;
+    if (!B || !B.purchase) { say('پرداخت پس از اتصال برنامه به کافه بازار فعال می‌شود.'); return; }
+    try { await B.purchase(); await refresh(); if (cur.state === 'active') { window.karClosePremium(); say('اشتراک شما فعال شد.', 'success'); } }
+    catch (e) { var m = String((e && (e.message || e)) || ''); say(m.indexOf('no-plugin') >= 0 ? 'پرداخت پس از اتصال برنامه به کافه بازار فعال می‌شود.' : (m.indexOf('canceled') >= 0 ? 'خرید لغو شد.' : 'خرید کامل نشد. مطمئن شوید برنامه‌ی کافه بازار نصب و وارد حساب است.')); }
+  };
+  window.karRecheck = async function () {
+    try { var B = window.KarBilling; if (B && B.restore) await B.restore(); } catch (e) {}
+    await refresh();
+    if (cur.state === 'expired') say('اشتراک فعالی پیدا نشد.');
+  };
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) refresh(); });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', refresh); else refresh();
+})();
+</script>
 </body>
 </html>
