@@ -16,6 +16,8 @@ def rd(p): return open(p, encoding='utf-8').read()
 def wr(p, s): open(p, 'w', encoding='utf-8').write(s)
 def die(m): print('ERROR:', m); sys.exit(1)
 
+if not RSA: print('WARNING: BAZAAR_RSA_KEY خالی است؛ اشتراک فعال نمی‌شود تا کلید را اضافه کنی (فقط برای ساخت اولیه جهت آپلود به بازار)')
+
 main = glob.glob('android/app/src/main/java/**/MainActivity.java', recursive=True)
 if not main: die('MainActivity.java پیدا نشد؛ آیا cap add android اجرا شده؟')
 main = main[0]; src = rd(main)
