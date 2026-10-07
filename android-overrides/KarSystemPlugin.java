@@ -3,6 +3,7 @@ package ir.sewingstats.app;
 import android.app.AlarmManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.PowerManager;
@@ -87,6 +88,33 @@ public class KarSystemPlugin extends Plugin {
             call.resolve(new JSObject().put("opened", true));
         } catch (Exception e) {
             call.reject("app settings unavailable");
+        }
+    }
+
+    /** دوره‌ی آزمایشی ۳۰ روزه از زمان نصب (با پاک‌کردن داده‌ی برنامه ریست نمی‌شود)؛ ساعت به عقب برنمی‌گردد. */
+    @PluginMethod
+    public void trialStatus(PluginCall call) {
+        try {
+            Context c = getContext();
+            final long DAY = 86400000L;
+            long first = c.getPackageManager().getPackageInfo(c.getPackageName(), 0).firstInstallTime;
+            SharedPreferences sp = c.getSharedPreferences("kar_s", Context.MODE_PRIVATE);
+            long wall = System.currentTimeMillis();
+            long el = android.os.SystemClock.elapsedRealtime();
+            long tw = sp.getLong("tw", 0L), te = sp.getLong("te", 0L);
+            long now;
+            if (tw > 0 && el >= te) now = tw + (el - te);   // زمان واقعی سپری‌شده، مستقل از ساعت گوشی
+            else now = Math.max(tw, wall);                   // اولین اجرا یا بعد از ریبوت
+            if (wall > now) now = wall;                      // جلو بردن ساعت فقط به ضرر کاربر است
+            sp.edit().putLong("tw", now).putLong("te", el).apply();
+            long left = (long) Math.ceil((first + 30 * DAY - now) / (double) DAY);
+            if (left > 30) left = 30;
+            JSObject r = new JSObject();
+            r.put("daysLeft", (int) Math.max(left, 0));
+            r.put("expired", left <= 0);
+            call.resolve(r);
+        } catch (Exception e) {
+            call.reject("trial unavailable");
         }
     }
 }
