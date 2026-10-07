@@ -94,8 +94,11 @@ jobs:
           -keepclassmembers class * { @com.getcapacitor.PluginMethod public *; }
           -keep class ir.cafebazaar.** { *; }
           -keep class com.farsitel.bazaar.** { *; }
+          -keep class com.capacitorjs.plugins.** { *; }
+          -keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod
           -dontwarn **
           EOF2
+          grep -q POST_NOTIFICATIONS android/app/src/main/AndroidManifest.xml || sed -i 's#<application#<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n    <application#' android/app/src/main/AndroidManifest.xml
           grep -n "allowBackup" android/app/src/main/AndroidManifest.xml
           grep -n "minifyEnabled" android/app/build.gradle
 
