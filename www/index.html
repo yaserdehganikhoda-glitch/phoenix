@@ -1025,6 +1025,16 @@
     <link rel="stylesheet" href="style.css">
 
     <style id="kfPatchStyle">
+        /* رنگ دکمه‌ی ویزارد (در style.css ساخته‌شده نبود) */
+        .bg-purple-700 { background-color: #7e22ce; }
+        #wizNextBtn { background-color: #7e22ce; color: #fff; }
+        /* متن‌های بلند در لیست کارکردها: کوتاه‌شده + کلیک برای دیدن کامل */
+        #recordsTableBody .rc-t { display: inline-block; max-width: 11em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; }
+        #recordsTableBody td.rc-more .rc-t { color: #4f46e5; text-decoration: underline dotted; text-underline-offset: 3px; cursor: pointer; }
+        .dark #recordsTableBody td.rc-more .rc-t { color: #a5b4fc; }
+        #rcPop { position: fixed; z-index: 90; max-width: min(80vw, 18rem); padding: .6rem .8rem; border-radius: .8rem; font-size: .8rem; line-height: 1.8; white-space: pre-wrap; word-break: break-word; background: #fff; color: #1e293b; border: 1px solid #94a3b8; box-shadow: 0 10px 30px -8px rgba(0,0,0,.35); }
+        .dark #rcPop { background: #1e293b; color: #f1f5f9; border-color: #475569; }
+        @media print { #recordsTableBody .rc-t { max-width: none; overflow: visible; white-space: normal; } #rcPop { display: none; } }
         /* دکمه‌ی ثبت یادآوری زیر کادر «تکرار» */
         .kf-note-savegroup { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .kf-note-savegroup.kf-col { flex-direction: column; align-items: stretch; margin-top: 8px; gap: 6px; }
@@ -4960,9 +4970,23 @@ const WK_NAMES = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه',
             const u = document.getElementById('settingQtyUnit'); if (u) u.value = p.unit || 'عدد';
             const k = document.getElementById('settingTrackDelivery'); if (k) k.checked = p.track !== false;
             const dm = document.getElementById('settingDeadlineMode'); if (dm) dm.checked = !!p.deadline;
+            if (Array.isArray(cfDraft)) {
+                const drop = new Set();
+                Object.keys(PRESET_EXTRA).forEach(k => presetCf(k).forEach(f => drop.add(f.id)));
+                if (!p.deadline) { drop.add('cfdeadline'); drop.add('cfdeadlinetime'); }
+                if (!p.customer) drop.add('cfcustomer');
+                presetCf(id).forEach(f => drop.delete(f.id));
+                for (let i = cfDraft.length - 1; i >= 0; i--) if (drop.has(cfDraft[i].id)) cfDraft.splice(i, 1);
+                cfEditorRender();
+            }
             if (p.deadline && Array.isArray(cfDraft) && !cfDraft.some(f => f.id === 'cfdeadline')) { cfDraft.push({ ...DEADLINE_FIELD }); cfEditorRender(); }
             if (p.customer && Array.isArray(cfDraft) && !cfDraft.some(f => f.id === 'cfcustomer')) { cfDraft.push(custField(p)); cfEditorRender(); }
-            const qi = document.getElementById('settingQuickItems'); if (qi && id && !qi.value.trim()) qi.value = presetQuick(id).map(x => x.t).join('\n');
+            const qi = document.getElementById('settingQuickItems');
+            if (qi && id) {
+                const cur = qi.value.trim();
+                const auto = !cur || Object.keys(PRESET_QUICK).some(k => presetQuick(k).map(x => x.t).join('\n') === cur);
+                if (auto) qi.value = presetQuick(id).map(x => x.t).join('\n');
+            }
             if (id && Array.isArray(cfDraft)) { presetCf(id).forEach(f => { if (!cfDraft.some(x => x.id === f.id) && cfDraft.length < CF_MAX) cfDraft.push(f); }); cfEditorRender(); }
         }
         const DEADLINE_FIELD = { id: 'cfdeadline', label: 'مهلت تحویل', type: 'text' };
@@ -13128,11 +13152,12 @@ document.addEventListener('keydown', function (e) {
   try { native = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()); } catch (e) {}
   if (!native) return;
   function call(name) { var p = P(); if (!p || !p[name]) return Promise.reject(new Error('no-plugin')); return p[name](); }
-  window.KarBilling = {
+  var KB = Object.freeze({
     getStatus: function () { return call('getStatus'); },
     purchase: function () { return call('purchase'); },
     restore: function () { return call('restore'); }
-  };
+  });
+  try { Object.defineProperty(window, 'KarBilling', { value: KB, writable: false, configurable: false }); } catch (e) { window.KarBilling = KB; }
 })();
 </script>
 <script>
@@ -13141,6 +13166,7 @@ document.addEventListener('keydown', function (e) {
 (function () {
   var DAY = 864e5, TRIAL_DAYS = 30, K_START = 'kar_trial_start', K_SEEN = 'kar_last_seen';
   var cur = { state: 'trial', daysLeft: TRIAL_DAYS };
+  var lockEl = null;
   function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) {} return null; }
   function el(id) { return document.getElementById(id); }
   function now() { var n = Date.now(), seen = +ls(K_SEEN) || 0; if (n < seen) n = seen; ls(K_SEEN, String(n)); return n; }
@@ -13150,12 +13176,22 @@ document.addEventListener('keydown', function (e) {
     var left = Math.ceil((st + TRIAL_DAYS * DAY - n) / DAY);
     return left > 0 ? { state: 'trial', daysLeft: Math.min(left, TRIAL_DAYS) } : { state: 'expired', daysLeft: 0 };
   }
+  async function nativeTrial() {
+    try {
+      var C = window.Capacitor; if (!C || !C.isNativePlatform || !C.isNativePlatform()) return null;
+      var p = (C.Plugins && C.Plugins.KarSystem) || (C.registerPlugin && (window.__karSys = window.__karSys || C.registerPlugin('KarSystem')));
+      if (!p || !p.trialStatus) return null;
+      var r = await p.trialStatus();
+      return r && r.expired ? { state: 'expired', daysLeft: 0 } : { state: 'trial', daysLeft: Math.max(1, (r && r.daysLeft) | 0) };
+    } catch (e) { return null; }
+  }
   async function getStatus() {
     try { var B = window.KarBilling; if (B && B.getStatus) { var r = await B.getStatus(); if (r && r.active) return { state: 'active', daysLeft: r.daysLeft || 0 }; } } catch (e) {}
-    return localStatus();
+    return (await nativeTrial()) || localStatus();
   }
   function paint() {
-    var b = el('premiumHomeBtn'), lock = el('karLock');
+    var b = el('premiumHomeBtn'); lockEl = lockEl || el('karLock'); var lock = lockEl;
+    if (lock && !document.body.contains(lock)) document.body.appendChild(lock);
     if (b) {
       b.classList.toggle('is-active', cur.state === 'active');
       el('premiumHomeTitle').textContent = cur.state === 'active' ? 'اشتراک ویژه فعال است' : 'ارتقا به نسخه‌ی ویژه';
@@ -13163,6 +13199,7 @@ document.addEventListener('keydown', function (e) {
     }
     var lockOn = cur.state === 'expired';
     if (lock) lock.classList.toggle('open', lockOn);
+    if (lock && lockOn) { lock.style.display = ''; lock.style.visibility = ''; lock.style.opacity = ''; }
     document.documentElement.style.overflow = lockOn ? 'hidden' : '';
     if (lockOn) { var m = el('karPremiumModal'); if (m) m.classList.remove('open'); }
   }
@@ -13187,6 +13224,8 @@ document.addEventListener('keydown', function (e) {
     if (cur.state === 'expired') say('اشتراک فعالی پیدا نشد.');
   };
   document.addEventListener('visibilitychange', function () { if (!document.hidden) refresh(); });
+  setInterval(function () { paint(); }, 3000);
+  setInterval(function () { refresh(); }, 60000);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', refresh); else refresh();
 })();
 </script>
@@ -13424,5 +13463,44 @@ document.addEventListener('keydown', function (e) {
 })();
 </script>
 
+<script>
+(function () {
+  var tb = document.getElementById('recordsTableBody'); if (!tb) return;
+  var pop = null, raf = 0;
+  function closePop() { if (pop) { pop.remove(); pop = null; } }
+  function over(s) { return s.scrollWidth > s.clientWidth + 1; }
+  function measure() {
+    var list = tb.querySelectorAll('td[data-rcm]');
+    for (var i = 0; i < list.length; i++) { var s = list[i].firstChild; if (s && s.classList) list[i].classList.toggle('rc-more', over(s)); }
+  }
+  function decorate() {
+    var cells = tb.querySelectorAll('td.c-title:not([data-rcm]), td[class*="c-cf_"]:not([data-rcm])');
+    for (var i = 0; i < cells.length; i++) {
+      var td = cells[i], s = document.createElement('span'); s.className = 'rc-t';
+      while (td.firstChild) s.appendChild(td.firstChild);
+      td.appendChild(s); td.setAttribute('data-rcm', '1');
+    }
+    measure();
+  }
+  new MutationObserver(function () { if (raf) return; raf = requestAnimationFrame(function () { raf = 0; decorate(); }); }).observe(tb, { childList: true });
+  if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { if (e[0] && e[0].isIntersecting) measure(); }).observe(tb);
+  window.addEventListener('resize', measure);
+  tb.addEventListener('click', function (ev) {
+    var td = ev.target.closest && ev.target.closest('td[data-rcm]'); if (!td) return;
+    var s = td.firstChild; if (!s || !over(s)) return;
+    var txt = s.textContent; closePop();
+    pop = document.createElement('div'); pop.id = 'rcPop'; pop.textContent = txt; document.body.appendChild(pop);
+    var r = td.getBoundingClientRect(), pr = pop.getBoundingClientRect();
+    var left = Math.min(Math.max(8, r.right - pr.width), window.innerWidth - pr.width - 8);
+    var top = r.bottom + 6; if (top + pr.height > window.innerHeight - 8) top = Math.max(8, r.top - pr.height - 6);
+    pop.style.left = left + 'px'; pop.style.top = top + 'px';
+    ev.stopPropagation();
+  });
+  document.addEventListener('click', function (e) { if (pop && !pop.contains(e.target)) closePop(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closePop(); });
+  window.addEventListener('scroll', closePop, true);
+  decorate();
+})();
+</script>
 </body>
 </html>
