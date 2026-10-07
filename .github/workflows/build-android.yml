@@ -26,6 +26,11 @@ jobs:
             npx cap add android
           fi
 
+      - name: Copy custom native Java files
+        run: |
+          mkdir -p android/app/src/main/java/ir/sewingstats/app
+          cp android-overrides/*.java android/app/src/main/java/ir/sewingstats/app/
+
       - name: Install home-screen widget into android project
         run: python3 widget/apply_widget.py
 
