@@ -83,6 +83,22 @@ jobs:
       - name: Generate app icon & splash screen from assets/icon.png
         run: npx @capacitor/assets generate --android --iconBackgroundColor '#4f46e5' --splashBackgroundColor '#f8fafc'
 
+      - name: Harden release build (no backup, R8 shrink)
+        run: |
+          sed -i 's/android:allowBackup="true"/android:allowBackup="false"/' android/app/src/main/AndroidManifest.xml
+          sed -i '/buildTypes/,/^    }/ s/minifyEnabled false/minifyEnabled true/' android/app/build.gradle
+          cat >> android/app/proguard-rules.pro <<'EOF2'
+          -keep class ir.sewingstats.app.** { *; }
+          -keep class com.getcapacitor.** { *; }
+          -keep @com.getcapacitor.annotation.CapacitorPlugin class * { *; }
+          -keepclassmembers class * { @com.getcapacitor.PluginMethod public *; }
+          -keep class ir.cafebazaar.** { *; }
+          -keep class com.farsitel.bazaar.** { *; }
+          -dontwarn **
+          EOF2
+          grep -n "allowBackup" android/app/src/main/AndroidManifest.xml
+          grep -n "minifyEnabled" android/app/build.gradle
+
       - name: Setup JDK
         uses: actions/setup-java@v4
         with:
