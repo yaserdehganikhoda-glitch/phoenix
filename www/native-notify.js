@@ -11,8 +11,9 @@
     let plugin = null;
     async function getPlugin() {
         if (plugin) return plugin;
-        const { LocalNotifications } = await import('@capacitor/local-notifications');
-        plugin = LocalNotifications;
+        const C = window.Capacitor;
+        plugin = (C && C.Plugins && C.Plugins.LocalNotifications) || (C && C.registerPlugin && C.registerPlugin('LocalNotifications'));
+        if (!plugin) throw new Error('LocalNotifications unavailable');
         return plugin;
     }
 
@@ -21,7 +22,7 @@
         try {
             const res = await (await getPlugin()).checkPermissions();
             window.__nativeNotifGranted = res.display === 'granted';
-            return res.display; // 'granted' | 'denied' | 'prompt'
+            return res.display === 'prompt-with-rationale' ? 'prompt' : res.display; // 'granted' | 'denied' | 'prompt'
         } catch (e) {
             console.warn('بررسی مجوز اعلان نیتیو ناموفق بود:', e);
             return 'denied';
@@ -33,7 +34,7 @@
         try {
             const res = await (await getPlugin()).requestPermissions();
             window.__nativeNotifGranted = res.display === 'granted';
-            return res.display;
+            return res.display === 'prompt-with-rationale' ? 'prompt' : res.display;
         } catch (e) {
             console.warn('درخواست مجوز اعلان نیتیو ناموفق بود:', e);
             return 'denied';
