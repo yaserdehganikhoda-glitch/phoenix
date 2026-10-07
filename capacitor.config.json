@@ -4,7 +4,8 @@
   "webDir": "www",
   "bundledWebRuntime": false,
   "android": {
-    "allowMixedContent": true
+    "allowMixedContent": true,
+    "webContentsDebuggingEnabled": false
   },
   "plugins": {
     "LocalNotifications": {
