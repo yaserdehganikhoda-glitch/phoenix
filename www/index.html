@@ -5758,7 +5758,13 @@ const WK_NAMES = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه',
                     try {
                         const monthFolder = filename.replace(/\.json$/i, '');
                         const path = `کارگاه_هوشمند_پشتیبان/${currentModeFolderName()}/${monthFolder}/${filename}`;
-                        await FS.writeFile({ path, data: jsonString, directory: 'DOCUMENTS', encoding: 'utf8', recursive: true });
+                        const wr = (p, d) => FS.writeFile({ path: p, data: jsonString, directory: d, encoding: 'utf8', recursive: true });
+                        try { await wr(path, 'DOCUMENTS'); }
+                        catch (e1) {
+                            // فایل قدیمیِ نصب قبلی (مثلاً با امضای دیگر) قابل بازنویسی نیست؛ نام جایگزین، سپس پوشه‌ی اختصاصی برنامه
+                            try { await wr(path.replace(/\.json$/i, '_2.json'), 'DOCUMENTS'); }
+                            catch (e2) { await wr(path, 'EXTERNAL'); showFeedbackBanner('پشتیبان در پوشه‌ی اختصاصی برنامه ذخیره شد (Android/data).', 'warn'); }
+                        }
                         updateBackupFolderStatusUI();
                         if (onSuccess) onSuccess('native-documents');
                         return true;
