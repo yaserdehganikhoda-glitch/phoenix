@@ -37,7 +37,7 @@ jobs:
       - name: Install Bazaar billing plugin (Poolakey) into android project
         run: python3 bazaar/apply_bazaar.py
         env:
-          BAZAAR_SKU: kar_premium
+          BAZAAR_SKU: ${{ vars.BAZAAR_SKU || 'kar_premium' }}
           BAZAAR_RSA_KEY: ${{ secrets.BAZAAR_RSA_KEY }}
 
       - name: Add JitPack repository (required to resolve Poolakey)
@@ -101,6 +101,9 @@ jobs:
           grep -q POST_NOTIFICATIONS android/app/src/main/AndroidManifest.xml || sed -i 's#<application#<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n    <application#' android/app/src/main/AndroidManifest.xml
           grep -n "allowBackup" android/app/src/main/AndroidManifest.xml
           grep -n "minifyEnabled" android/app/build.gradle
+          sed -i 's/versionCode [0-9][0-9]*/versionCode ${{ github.run_number }}/' android/app/build.gradle
+          sed -i 's/versionName "[^"]*"/versionName "1.0.${{ github.run_number }}"/' android/app/build.gradle
+          grep -n "versionCode\|versionName" android/app/build.gradle
 
       - name: Setup JDK
         uses: actions/setup-java@v4
