@@ -1,6 +1,6 @@
 {
   "appId": "ir.sewingstats.app",
-  "appName": "کار هوشمند",
+  "appName": "کارو",
   "webDir": "www",
   "bundledWebRuntime": false,
   "android": {
